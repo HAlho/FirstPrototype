@@ -1,10 +1,16 @@
 const port = 1337;
 const host = '192.168.0.103';
 const WebSocket = require('ws');
-var http = require('http');
-const fs = require("fs").promises;
+var https = require('https');
+var fs = require("fs").promises;
 
-const server = http.createServer(function (req, res) {
+/*options = {
+
+    pfx: fs.readFileSync("ssl/crt.pfx"),
+    passphrase: "password"
+
+};*/
+const server = https.createServer(function (req, res) {
     fs.readFile(__dirname + "/index.html")
         .then(contents => {
             res.setHeader("Content-Type", "text/html");

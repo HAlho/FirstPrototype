@@ -1,47 +1,77 @@
-﻿﻿<meta charset="UTF-8">
+﻿﻿
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<h1>V2V charging Request</h1>
+<html>
+<body>
+
+    <h1>V2V charging Request</h1>
 <pre id="messages" style="height: 400px; overflow: scroll"></pre>
-<button id="send" title="Send Message!" style="width: 100%; height: 30px;">Send Your Charging Request :)</button>
+    <button id="send" title="Send Message!" style="width: 100%; height: 30px;">Send Your Charging Request :)</button>
+    <button id="locate" title="Locate!" >Get location</button>
 
-<script>
-    (function () {
-        const sendBtn = document.querySelector('#send');
-        const messages = document.querySelector('#messages');
+    <p id="demo"></p>
 
-        let ws;
 
-        function showMessage(message) {
-            messages.textContent += `\n\n${message}`;
-            messages.scrollTop = messages.scrollHeight;
-        }
+    <script>
+        (function () {
+            const sendBtn = document.querySelector('#send');
+            const messages = document.querySelector('#messages');
+            const showLoc = document.querySelector('#locate');
+            var x = document.getElementById("demo");
 
-        function init() {
-            if (ws) {
-                ws.onerror = ws.onopen = ws.onclose = null;
-                ws.close();
+
+            let ws;
+
+            function getLocation() {//get location info
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(showPosition);
+                } else {
+                    return "failedLoc";
+                }
             }
 
-            ws = new WebSocket('ws://192.168.0.103:1337');
-            ws.onopen = () => {
-                console.log('Connection opened!');
+            function showPosition(position) {
+                showMessage("Latitude: " + position.coords.latitude +
+                    " Longitude: " + position.coords.longitude);
             }
-            ws.onmessage = ({ data }) => showMessage(data);
-            ws.onclose = function () {
-                ws = null;
-            }
-        }
+           
 
-        sendBtn.onclick = function () {
-            if (!ws) {
-                showMessage("No WebSocket connection :(");
-                return;
+            function showMessage(message) {
+                messages.textContent += `\n\n${message}`;
+                messages.scrollTop = messages.scrollHeight;
             }
 
-            ws.send("A request has been made");
-            showMessage("Your request has been sent");
-        }
+            function init() {
+                if (ws) {
+                    ws.onerror = ws.onopen = ws.onclose = null;
+                    ws.close();
+                }
 
-        init();
-    })();
-</script>
+                ws = new WebSocket('ws://192.168.0.103:1337');
+                ws.onopen = () => {
+                    console.log('Connection opened!');
+                }
+                ws.onmessage = ({ data }) => showMessage(data);
+                ws.onclose = function () {
+                    ws = null;
+                }
+            }
+
+            sendBtn.onclick = function () {
+                if (!ws) {
+                    showMessage("No WebSocket connection :(");
+                    return;
+                }
+                ws.send("A request has been made");
+                showMessage("Your request has been sent");
+            }
+
+            showLoc.onclick = function () {
+                getLocation();
+            }
+
+            init();
+        })();
+    </script>
+</body>
+    </html>
