@@ -1,0 +1,47 @@
+﻿﻿<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<h1>V2V charging Request</h1>
+<pre id="messages" style="height: 400px; overflow: scroll"></pre>
+<button id="send" title="Send Message!" style="width: 100%; height: 30px;">Send Your Charging Request :)</button>
+
+<script>
+    (function () {
+        const sendBtn = document.querySelector('#send');
+        const messages = document.querySelector('#messages');
+
+        let ws;
+
+        function showMessage(message) {
+            messages.textContent += `\n\n${message}`;
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function init() {
+            if (ws) {
+                ws.onerror = ws.onopen = ws.onclose = null;
+                ws.close();
+            }
+
+            ws = new WebSocket('ws://192.168.0.103:1337');
+            ws.onopen = () => {
+                console.log('Connection opened!');
+            }
+            ws.onmessage = ({ data }) => showMessage(data);
+            ws.onclose = function () {
+                ws = null;
+            }
+        }
+
+        sendBtn.onclick = function () {
+            if (!ws) {
+                showMessage("No WebSocket connection :(");
+                return;
+            }
+
+            ws.send("A request has been made");
+            showMessage("Your request has been sent");
+        }
+
+        init();
+    })();
+</script>
