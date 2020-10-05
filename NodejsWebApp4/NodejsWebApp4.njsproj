@@ -37,13 +37,13 @@
     <Content Include="README.md" />
     <Content Include="ssl\crt.cnf" />
     <Content Include="ssl\crt.crt" />
+    <Content Include="ssl\crt.pfx" />
     <Content Include="ssl\csr.cnf" />
     <Content Include="ssl\csr.csr" />
     <Content Include="ssl\key.key" />
     <Content Include="ssl\make-crt.sh" />
     <Content Include="ssl\make-csr.sh" />
     <Content Include="ssl\make-key.sh" />
-    <Content Include="ssl\make-pfx.sh" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ssl\" />
