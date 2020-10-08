@@ -1,6 +1,6 @@
 (function () {
     const port = 1337;
-    const host = '192.168.0.103';//your local ip (cmd ipconfig) note: your local ip could change if the device or network is restarted
+    const host = '192.168.0.102';//your local ip (cmd ipconfig) note: your local ip could change if the device or network is restarted
     const WebSocket = require('ws');
     var http = require('https');    //A self-signed certificate is used. Browsers will not accept this certificate because the certificate is not provided by a certified authority that the browser knows.
     //The certificate has to be manually added to the browser(go to manage certificates in browser settings and import the certificate, .cert, to the trusted root CA.
