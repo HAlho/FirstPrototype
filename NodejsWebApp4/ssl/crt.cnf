@@ -23,5 +23,5 @@ authorityKeyIdentifier = keyid:always,issuer:always
 basicConstraints       = CA:TRUE
 
 keyUsage               = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign
-subjectAltName         = DNS:192.168.0.102, IP:192.168.0.102, DNS:192.168.0.103, IP:192.168.0.103
+subjectAltName         = DNS:192.168.1.25, IP:192.168.1.25, DNS:192.168.0.103, IP:192.168.0.103, DNS:192.168.10.63, IP:192.168.10.63, DNS:192.168.100.192, IP:192.168.100.192
 issuerAltName          = issuer:copy
