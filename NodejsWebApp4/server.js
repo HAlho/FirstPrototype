@@ -1,6 +1,6 @@
 (function () {
     const port = 1337;
-    const host = '192.168.0.103';//your local ip (cmd ipconfig) note: your local ip could change if the device or network is restarted
+    const host = '192.168.0.123';//your local ip (cmd ipconfig) note: your local ip could change if the device or network is restarted
     const WebSocket = require('ws');
     var http = require('https');    //A self-signed certificate is used. Browsers will not accept this certificate because the certificate is not provided by a certified authority that the browser knows.
     //The certificate has to be manually added to the browser(go to manage certificates in browser settings and import the certificate, .cert, to the trusted root CA.
@@ -11,6 +11,14 @@
     //Third, To create the ssl files, run .sh files in the order: make-key, make-csr, make-crt, make-pfx. If you have a virtual linux OS (like Ubuntu), it is preferred to run them there and then send the files to Windows
     const fs = require("fs").promises;
     var fss = require("fs");
+    var admin = require("firebase-admin");
+   // importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-app.js')//not needed for fbadmin
+    //importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-messaging.js')//same
+    var serviceAccount = require("serviceAccountKey.json");//might be wrong path
+    admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+        databaseURL: 'https://auth-c0cb3.firebaseio.com'
+    });
 
     options = {
 
@@ -44,7 +52,29 @@
         })
     })
 
+    var registrationToken = 'c5drwFsHxv9tJ7NqXQxftW:APA91bFp2Um2eW-dnOktxxKtcI8wEv1Ml5ud3NKeMhaAkD826B--Ipf44OVpFWJNCC5SCWg3GjjT_lI6ZGzShKHzkns7V-QtdoMH1BLDvDjX-sUxJXKKe6Oxh_iEDa6OY2y41ykFkBzK';
+
+    var message = {
+        data: {
+            score: '850',
+            time: '2:45'
+        },
+        token: registrationToken
+    };
+
+    // Send a message to the device corresponding to the provided
+    // registration token.
+    admin.messaging().send(message)
+        .then((response) => {
+            // Response is a message ID string.
+            console.log('Successfully sent message:', response);
+        })
+        .catch((error) => {
+            console.log('Error sending message:', error);
+        });
+
     httpsServer.listen(port, host, () => {
         console.log(`Server is running on https://${host}:${port}`)
     })
 })();
+
