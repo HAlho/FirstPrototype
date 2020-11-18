@@ -1,101 +1,142 @@
-﻿<meta charset="UTF-8">
+﻿<!DOCTYPE html>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <html>
+<head>
+    <title>Choose meeting place</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+        /* Set the size of the div element that contains the map */
+        #map {
+            height: 400px; /* The height is 400 pixels */
+            width: 100%; /* The width is the width of the web page */
+        }
+    </style>
+</head>
 <body>
-    <!-- The core Firebase JS SDK is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/8.0.2/firebase-app.js"></script>
-
-    <!-- TODO: Add SDKs for Firebase products that you want to use
-         https://firebase.google.com/docs/web/setup#available-libraries -->
-    <script src="https://www.gstatic.com/firebasejs/8.0.2/firebase-analytics.js"></script>
-
-    <script>
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        var firebaseConfig = {
-            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
-            authDomain: "auth-c0cb3.firebaseapp.com",
-            databaseURL: "https://auth-c0cb3.firebaseio.com",
-            projectId: "auth-c0cb3",
-            storageBucket: "auth-c0cb3.appspot.com",
-            messagingSenderId: "1034981325790",
-            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
-            measurementId: "G-1GCV52KFRG"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
 
     <h1>V2V charging Request</h1>
+    <p id="demo"></p>
+    <div id="map"></div>
+    <button id="locate" title="Locate!">Use current location</button>
 <pre id="messages" style="height: 400px; overflow: scroll"></pre>
     <button id="send" title="Send Message!" style="width: 100%; height: 30px;">Send Your Charging Request :)</button>
-    <button id="locate" title="Locate!">Get location</button>
 
-    <p id="demo"></p>
+    <!--The div element for the map -->
+
+
 
 
     <script>
-        (function () {
+        var cord;//variable to store the user's chosen location
 
-            const sendBtn = document.querySelector('#send');
-            const messages = document.querySelector('#messages');
-            const showLoc = document.querySelector('#locate');
-            var x = document.getElementById("demo");
+        // (function () {
+        const sendBtn = document.querySelector('#send');
+        const messages = document.querySelector('#messages');
+        const showLoc = document.querySelector('#locate');
+        var x = document.getElementById("demo");
+
+        var marker;
+
+        let ws;
+
+        function getLocation() {//get location info
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+                marker.setPosition(navigator.geolocation.getCurrentPosition());
+            } else {
+                return "failedLoc";
+            }
+        }
+
+        function showPosition(position) {
+            showMessage("Latitude: " + position.coords.latitude +
+                " Longitude: " + position.coords.longitude);
+
+        }
 
 
-            let ws;
+        function showMessage(message) {
+            messages.textContent += `\n\n${message}`;
+            messages.scrollTop = messages.scrollHeight;
+        }
 
-            function getLocation() {//get location info
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(showPosition);
-                } else {
-                    return "failedLoc";
-                }
+        function init() {
+            if (ws) {
+                ws.onerror = ws.onopen = ws.onclose = null;
+                ws.close();
             }
 
-            function showPosition(position) {
-                showMessage("Latitude: " + position.coords.latitude +
-                    " Longitude: " + position.coords.longitude);
+            ws = new WebSocket('wss://192.168.0.103:1337');//change the ip (cmd ipconfig)
+            ws.onopen = () => {
+                console.log('Connection opened!');
             }
-
-
-            function showMessage(message) {
-                messages.textContent += `\n\n${message}`;
-                messages.scrollTop = messages.scrollHeight;
+            ws.onmessage = ({ data }) => showMessage(data);
+            ws.onclose = function () {
+                ws = null;
             }
+        }
 
-            function init() {
-                if (ws) {
-                    ws.onerror = ws.onopen = ws.onclose = null;
-                    ws.close();
-                }
-
-                ws = new WebSocket('wss://192.168.0.103:1337');//change the ip (cmd ipconfig)
-                ws.onopen = () => {
-                    console.log('Connection opened!');
-                }
-                ws.onmessage = ({ data }) => showMessage(data);
-                ws.onclose = function () {
-                    ws = null;
-                }
+        sendBtn.onclick = function () {
+            if (!ws) {
+                showMessage("No WebSocket connection :(");
+                return;
             }
+            ws.send("A request has been made: " + cord);
+            showMessage("Your request has been sent: " + cord);
+        }
 
-            sendBtn.onclick = function () {
-                if (!ws) {
-                    showMessage("No WebSocket connection :(");
-                    return;
-                }
-                ws.send("A request has been made");
-                showMessage("Your request has been sent");
-            }
+        showLoc.onclick = function () {
+            getLocation();
+        }
 
-            showLoc.onclick = function () {
-                getLocation();
-            }
+        init();
+        //})();
 
-            init();
-        })();
+        // Initialize and add the map
+        function initMap() {
+            var myLatlng = { lat: 24.424, lng: 54.439 };//open map on Abu Dhabi
+
+            var map = new google.maps.Map(
+                document.getElementById('map'), { zoom: 4, center: myLatlng });
+
+            // Create the initial InfoWindow. DELETE
+            /*var infoWindow = new google.maps.InfoWindow(
+                { content: 'Click the map to get Lat/Lng!', position: myLatlng });
+            infoWindow.open(map);*/
+
+            //declare marking and show when map is initialized
+            var marker = new google.maps.Marker({ position: myLatlng, map: map });
+
+
+            // Configure the click listener.
+            map.addListener('click', function (mapsMouseEvent) {
+                // Close the current InfoWindow.
+                //infoWindow.close();
+
+                // Create a new InfoWindow.
+                //infoWindow = new google.maps.InfoWindow({ position: mapsMouseEvent.latLng });
+                //infoWindow.setContent(mapsMouseEvent.latLng.toString());//dont want this replace with a marker
+                cord = mapsMouseEvent.latLng.toString();//update user location
+                //document.getElementById("demo").innerHTML = "test Your chosen meeting place" + mapsMouseEvent + "," + mapsMouseEvent.lng;//lat lng latitude longitude are undefined??
+                marker.setPosition(mapsMouseEvent.latLng);
+                document.getElementById("demo").innerHTML = "Your chosen meeting place" + cord;
+                //infoWindow.open(map);
+                map.panTo(mapsMouseEvent.latLng);
+
+            });
+        }
+
+    </script>
+    <!--Load the API from the specified URL
+    * The async attribute allows the browser to render the page while the API loads
+    * The key parameter will contain your own API key (which is not needed for this tutorial)
+    * The callback parameter executes the initMap() function
+    -->
+    <script defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeScJ1dc_tF6kCU0_K7px8N86p9QQ9Djg&callback=initMap">
+
     </script>
 </body>
 </html>
