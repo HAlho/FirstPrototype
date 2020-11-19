@@ -29,6 +29,10 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Page1.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="profile.js" />
     <Content Include="serviceAccountKey.json" />
     <Content Include="firebase-messaging-sw.js">
       <SubType>Code</SubType>
@@ -39,6 +43,8 @@
     <Content Include="server.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="signup.html" />
+    <Content Include="signup.js" />
     <Content Include="ssl\crt.cnf" />
     <Content Include="ssl\crt.crt" />
     <Content Include="ssl\crt.pfx" />
@@ -50,6 +56,7 @@
     <Content Include="ssl\make-key.sh" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="public\" />
     <Folder Include="ssl\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />

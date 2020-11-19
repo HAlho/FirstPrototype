@@ -1,8 +1,10 @@
 (function () {
+    const express = require('express')
     const port = 1337;
     const host = '192.168.0.123';//your local ip (cmd ipconfig) note: your local ip could change if the device or network is restarted
     const WebSocket = require('ws');
-    var http = require('https');    //A self-signed certificate is used. Browsers will not accept this certificate because the certificate is not provided by a certified authority that the browser knows.
+    const http = require('http')
+    var https = require('https');    //A self-signed certificate is used. Browsers will not accept this certificate because the certificate is not provided by a certified authority that the browser knows.
     //The certificate has to be manually added to the browser(go to manage certificates in browser settings and import the certificate, .cert, to the trusted root CA.
     //Also if your machine's ip is not 192.168.0.103 then the webiste will still not be trusted because the certicate is issued to only to 192.168.0.103
     //STEPS:
@@ -12,11 +14,13 @@
     const fs = require("fs").promises;
     var fss = require("fs");
     var admin = require("firebase-admin");
+    const app = express()
+
    // importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-app.js')//not needed for fbadmin
     //importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-messaging.js')//same
-    var serviceAccount = require("serviceAccountKey.json");//might be wrong path
+    var serviceAccount = require("./serviceAccountKey.json");//might be wrong path
     admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
+        credential: admin.credential.cert(serviceAccount), //was admin.credential.applicationDefault()
         databaseURL: 'https://auth-c0cb3.firebaseio.com'
     });
 
@@ -26,8 +30,11 @@
         passphrase: "password"
 
     };
-    const httpsServer = http.createServer(options, function (req, res) {
-        fs.readFile(__dirname + "/index.html")
+
+    http.createServer(app).listen(5000)
+    https.createServer(options, app).listen(5010)
+    /*const httpsServer = http.createServer(options, function (req, res) {
+        fs.readFile(__dirname + "/page1.html")
             .then(contents => {
                 res.setHeader("Content-Type", "text/html");
                 res.writeHead(200);
@@ -38,9 +45,9 @@
                 res.end(err);
                 return;
             });
-    });
+    });*/
 
-    const wss = new WebSocket.Server({ server:httpsServer })
+    /*const wss = new WebSocket.Server({ server:httpsServer })
 
     wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(data) {
@@ -50,31 +57,98 @@
                 }
             })
         })
-    })
+    })*/
 
     var registrationToken = 'c5drwFsHxv9tJ7NqXQxftW:APA91bFp2Um2eW-dnOktxxKtcI8wEv1Ml5ud3NKeMhaAkD826B--Ipf44OVpFWJNCC5SCWg3GjjT_lI6ZGzShKHzkns7V-QtdoMH1BLDvDjX-sUxJXKKe6Oxh_iEDa6OY2y41ykFkBzK';
 
-    var message = {
-        data: {
-            score: '850',
-            time: '2:45'
-        },
-        token: registrationToken
-    };
+
+    app.get('/', function (req, res) {
+        fs.readFile(__dirname + "/page1.html")
+            .then(contents => {
+                res.setHeader("Content-Type", "text/html");
+                res.writeHead(200);
+                res.end(contents);
+                
+
+                /*var payload = {
+                    data: {
+                        score: '850',
+                        time: '2:45'
+                    }
+                };*/
+
+
+                //database
+                var db = admin.database();
+                var ref = db.ref("users/FQsBShZbfFY873vuIUCAAWQbd6k2/");
+
+                // Attach an asynchronous callback to read the data at our posts reference
+                ref.on("value", function (snapshot) {
+                    console.log(snapshot.val());
+                }, function (errorObject) {
+                    console.log("The read failed: " + errorObject.code);
+                });
+
+                var payload = {
+                    notification: {
+                        title: 'status',
+                        body: 'TEST'
+                    }
+                };
+
+                admin.messaging().sendToDevice(registrationToken, payload)
+                    .then(function (response) {
+                        console.log("Successfully sent message:", response);
+                    })
+                    .catch(function (error) {
+                        console.log("Error sending message:", error);
+                    });
+
+                
+            })
+            .catch(err => {
+                res.writeHead(500);
+                res.end(err);
+                return;
+            });
+    })
+
+
+    app.get('/signup', function (req, res) {
+        res.sendFile(path.join(__dirname, 'signup.html'))
+
+    })
+    app.get('/firebase-messaging-sw.js', function (req, res) {
+        fs.readFile(__dirname + "/firebase-messaging-sw.js")
+            .then(contents => {
+                res.setHeader("Content-Type", "application/javascript");
+                res.writeHead(200);
+                res.end(contents);
+            })
+            .catch(err => {
+                res.writeHead(500);
+                res.end(err);
+                return;
+            });
+    })
+
+
+    
 
     // Send a message to the device corresponding to the provided
     // registration token.
-    admin.messaging().send(message)
+    /*admin.messaging().send(message)
         .then((response) => {
             // Response is a message ID string.
             console.log('Successfully sent message:', response);
         })
         .catch((error) => {
             console.log('Error sending message:', error);
-        });
+        });*/
+    
 
-    httpsServer.listen(port, host, () => {
+    /*httpsServer.listen(port, host, () => {
         console.log(`Server is running on https://${host}:${port}`)
-    })
+    })*/
 })();
 
