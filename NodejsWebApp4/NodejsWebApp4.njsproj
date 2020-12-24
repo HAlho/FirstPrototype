@@ -29,10 +29,16 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="app.js" />
     <Content Include="Page1.html">
       <SubType>Code</SubType>
     </Content>
     <Content Include="profile.js" />
+    <Content Include="routes\admin.js" />
+    <Content Include="routes\shop.js" />
+    <Content Include="routes\su.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="serviceAccountKey.json" />
     <Content Include="firebase-messaging-sw.js">
       <SubType>Code</SubType>
@@ -43,8 +49,20 @@
     <Content Include="server.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />
-    <Content Include="signup.html" />
-    <Content Include="signup.js" />
+    <Content Include="views\img\avatar.svg" />
+    <Content Include="views\img\edit.svg" />
+    <Content Include="views\img\facebook.svg" />
+    <Content Include="views\img\failure.svg" />
+    <Content Include="views\img\favicon.png" />
+    <Content Include="views\img\google.svg" />
+    <Content Include="views\img\mail.svg" />
+    <Content Include="views\img\phone.svg" />
+    <Content Include="views\img\reset.svg" />
+    <Content Include="views\img\signup.svg" />
+    <Content Include="views\img\success.svg" />
+    <Content Include="views\img\twitter.svg" />
+    <Content Include="views\signup.html" />
+    <Content Include="js\signup.js" />
     <Content Include="ssl\crt.cnf" />
     <Content Include="ssl\crt.crt" />
     <Content Include="ssl\crt.pfx" />
@@ -54,10 +72,23 @@
     <Content Include="ssl\make-crt.sh" />
     <Content Include="ssl\make-csr.sh" />
     <Content Include="ssl\make-key.sh" />
+    <Content Include="views\add-product.html" />
+    <Content Include="views\shop.html" />
+    <Content Include="views\style\edit.css" />
+    <Content Include="views\style\home.css" />
+    <Content Include="views\style\merge.css" />
+    <Content Include="views\style\profile.css" />
+    <Content Include="views\style\reset.css" />
+    <Content Include="views\style\signup.css" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="js\" />
     <Folder Include="public\" />
+    <Folder Include="routes\" />
     <Folder Include="ssl\" />
+    <Folder Include="views\" />
+    <Folder Include="views\img\" />
+    <Folder Include="views\style\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>

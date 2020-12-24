@@ -14,7 +14,9 @@
     const fs = require("fs").promises;
     var fss = require("fs");
     var admin = require("firebase-admin");
+    const path = require('path');
     const app = express()
+    const router = express.Router();
 
    // importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-app.js')//not needed for fbadmin
     //importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-messaging.js')//same
@@ -30,6 +32,7 @@
         passphrase: "password"
 
     };
+
 
     http.createServer(app).listen(5000)
     https.createServer(options, app).listen(5010)
@@ -114,10 +117,7 @@
     })
 
 
-    app.get('/signup', function (req, res) {
-        res.sendFile(path.join(__dirname, 'signup.html'))
-
-    })
+    
     app.get('/firebase-messaging-sw.js', function (req, res) {
         fs.readFile(__dirname + "/firebase-messaging-sw.js")
             .then(contents => {
