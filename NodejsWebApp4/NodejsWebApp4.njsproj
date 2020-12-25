@@ -62,7 +62,7 @@
     <Content Include="views\img\success.svg" />
     <Content Include="views\img\twitter.svg" />
     <Content Include="views\signup.html" />
-    <Content Include="js\signup.js" />
+    <Content Include="views\js\signup.js" />
     <Content Include="ssl\crt.cnf" />
     <Content Include="ssl\crt.crt" />
     <Content Include="ssl\crt.pfx" />
@@ -74,21 +74,21 @@
     <Content Include="ssl\make-key.sh" />
     <Content Include="views\add-product.html" />
     <Content Include="views\shop.html" />
-    <Content Include="views\style\edit.css" />
-    <Content Include="views\style\home.css" />
-    <Content Include="views\style\merge.css" />
-    <Content Include="views\style\profile.css" />
-    <Content Include="views\style\reset.css" />
-    <Content Include="views\style\signup.css" />
+    <Content Include="public\style\edit.css" />
+    <Content Include="public\style\home.css" />
+    <Content Include="public\style\merge.css" />
+    <Content Include="public\style\profile.css" />
+    <Content Include="public\style\reset.css" />
+    <Content Include="public\style\signup.css" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="js\" />
+    <Folder Include="views\js\" />
     <Folder Include="public\" />
     <Folder Include="routes\" />
     <Folder Include="ssl\" />
     <Folder Include="views\" />
     <Folder Include="views\img\" />
-    <Folder Include="views\style\" />
+    <Folder Include="public\style\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
