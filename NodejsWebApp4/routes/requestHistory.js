@@ -4,8 +4,8 @@ const express = require('express');
 
 const router = express.Router();
 
-router.get('/signup', (req, res, next) => {
-  res.sendFile(path.join(__dirname, '../', 'views', 'shop.html'));
+router.get('/requestHistory', (req, res, next) => {
+    res.sendFile(path.join(__dirname, '../', 'views', 'requestHistory.html'));
 });
 
 module.exports = router;

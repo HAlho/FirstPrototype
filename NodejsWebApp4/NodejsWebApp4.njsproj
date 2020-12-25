@@ -12,14 +12,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3dfde240-89db-4d01-ad62-84c83011151b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>server.js</StartupFile>
+    <StartupFile>app.js</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
-    <NodejsPort>1337</NodejsPort>
+    <NodejsPort>3000</NodejsPort>
     <StartWebBrowser>False</StartWebBrowser>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -34,11 +34,28 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="profile.js" />
-    <Content Include="routes\admin.js" />
-    <Content Include="routes\shop.js" />
-    <Content Include="routes\su.js">
+    <Content Include="public\img\profile-icon.jpg" />
+    <Content Include="public\img\requests-icon.jpg" />
+    <Content Include="public\js\avaReq.js" />
+    <Content Include="public\js\edit.js" />
+    <Content Include="public\js\home.js" />
+    <Content Include="public\js\profile.js" />
+    <Content Include="public\js\registerCar.js" />
+    <Content Include="public\js\requestHistory.js" />
+    <Content Include="public\js\reset.js" />
+    <Content Include="routes\account.js">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="routes\avaReq.js" />
+    <Content Include="routes\edit.js" />
+    <Content Include="routes\profile.js" />
+    <Content Include="routes\registerCar.js" />
+    <Content Include="routes\requestHistory.js" />
+    <Content Include="routes\reset.js" />
+    <Content Include="routes\signin.js">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="routes\signup.js" />
     <Content Include="serviceAccountKey.json" />
     <Content Include="firebase-messaging-sw.js">
       <SubType>Code</SubType>
@@ -49,20 +66,30 @@
     <Content Include="server.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />
-    <Content Include="views\img\avatar.svg" />
-    <Content Include="views\img\edit.svg" />
-    <Content Include="views\img\facebook.svg" />
-    <Content Include="views\img\failure.svg" />
-    <Content Include="views\img\favicon.png" />
-    <Content Include="views\img\google.svg" />
-    <Content Include="views\img\mail.svg" />
-    <Content Include="views\img\phone.svg" />
-    <Content Include="views\img\reset.svg" />
-    <Content Include="views\img\signup.svg" />
-    <Content Include="views\img\success.svg" />
-    <Content Include="views\img\twitter.svg" />
+    <Content Include="public\img\avatar.svg" />
+    <Content Include="public\img\edit.svg" />
+    <Content Include="public\img\facebook.svg" />
+    <Content Include="public\img\failure.svg" />
+    <Content Include="public\img\favicon.png" />
+    <Content Include="public\img\google.svg" />
+    <Content Include="public\img\mail.svg" />
+    <Content Include="public\img\phone.svg" />
+    <Content Include="public\img\reset.svg" />
+    <Content Include="public\img\signup.svg" />
+    <Content Include="public\img\success.svg" />
+    <Content Include="public\img\twitter.svg" />
+    <Content Include="views\404.html" />
+    <Content Include="views\account.html" />
+    <Content Include="views\avaReq.html" />
+    <Content Include="views\edit.html" />
+    <Content Include="views\firebase-messaging-sw.js" />
+    <Content Include="views\index.html" />
+    <Content Include="views\profile.html" />
+    <Content Include="views\registerCar.html" />
+    <Content Include="views\requestHistory.html" />
+    <Content Include="views\reset.html" />
     <Content Include="views\signup.html" />
-    <Content Include="views\js\signup.js" />
+    <Content Include="public\js\signup.js" />
     <Content Include="ssl\crt.cnf" />
     <Content Include="ssl\crt.crt" />
     <Content Include="ssl\crt.pfx" />
@@ -72,8 +99,6 @@
     <Content Include="ssl\make-crt.sh" />
     <Content Include="ssl\make-csr.sh" />
     <Content Include="ssl\make-key.sh" />
-    <Content Include="views\add-product.html" />
-    <Content Include="views\shop.html" />
     <Content Include="public\style\edit.css" />
     <Content Include="public\style\home.css" />
     <Content Include="public\style\merge.css" />
@@ -82,12 +107,12 @@
     <Content Include="public\style\signup.css" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="views\js\" />
+    <Folder Include="public\js\" />
     <Folder Include="public\" />
     <Folder Include="routes\" />
     <Folder Include="ssl\" />
     <Folder Include="views\" />
-    <Folder Include="views\img\" />
+    <Folder Include="public\img\" />
     <Folder Include="public\style\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
