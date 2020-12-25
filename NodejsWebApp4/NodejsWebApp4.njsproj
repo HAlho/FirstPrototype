@@ -33,7 +33,6 @@
     <Content Include="Page1.html">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="profile.js" />
     <Content Include="public\img\profile-icon.jpg" />
     <Content Include="public\img\requests-icon.jpg" />
     <Content Include="public\js\avaReq.js" />
