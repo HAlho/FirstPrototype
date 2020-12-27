@@ -36,7 +36,35 @@ var selected = false;
 var userIsRequester = false;
 
 firebase.auth().onAuthStateChanged(function (user) {
-    if (user){
+    if (user) {
+        //test(Success)-------------------------------------------------
+        if ('geolocation' in navigator) {
+            console.log('geolocation available');
+            navigator.geolocation.getCurrentPosition(async position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const tim = position.timestamp;
+
+
+                console.log(position);
+
+                const data = { lat, lon, tim };
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                };
+                const response = await fetch('/chargeReq', options);
+                const json = await response.json();
+                console.log(json);
+            });
+        }
+        else
+            console.log('geolocation not available');
+                //--------------------------------------------------------
+
         var userId = firebase.auth().currentUser.uid; //current user
         
         setStatus(userId); //User status
@@ -72,6 +100,8 @@ firebase.auth().onAuthStateChanged(function (user) {
                 }
                 document.getElementById("p2").innerHTML = text;
 
+
+                
                 //get Request information
                 var reqRef = firebase.database().ref('activeRequests/' + snap.dbref + '/' + snap.id); //request's Reference
                 reqRef.once('value', function (snapshot) {
