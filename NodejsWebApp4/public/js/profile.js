@@ -34,10 +34,60 @@ var selected = false;
 
 //For when theres an active request
 var userIsRequester = false;
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 firebase.auth().onAuthStateChanged(async function (user) {
     if (user){
         var userId = firebase.auth().currentUser.uid; //current user
+        //profilePage(userId);
+
+        //check if notifications allowed
+        if (Notification.permission === 'denied' || Notification.permission === 'default') {
+            Notification.requestPermission().then(function (result) {
+                console.log(result);
+                if (result == "granted") {
+                    //create token
+                    // [START get_messaging_object]
+                    // Retrieve Firebase Messaging object.
+                    const messaging = firebase.messaging();
+
+                    messaging.onTokenRefresh(handleTokenRefresh);
+
+                    messaging.requestPermission()
+                        .then(() => handleTokenRefresh())
+                        .catch(function (err) {
+                            console.log('Error');
+                        });
+
+                    function handleTokenRefresh() {
+                        return messaging.getToken({ vapidKey:"BG9S8oj5kmcXZt1xaqHgmOCJgIcPHXgBaFing5JMUr4wlVbhlWXPwrbkikqKVAoVDZ2Fe31uCqpqQLJqAz18RyU"})
+                            .then(async function (token) {
+                                console.log(token);
+                                const d = { userId: userId, token: token };
+                                const options = {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(d)
+                                };
+                                const response = await fetch('/addToken', options);
+                                const j = await response.json();
+                                console.log(j);
+                                
+                            })
+
+                    }
+
+
+                    
+
+                }
+            });
+        } 
+
+        //----------------------------------------------------------------------------------------------------------
+
         
         setStatus(userId); //User status
 
@@ -53,40 +103,95 @@ firebase.auth().onAuthStateChanged(async function (user) {
         const j1 = await response.json();
         console.log(j1.req);
 
-            //Check if user has an active request
-            if (j1.req!=null) {
-                if (acceptedDiv.style.display != "block") {
-                    acceptedDiv.style.display = "block";
-                    requestDiv.style.display = "none";
+        //Check if user has an active request
+        if (j1.req != null) {
+            if (acceptedDiv.style.display != "block") {
+                acceptedDiv.style.display = "block";
+                requestDiv.style.display = "none";
+            }
+
+            var snap = j1.req;
+
+            if (snap.role == "requester") userIsRequester = true; //current user is the requester
+
+            //Display text
+            var text;
+            if (snap.dbref == "issued")
+                text = "Searching for providers...";
+            else if (snap.dbref == "completed")
+                text = "Finalizing Request..";
+            else if (userIsRequester == true) {
+                text = "Provider is on their way...";
+                inProgress = Date.now();
+                console.log(inProgress);
+            }
+            else {
+                inProgressPro = Date.now();
+                console.log(inProgressPro);
+                text = "Go to meet-up location...";
+            }
+            document.getElementById("p2").innerHTML = text;
+
+            console.log(snap.dbref);
+            console.log(snap.id);
+
+            //get Request information
+            const d = { userId: userId, status: snap.dbref, id: snap.id };
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(d)
+            };
+            const response = await fetch('/getActiveRequest', options);
+            const j2 = await response.json();
+            console.log(j2.req);
+
+
+            //empty div
+            var div = document.getElementById("req");
+            while (div.firstChild)
+                div.removeChild(div.firstChild);
+
+            if (snap.dbref != "completed") {
+                var data = j2.req; //get all accepted requests info
+                amount = data.amount;
+
+                //display request information
+                if (userIsRequester != true) {
+                    var car = data.requester.car;
+                    var c = document.createElement("small");
+                    c.innerHTML = "\n<b>Requester's car:</b> " + car.color + " " + car.brand + " " + car.model + ". License Number:" + car.licenseNumber + "\n\n";
+                    div.appendChild(c);
                 }
 
-                var snap = j1.req;
+                var amt = document.createElement("small");
+                amt.innerHTML = "<b>Charge Amount:</b> " + amount + " kW \n\n\n";
+                //var amt = document.createTextNode("<b>Charge Amount:</b> " + amount + " kW");
+                var button = document.createElement("button");
+                button.innerHTML = "Cancel";
+                div.appendChild(amt);
+                div.appendChild(button);
+            }
 
-                if (snap.role == "requester") userIsRequester = true; //current user is the requester
+            var readyForDone;
+            if (snap.dbref == "accepted") {
+                readyForDone = true;
+            }
+            console.log(readyForDone);
 
-                //Display text
-                var text;
-                if (snap.dbref == "issued")
-                    text = "Searching for providers...";
-                else if (snap.dbref == "completed")
-                    text = "Finalizing Request..";
-                else if (userIsRequester == true) {
-                    text = "Provider is on their way...";
-                    inProgress = Date.now();
-                    console.log(inProgress);
-                }
-                else {
-                    inProgressPro = Date.now();
-                    console.log(inProgressPro);
-                    text = "Go to meet-up location...";
-                }
-                document.getElementById("p2").innerHTML = text;
+            var user2Id;
+            var user2status;
 
-                console.log(snap.dbref);
-                console.log(snap.id);
+            if (readyForDone) {
 
-                //get Request information
-                const d = { userId: userId, status: snap.dbref, id: snap.id }; 
+                var done = document.createElement("button");
+                done.innerHTML = "<b>Done</b>";
+                div.appendChild(done);//add the button to html
+
+                //need to get the other user's id
+                const d = { userId: userId, id: snap.id };
                 const options = {
                     method: 'POST',
                     headers: {
@@ -94,126 +199,104 @@ firebase.auth().onAuthStateChanged(async function (user) {
                     },
                     body: JSON.stringify(d)
                 };
-                const response = await fetch('/getActiveRequest', options);
-                const j2 = await response.json();
-                console.log(j2.req);
+                const response = await fetch('/getSecondUser', options);
+                const j3 = await response.json();
+                console.log(j3);
+
+                user2Id = j3.user2Id;
+                user2status = j3.user2status
 
 
-                    //empty div
-                    var div = document.getElementById("req");
-                    while (div.firstChild)
-                        div.removeChild(div.firstChild);
+                done.addEventListener("click", async function () {
+                    if (confirm("Are you sure your request is done?") == false) return;
 
-                    if (snap.dbref != "completed") {
-                        var data = j2.req; //get all accepted requests info
-                        amount = data.amount;
-
-                        //display request information
-                        if (userIsRequester != true) {
-                            var car = data.requester.car;
-                            var c = document.createElement("small");
-                            c.innerHTML = "\n<b>Requester's car:</b> " + car.color + " " + car.brand + " " + car.model + ". License Number:" + car.licenseNumber + "\n\n";
-                            div.appendChild(c);
-                        }
-
-                        var amt = document.createElement("small");
-                        amt.innerHTML = "<b>Charge Amount:</b> " + amount + " kW \n\n\n";
-                        //var amt = document.createTextNode("<b>Charge Amount:</b> " + amount + " kW");
-                        var button = document.createElement("button");
-                        button.innerHTML = "Cancel";
-                        div.appendChild(amt);
-                        div.appendChild(button);
-                    }
-
-                    var readyForDone;
-                    if (snap.dbref == "accepted") {
-                        readyForDone = true;
-                    }
-                console.log(readyForDone);
-
-                var user2Id;
-                var user2status;
-                    
-                    if (readyForDone) {
-                        
-                        var done = document.createElement("button");
-                        done.innerHTML = "<b>Done</b>";
-                        div.appendChild(done);//add the button to html
-
-                        //need to get the other user's id
-                        const d = { userId: userId, id: snap.id }; 
-                        const options = {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(d)
-                        };
-                        const response = await fetch('/getSecondUser', options);
-                        const j3 = await response.json();
-                        console.log(j3);
-
-                        user2Id = j3.user2Id;
-                        user2status = j3.user2status
+                    const d = { userId: userId, user2Id: user2Id, user2status: user2status, id: snap.id };
+                    const options = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(d)
+                    };
+                    const response = await fetch('/updateComplete', options);
+                    const j4 = await response.json();
+                    console.log(j4);
 
 
-                        done.addEventListener("click", async function () {
-                            if (confirm("Are you sure your request is done?") == false) return;
+                    const Done = Date.now();//this now calculate only the time until the user clicks done not when the request is complete
+                    const time = Done - inProgress;//have to fix this
+                    console.log("Time to complete =" + time);
 
-                            const d = { userId: userId, user2Id: user2Id, user2status: user2status, id: snap.id };
-                            const options = {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(d)
-                            };
-                            const response = await fetch('/updateComplete', options);
-                            const j4 = await response.json();
-                            console.log(j4);
-
-
-                            const Done = Date.now();//this now calculate only the time until the user clicks done not when the request is complete
-                            const time = Done - inProgress;//have to fix this
-                            console.log("Time to complete =" + time);
-
-                        });
-                    }
-
-                    if (snap.dbref != "completed") {
-                            button.addEventListener("click", async function () {
-                                if (confirm("Are you sure you want to cancel the request?") == false) return;
-
-                                const d = { userId: userId, status: snap.dbref, user2Id: user2Id, id: snap.id, userIsRequester: userIsRequester, amount: amount, requester: data.requester };
-                                const options = {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(d)
-                                };
-                                const response = await fetch('/cancelRequest', options);
-                                const j5 = await response.json();
-                                console.log(j5);
-
-                                
-                            });
-                    }
-            } 
-            //No active requests - user can make a request
-            else {
-                if (requestDiv.style.display != "block") {
-                    acceptedDiv.style.display = "none";
-                    requestDiv.style.display = "block";
-                    carDiv.style.display = "block";
-                    requestInfoDiv.style.display = "none";
-                }
-
-                displayCars(userId); //Display user cars buttons
+                });
             }
+
+            if (snap.dbref != "completed") {
+                button.addEventListener("click", async function () {
+                    if (confirm("Are you sure you want to cancel the request?") == false) return;
+
+                    const d = { userId: userId, status: snap.dbref, user2Id: user2Id, id: snap.id, userIsRequester: userIsRequester, amount: amount, requester: data.requester };
+                    const options = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(d)
+                    };
+                    const response = await fetch('/cancelRequest', options);
+                    const j5 = await response.json();
+                    console.log(j5);
+
+
+                });
+            }
+        }
+        //No active requests - user can make a request
+        else {
+            if (requestDiv.style.display != "block") {
+                acceptedDiv.style.display = "none";
+                requestDiv.style.display = "block";
+                carDiv.style.display = "block";
+                requestInfoDiv.style.display = "none";
+            }
+
+            displayCars(userId); //Display user cars buttons
+        }
+
+
+
+
+
+
+        //-----------------------------------------------------------------------------------------------------------
+
+
+        //check for updates
+        //const d = {userId};
+        //const options = {
+        //    method: 'POST',
+        //    headers: {
+        //        'Content-Type': 'application/json'
+        //    },
+        //    body: JSON.stringify(d)
+        //};
+        //const response = await fetch('/checkUpdates', options);//check if the 
+        //const j6 = await response.json();
+        //console.log(j6);
+
+        //if (j6.status != snap.dbref)
+
         
-    } else window.location.assign('../');
+    }
+ else window.location.assign('../');
 });
+
+//async function profilePage(userId) {
+//    while (1) {
+        
+//        await sleep(2000);
+
+//    }
+//}
 
 //show and set user status
 async function setStatus(userId) {

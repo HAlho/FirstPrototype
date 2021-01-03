@@ -112,31 +112,4 @@
     </html>
 
 
-    <script>
-        // [START get_messaging_object]
-        // Retrieve Firebase Messaging object.
-        const messaging = firebase.messaging();
-        const database = firebase.database();
-       
-      //  const authen = firebase.auth();
-
-        messaging.onTokenRefresh(handleTokenRefresh);
-
-        messaging.requestPermission()
-            .then(() => handleTokenRefresh())
-            .catch(function (err) {
-                console.log('Error');
-            });
-
-        function handleTokenRefresh() {
-                return messaging.getToken()
-            .then(function (token) {
-                console.log(token);
-                database.ref('/tokens').push({
-                    token: token,
-                    uid: auth.currentUser.uid
-                });
-            })
-        }
-
-    </script>
+    

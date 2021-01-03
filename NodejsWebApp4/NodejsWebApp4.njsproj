@@ -5,6 +5,7 @@
     <Name>NodejsWebApp4</Name>
     <RootNamespace>NodejsWebApp4</RootNamespace>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
+    <LaunchUrl>https://192.168.0.123:3000</LaunchUrl>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -20,7 +21,7 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
     <NodejsPort>3000</NodejsPort>
-    <StartWebBrowser>False</StartWebBrowser>
+    <StartWebBrowser>True</StartWebBrowser>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,6 +34,7 @@
     <Content Include="Page1.html">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="public\firebase-messaging-sw.js" />
     <Content Include="public\img\profile-icon.jpg" />
     <Content Include="public\img\requests-icon.jpg" />
     <Content Include="public\js\avaReq.js" />
@@ -84,7 +86,6 @@
     <Content Include="views\account.html" />
     <Content Include="views\avaReq.html" />
     <Content Include="views\edit.html" />
-    <Content Include="views\firebase-messaging-sw.js" />
     <Content Include="views\index.html" />
     <Content Include="views\profile.html" />
     <Content Include="views\registerCar.html" />

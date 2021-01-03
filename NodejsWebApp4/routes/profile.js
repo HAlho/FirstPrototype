@@ -2,7 +2,11 @@ const path = require('path');
 
 const express = require('express');
 
+//const messaging = require('firebase/messaging');
+
+
 const router = express.Router();
+
 
 
 const { admin } = require('./firebaseConfig.js');
@@ -15,6 +19,25 @@ router.use(express.json({ limit: '1mb' }));
 
 router.get('/profile', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
+});
+
+router.post('/addToken', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT AN addToken!');
+
+    const data = request.body;
+
+
+    db.ref('/tokens').push({
+        token: data.token,
+        uid: data.userId
+    });
+
+    response.json({
+        status: "success",
+
+
+    });
+
 });
 
 
@@ -238,6 +261,8 @@ router.post('/carInfo', async (request, response) => { //add to recieve that pos
 
 });
 
+
+
 router.post('/reqInfo', async (request, response) => { //add to recieve that post(endpoint)
     console.log('GOT A REQ INFO!');
 
@@ -266,11 +291,50 @@ router.post('/reqInfo', async (request, response) => { //add to recieve that pos
         db.ref('users/' + data.userId).child("activeRequest").set({ id: newReq.key, dbref: "issued", role: "requester" });
     })
 
-
     response.json({
         status: "success"
 
     });
+
+    //send notification
+    //retrieve tokens except the user's token
+    var snapshot = await db.ref('tokens').once('value');
+    const t = snapshot.val();
+    snapshot = await db.ref('users').once('value');
+    const u = snapshot.val();
+    var keys = Object.keys(t); //ids of the tokens
+    var tokens=[];
+    var k;
+    var id;
+    console.log("keys: " + keys);
+    for (i = 0; i < keys.length; i++){//also check the user status
+        k = keys[i];
+        id = t[k].uid;
+        if (id == data.userId) continue;
+        else if (u[id].status != "Available") continue;
+        console.log("current token is: " + t[k].token);
+        tokens.push(t[k].token);
+    }
+    console.log("tokens: "+tokens);
+
+    const message = {
+        data: { score: '850', time: '2:45' },
+        tokens: tokens,
+    }
+
+    admin.messaging().sendMulticast(message)
+        .then((response) => {
+            if (response.failureCount > 0) {
+                const failedTokens = [];
+                response.responses.forEach((resp, idx) => {
+                    if (!resp.success) {
+                        failedTokens.push(tokens[idx]);
+                    }
+                    else { console.log("notification sent");}
+                });
+                console.log('List of tokens that caused failures: ' + failedTokens);
+            }
+        });
 
 });
 

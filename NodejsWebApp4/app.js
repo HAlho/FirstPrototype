@@ -2,9 +2,13 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const https = require('https'); 
+const fs = require('fs');
 
 const app = express();
 
+const privateKey = fs.readFileSync('./ssl/key.key');
+const certificate = fs.readFileSync('./ssl/crt.crt')
 
 const signUpRoute = require('./routes/signup');
 const signInRoute = require('./routes/signin');
@@ -35,4 +39,4 @@ app.use((req, res, next) => {
     res.status(404).send('<h1>Page not found</h1>');
 });
 
-app.listen(3000);
+https.createServer({ key: privateKey, cert: certificate }, app).listen(3000);
