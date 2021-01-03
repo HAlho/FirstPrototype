@@ -35,50 +35,32 @@ var selected = false;
 //For when theres an active request
 var userIsRequester = false;
 
-firebase.auth().onAuthStateChanged(function (user) {
-    if (user) {
-        //test(Success)-------------------------------------------------
-        if ('geolocation' in navigator) {
-            console.log('geolocation available');
-            navigator.geolocation.getCurrentPosition(async position => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                const tim = position.timestamp;
-
-
-                console.log(position);
-
-                const data = { lat, lon, tim };
-                const options = {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                };
-                const response = await fetch('/chargeReq', options);
-                const json = await response.json();
-                console.log(json);
-            });
-        }
-        else
-            console.log('geolocation not available');
-                //--------------------------------------------------------
-
+firebase.auth().onAuthStateChanged(async function (user) {
+    if (user){
         var userId = firebase.auth().currentUser.uid; //current user
         
         setStatus(userId); //User status
 
-        firebase.database().ref('users/' + userId + '/activeRequest').on('value', function (snapshot) {
+        const d = { userId };
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(d)
+        };
+        const response = await fetch('/userRequest', options);
+        const j1 = await response.json();
+        console.log(j1.req);
+
             //Check if user has an active request
-            if (snapshot.exists()) {
+            if (j1.req!=null) {
                 if (acceptedDiv.style.display != "block") {
                     acceptedDiv.style.display = "block";
                     requestDiv.style.display = "none";
                 }
 
-                var snap = snapshot.val();
-                console.log(snap);
+                var snap = j1.req;
 
                 if (snap.role == "requester") userIsRequester = true; //current user is the requester
 
@@ -100,18 +82,30 @@ firebase.auth().onAuthStateChanged(function (user) {
                 }
                 document.getElementById("p2").innerHTML = text;
 
+                console.log(snap.dbref);
+                console.log(snap.id);
 
-                
                 //get Request information
-                var reqRef = firebase.database().ref('activeRequests/' + snap.dbref + '/' + snap.id); //request's Reference
-                reqRef.once('value', function (snapshot) {
+                const d = { userId: userId, status: snap.dbref, id: snap.id }; 
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(d)
+                };
+                const response = await fetch('/getActiveRequest', options);
+                const j2 = await response.json();
+                console.log(j2.req);
+
+
                     //empty div
                     var div = document.getElementById("req");
                     while (div.firstChild)
                         div.removeChild(div.firstChild);
 
                     if (snap.dbref != "completed") {
-                        var data = snapshot.val(); //get all accepted requests info
+                        var data = j2.req; //get all accepted requests info
                         amount = data.amount;
 
                         //display request information
@@ -135,114 +129,76 @@ firebase.auth().onAuthStateChanged(function (user) {
                     if (snap.dbref == "accepted") {
                         readyForDone = true;
                     }
-                    console.log(readyForDone);
-                    var user2Id;
-                    var user2status;
+                console.log(readyForDone);
+
+                var user2Id;
+                var user2status;
+                    
                     if (readyForDone) {
                         
-                        var complete=false;
                         var done = document.createElement("button");
                         done.innerHTML = "<b>Done</b>";
                         div.appendChild(done);//add the button to html
 
                         //need to get the other user's id
-                        firebase.database().ref('users').on('value', function (snapshot2) {
+                        const d = { userId: userId, id: snap.id }; 
+                        const options = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(d)
+                        };
+                        const response = await fetch('/getSecondUser', options);
+                        const j3 = await response.json();
+                        console.log(j3);
 
-                            var ndata = snapshot2.val();
-                            var nkeys = Object.keys(ndata);
-                            for (var i = 0; i < nkeys.length; i++) { //need to show only the associated requests with the user
-                                var k = nkeys[i];
-                                try {
-                                    var requestId = ndata[k].activeRequest.id;
-                                } catch (error) {//if user doesn't have an active request catch and continue loop
-                            continue;
-                                 }
-                                if (requestId != snap.id) continue;
-                                if (k == userId) continue;
-                                user2Id = k;
-                                console.log(k);
-                                user2status = ndata[k].activeRequest.dbref;
-                                break;
-                            }
-                        });
+                        user2Id = j3.user2Id;
+                        user2status = j3.user2status
 
-                        done.addEventListener("click", function () {
+
+                        done.addEventListener("click", async function () {
                             if (confirm("Are you sure your request is done?") == false) return;
-                            if (userIsRequester) {//delete this if condition it is useless now
-                                firebase.database().ref('users/' + userId).child("activeRequest").update({ dbref: "completed" });
-                                //if status is scompleted do change status to complete and move request
-                                if (user2status == "completed") {
-                                    complete = true;
-                                    console.log("complete is now true");
-                                }
-                            } else {
-                                firebase.database().ref('users/' + userId).child("activeRequest").update({ dbref: "completed" });
-                                 //is status is completed do change status to complete and move request
-                                if (user2status == "completed") {
-                                    complete = true;
-                                    console.log("complete is now true");
-                                }
-                            } 
 
-                            //if both users had clicked done 
-                            if (complete == true) {
-                                const Done = Date.now();
-                                const time = Done - inProgress;
-                                console.log("Time to complete =" + time);
-                                console.log("status is finally complete....");
-                                //move object to another path //don't forget to add for the supplier??
-                                var oldRef = firebase.database().ref('activeRequests/accepted/' + snap.id);
-                                oldRef.update({ 'status': "completed" });
-                                var newRef1 = firebase.database().ref('previousRequests/' + userId + '/' + snap.id);
-                                var newRef2 = firebase.database().ref('previousRequests/' + user2Id + '/' + snap.id);
-                                copyFirebaseObject(oldRef, newRef1);
-                                moveFirebaseObject(oldRef, newRef2);
-                                //delete active request from both users
-                                firebase.database().ref('users/' + userId + '/activeRequest').remove();//delete from the current user
-                                firebase.database().ref('users/' + user2Id + '/activeRequest').remove();//delete from the other user
-                                console.log(snap.id);
-                            }
+                            const d = { userId: userId, user2Id: user2Id, user2status: user2status, id: snap.id };
+                            const options = {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(d)
+                            };
+                            const response = await fetch('/updateComplete', options);
+                            const j4 = await response.json();
+                            console.log(j4);
+
+
+                            const Done = Date.now();//this now calculate only the time until the user clicks done not when the request is complete
+                            const time = Done - inProgress;//have to fix this
+                            console.log("Time to complete =" + time);
+
                         });
                     }
 
                     if (snap.dbref != "completed") {
-                        (function (index) {
-                            button.addEventListener("click", function () {
+                            button.addEventListener("click", async function () {
                                 if (confirm("Are you sure you want to cancel the request?") == false) return;
-                                //if the requester is canceling the request
-                                var newRef = firebase.database().ref('previousRequests/' + userId + '/' + snap.id);
-                                var newRef2 = firebase.database().ref('previousRequests/' + user2Id + '/' + snap.id);
-                                if (userIsRequester == true) {
-                                    if (snap.dbref == "issued") {
-                                        var oldRef = firebase.database().ref('activeRequests/issued/' + snap.id);
-                                        oldRef.update({ 'status': "canceled" });
-                                        moveFirebaseObject(oldRef, newRef);
-                                        console.log("I am here in issued ");
-                                    }
-                                    else {
-                                        var oldRef = firebase.database().ref('activeRequests/accepted/' + snap.id);
-                                        oldRef.update({ 'status': "canceled" });
-                                        copyFirebaseObject(oldRef, newRef2);
-                                        moveFirebaseObject(oldRef, newRef);
-                                        firebase.database().ref('users/' + user2Id + '/activeRequest').remove();
-                                        console.log("I am here in accepted ");
 
-                                    }
-                                }
-                                else {  //if the supplier is canceling
-                                    firebase.database().ref('activeRequests/issued').child(index).set({
-                                        amount: data.amount,
-                                        requester: data.requester
-                                    });
-                                    firebase.database().ref('activeRequests/accepted/' + index).remove();
-                                    firebase.database().ref('users/' + data.requester.uid).child("activeRequest").update({ dbref: "issued" });
+                                const d = { userId: userId, status: snap.dbref, user2Id: user2Id, id: snap.id, userIsRequester: userIsRequester, amount: amount, requester: data.requester };
+                                const options = {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(d)
+                                };
+                                const response = await fetch('/cancelRequest', options);
+                                const j5 = await response.json();
+                                console.log(j5);
 
-                                }
-                                firebase.database().ref('users/' + userId + '/activeRequest').remove();
+                                
                             });
-                        })(snap.id)
                     }
-                });
             } 
             //No active requests - user can make a request
             else {
@@ -255,19 +211,28 @@ firebase.auth().onAuthStateChanged(function (user) {
 
                 displayCars(userId); //Display user cars buttons
             }
-        });
+        
     } else window.location.assign('../');
 });
 
 //show and set user status
 async function setStatus(userId) {
-    var snapshot = await firebase.database().ref('users/' + userId + '/status').once('value');
 
-    var stat = snapshot.val();
-    if (stat == null) {
-        stat = "Available";
-        firebase.database().ref('users/' + userId).update({ status: stat });
-    }
+    const sdata = { userId };
+    console.log(sdata);
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sdata)
+    };
+    const response = await fetch('/getStat', options);
+    const json = await response.json();
+    console.log(json);
+    stat = json.stat;
+   
     let op = document.createElement("option");
     op.value = stat; op.text = stat;
     document.getElementById("status").appendChild(op);
@@ -278,38 +243,51 @@ async function setStatus(userId) {
     op2.value = op2.text;
     document.getElementById("status").appendChild(op2);
 
-    document.getElementById("status").addEventListener('change', (event) => {
+    document.getElementById("status").addEventListener('change', async (event) => {
         let newStat = event.target.value;
-        firebase.database().ref('users/' + userId).update({ status: newStat });
+
+
+        const data = { userId, newStat };
+        console.log(data);
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+        const response = await fetch('/pfile', options);
+        const json = await response.json();
+        console.log(json);
     });
+
+    
+
+
 }
 
-//move requests in DB
-function moveFirebaseObject(oldRef, newRef) {//normal function not a firebase function
-    oldRef.once('value', function (snap) {
-        newRef.set(snap.val(), function (error) {
-            if (!error) { oldRef.remove(); console.log("move successful")}
-            else if (typeof (console) !== 'undefined' && console.error) { console.error(error); }
-        });
-    });
-}
 
-//copy requests in DB
-function copyFirebaseObject(oldRef, newRef) {//normal function not a firebase function
-    oldRef.once('value', function (snap) {
-        newRef.set(snap.val(), function (error) {
-            if (!error) { console.log("copy successful") }
-            else if (typeof (console) !== 'undefined' && console.error) { console.error(error); }
-        });
-    });
-}
 
 //display registered cars as buttons
 async function displayCars(userId) {
     var cars = document.getElementById("cars");
     while (cars.firstChild) cars.removeChild(cars.firstChild); //clear cars div
-    var snapshot = await firebase.database().ref('users/' + userId + '/cars').once('value');
-    var data = snapshot.val(); //get all car inf
+
+    const sdata = { userId };
+    console.log(sdata);
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sdata)
+    };
+    const response = await fetch('/postCars', options);
+    const json = await response.json();
+    console.log(json);
+    data = json.cars;
 
     //No registered cars
     if (data == null) {
@@ -355,10 +333,24 @@ async function continueReq() {
         alert("Please pick a car first");
         return;
     }
-    var snapshot = await firebase.database().ref('carList/' + carBrand + '/' + carModel).once('value');
-    consumption = snapshot.val().avgConsumption; //from carList
-    batteryCapacity = snapshot.val().batteryCapacity; //from carList
 
+    const data = { carBrand, carModel };
+    console.log(data);
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    };
+    const response = await fetch('/carInfo', options);
+    const json = await response.json();
+    console.log(json);
+    consumption = json.consumption;
+    batteryCapacity = json.batteryCapacity;
+
+    //hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
     document.getElementById("max").innerHTML = batteryCapacity + " kWh";
 
     var sliderDiv = document.getElementById("slider");
@@ -410,7 +402,7 @@ function calculate() {
 
 
 //Submit button is clicked
-function sendNotifications(e) {
+async function sendNotifications(e) {
     e.preventDefault();
 
     let currentEnergy = sliderOutput; //from Request
@@ -431,35 +423,27 @@ function sendNotifications(e) {
 
     let cont = confirm("You're about to request " + neededEnergy +" kWh. Continue?");
     if (cont == false) return;
-
     var userId = firebase.auth().currentUser.uid;
-    var newReq = firebase.database().ref('activeRequests/issued').push();
     reqStart = new Date().toString();
     console.log(reqStart);
-    newReq.set({
-        amount: neededEnergy, 
-        timestamp: reqStart,
-        requester: {
-            uid: userId,
-            currentEnergy: currentEnergy,
-            currentSoC: currentSoC,
-            maxDistance: maxDistance,
-            car: {
-                brand: carBrand,
-                model: carModel,
-                color: carColor,
-                licenseNumber: carNum
-            }
-            
-        }
-        
-    }).then(() => {
-        firebase.database().ref('users/' + userId).child("activeRequest").set({ id: newReq.key, dbref: "issued", role: "requester" });
-        alert("Your Request has Been Made!");
+    const data = { userId, neededEnergy, reqStart, currentEnergy, currentSoC, maxDistance, carBrand, carModel, carColor, carNum };
+    console.log(data);
 
-        document.getElementById("amount").value = '';
-        document.getElementById("car").innerHTML = '';
-    })
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    };
+    const response = await fetch('/reqInfo', options);
+    const json = await response.json();
+    console.log(json);
+
+    alert("Your Request has Been Made!");
+
+    document.getElementById("amount").value = '';
+    document.getElementById("car").innerHTML = '';
 }
 
 

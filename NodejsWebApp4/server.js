@@ -16,6 +16,7 @@
     var admin = require("firebase-admin");
     const path = require('path');
     const app = express()
+    const router = express.Router();
 
    // importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-app.js')//not needed for fbadmin
     //importScripts('https://www.gstatic.com/firebasejs/4.13.0/firebase-messaging.js')//same

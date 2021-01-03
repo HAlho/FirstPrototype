@@ -17,6 +17,7 @@ const requestHistoryRoute = require('./routes/requestHistory');
 const resetRoute = require('./routes/reset');
 
 
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -30,13 +31,8 @@ app.use(registerCarRoute);
 app.use(requestHistoryRoute);
 app.use(resetRoute);
 
-
-
 app.use((req, res, next) => {
     res.status(404).send('<h1>Page not found</h1>');
 });
 
-
 app.listen(3000);
-
-

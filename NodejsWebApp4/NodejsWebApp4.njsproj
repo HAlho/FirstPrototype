@@ -47,6 +47,9 @@
     </Content>
     <Content Include="routes\avaReq.js" />
     <Content Include="routes\edit.js" />
+    <Content Include="routes\firebaseConfig.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="routes\profile.js" />
     <Content Include="routes\registerCar.js" />
     <Content Include="routes\requestHistory.js" />

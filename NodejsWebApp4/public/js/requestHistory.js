@@ -1,15 +1,27 @@
 
 const auth = firebase.auth();
 
-firebase.auth().onAuthStateChanged(function (user) {
+firebase.auth().onAuthStateChanged(async function (user) {
     if (user) {
         console.log(user);
         // User is signed in.
         var userId = auth.currentUser.uid;
 
-        firebase.database().ref('previousRequests/' + userId).once('value', function (snapshot) {//change to previous requests
+        const sdata = { userId };
+        console.log(sdata);
 
-            var data = snapshot.val(); //get all request info
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(sdata)
+        };
+        const response = await fetch('/getHistory', options);
+        const json = await response.json();
+        console.log(json);
+        data = json.hist;
+
             var keys = Object.keys(data); //get request ids
             console.log(keys);
 
@@ -84,7 +96,9 @@ firebase.auth().onAuthStateChanged(function (user) {
             console.log("Requests completed as a requester: " + reqCompleted + "<br><br> Requests completed as a provider: " + provCompleted + " <br><br>Cancelled requests: " + reqCancelled);
             document.getElementById("p2").innerHTML = "Requests completed as a requester: " + reqCompleted + "<br><br> Requests completed as a provider: " + provCompleted + " <br><br>Cancelled requests: " + reqCancelled;
             document.getElementById("mydiv").appendChild(table);
-        });
+
+
+
     } else {
         console.log("user is not signed")
         window.location.replace('../signup'); //redirect user to main page

@@ -40,17 +40,27 @@ function clearDropmenu(selectElement) {
     selectElement.appendChild(option);
 }
 
-function submit() {
+async function submit() {
     carBrand = document.getElementById("brands").value;
     carModel = document.getElementById("models").value;
     licenseNum = document.getElementById("license").value;
     carColor = document.getElementById("colors").value;
-    firebase.database().ref('users/' + firebase.auth().currentUser.uid + "/cars").push().set({
-        brand: carBrand,
-        model: carModel,
-        licenseNumber: licenseNum,
-        color: carColor
-    });
+    const userId = firebase.auth().currentUser.uid;
+
+    const sdata = { carBrand, carModel, licenseNum, carColor, userId };
+    console.log(sdata);
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sdata)
+    };
+    const response = await fetch('/getCars', options);
+    const json = await response.json();
+    console.log(json);
+    
     alert('Your Car was Registered Successfully!');
     window.location.replace('../profile');
 }
