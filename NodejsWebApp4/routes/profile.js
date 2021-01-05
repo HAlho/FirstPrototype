@@ -309,32 +309,33 @@ router.post('/reqInfo', async (request, response) => { //add to recieve that pos
     console.log("keys: " + keys);
     for (i = 0; i < keys.length; i++){//also check the user status
         k = keys[i];
+        console.log("key: " + keys[i]);
         id = t[k].uid;
         if (id == data.userId) continue;
         else if (u[id].status != "Available") continue;
-        console.log("current token is: " + t[k].token);
+        console.log("token pushed is: " + t[k].token);
         tokens.push(t[k].token);
     }
-    console.log("tokens: "+tokens);
+    console.log("tokens: " + tokens);
 
-    const message = {
-        data: { score: '850', time: '2:45' },
-        tokens: tokens,
+    for (let i of tokens) {
+        console.log("to be sent: "+i);
+        var registrationToken = i;
+        var payload = {
+            notification: {
+                title: 'A new request has been made',
+                body: data.neededEnergy
+            }
+        };
+        admin.messaging().sendToDevice(registrationToken, payload)
+            .then(function (response) {
+                console.log("Successfully sent message:", response);
+            })
+            .catch(function (error) {
+                console.log("Error sending message:", error);
+            });
     }
 
-    admin.messaging().sendMulticast(message)
-        .then((response) => {
-            if (response.failureCount > 0) {
-                const failedTokens = [];
-                response.responses.forEach((resp, idx) => {
-                    if (!resp.success) {
-                        failedTokens.push(tokens[idx]);
-                    }
-                    else { console.log("notification sent");}
-                });
-                console.log('List of tokens that caused failures: ' + failedTokens);
-            }
-        });
 
 });
 

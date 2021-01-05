@@ -109,7 +109,7 @@ async function profilePage(userId) {
     var curstatus=null;
     
     while (1) {
-        console.log(j6.update);
+       // console.log(j6.update);
 
         if (j6.update == true || initial) {
 
