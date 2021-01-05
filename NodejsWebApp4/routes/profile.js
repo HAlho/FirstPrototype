@@ -47,12 +47,12 @@ router.post('/userRequest', async (request, response) => { //add to recieve that
     const data = request.body;
     var snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
     var req = snapshot.val();
+
     response.json({
         status: "success",
         req:  req
     });
 
-    db.ref('users/' + data.userId).update({ status: data.newStat });
 
 });
 
@@ -338,6 +338,32 @@ router.post('/reqInfo', async (request, response) => { //add to recieve that pos
 
 });
 
+
+router.post('/checkUpdates', async (request, response) => { 
+    console.log('GOT A checkUpdates');
+    const data = request.body;
+    //var req = { dbref:null, id:null, role:null };//asssign them null to prevent cannot read property of null error
+    const snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
+    var req = snapshot.val();
+
+    var u = true;
+
+    try {
+        if (data.status == req.dbref)
+            u = false;
+    } catch (error) {
+        //console.log(error);
+        if ((data.status == null && req == null))
+            u = false;
+        //console.log(data.status);
+    }
+    
+    response.json({
+        status: "success",
+        update: u
+    });
+
+});
 
 
 
