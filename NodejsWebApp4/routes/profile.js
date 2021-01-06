@@ -318,7 +318,7 @@ router.post('/reqInfo', async (request, response) => { //add to recieve that pos
     }
     console.log("tokens: " + tokens);
 
-    for (let i of tokens) {
+    for (let i of tokens) {//do this for each token in the array
         console.log("to be sent: "+i);
         var registrationToken = i;
         var payload = {

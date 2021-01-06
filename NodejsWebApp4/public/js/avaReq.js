@@ -20,7 +20,7 @@ firebase.auth().onAuthStateChanged( async function (user) {
             },
             body: JSON.stringify(data)
         };
-        const response = await fetch('/check', options);
+        const response = await fetch('/check', options);//check if the user has an active request
         const json = await response.json();
         console.log(json);
 
@@ -92,7 +92,7 @@ async function getReq(userId) {
                     const response = await fetch('/change', options);
                     const json = await response.json();
                     console.log(json);
-                    window.location.replace('../profile');
+                    window.location.replace('../profile');//if we made it that the page doesn't change then we will need to set canAccept to false
                 });
             })(k)
         }

@@ -67,9 +67,46 @@ router.post('/change', async (request, response) => { //add to recieve that post
     });
     db.ref('activeRequests/issued/' + data.index).remove();
 
+    var snapshot = await db.ref('activeRequests/accepted/' + data.index + '/requester').once('value');//get requester's id
+    const req = snapshot.val();
+    console.log(req);
+    snapshot = await db.ref('tokens').once('value');
+    const t = snapshot.val();
+    var keys = Object.keys(t); //ids of the tokens
+    var k;
+    var id;
+    var registrationToken;
+    console.log("keys: " + keys);
+    for (i = 0; i < keys.length; i++) {//also check the user status
+        k = keys[i];
+        console.log("key: " + keys[i]);
+        id = t[k].uid;
+        if (id == req.uid) {
+            registrationToken = t[k].token;
+            break;
+        }
+    }
+
+    var payload = {
+        notification: {
+            title: 'Your request has been accepted',
+            body: 'Provider: '+data.userId
+        }
+    };
+
+
+    admin.messaging().sendToDevice(registrationToken, payload)
+        .then(function (response) {
+            console.log("Successfully sent message:", response);
+        })
+        .catch(function (error) {
+            console.log("Error sending message:", error);
+        });
+
     response.json({
         status: "success"
     });
+
 
 });
 
