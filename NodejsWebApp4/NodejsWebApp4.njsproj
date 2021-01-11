@@ -31,9 +31,28 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="app.js" />
-    <Content Include="Page1.html">
-      <SubType>Code</SubType>
-    </Content>
+    <Content Include="binding.gyp" />
+    <Content Include="build\calculate.vcxproj" />
+    <Content Include="build\calculate.vcxproj.filters" />
+    <Content Include="build\config.gypi" />
+    <Content Include="build\Release\calculate.exp" />
+    <Content Include="build\Release\calculate.iobj" />
+    <Content Include="build\Release\calculate.ipdb" />
+    <Content Include="build\Release\calculate.lib" />
+    <Content Include="build\Release\calculate.node" />
+    <Content Include="build\Release\calculate.pdb" />
+    <Content Include="build\Release\obj\calculate\calculate.node.recipe" />
+    <Content Include="build\Release\obj\calculate\calculate.obj" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\calculate.lastbuildstate" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\calculate.write.1u.tlog" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\CL.command.1.tlog" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\CL.read.1.tlog" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\CL.write.1.tlog" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\link.command.1.tlog" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\link.read.1.tlog" />
+    <Content Include="build\Release\obj\calculate\calculate.tlog\link.write.1.tlog" />
+    <Content Include="build\Release\obj\calculate\win_delay_load_hook.obj" />
+    <Content Include="calculate.cc" />
     <Content Include="public\firebase-messaging-sw.js" />
     <Content Include="public\img\profile-icon.jpg" />
     <Content Include="public\img\requests-icon.jpg" />
@@ -47,6 +66,7 @@
     <Content Include="routes\account.js">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="helper.js" />
     <Content Include="routes\avaReq.js" />
     <Content Include="routes\edit.js" />
     <Content Include="routes\firebaseConfig.js">
@@ -61,13 +81,9 @@
     </Content>
     <Content Include="routes\signup.js" />
     <Content Include="serviceAccountKey.json" />
-    <Content Include="firebase-messaging-sw.js">
-      <SubType>Code</SubType>
-    </Content>
     <Content Include="index.html">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="server.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="public\img\avatar.svg" />
@@ -82,6 +98,7 @@
     <Content Include="public\img\signup.svg" />
     <Content Include="public\img\success.svg" />
     <Content Include="public\img\twitter.svg" />
+    <Content Include="test.js" />
     <Content Include="views\404.html" />
     <Content Include="views\account.html" />
     <Content Include="views\avaReq.html" />
@@ -110,6 +127,11 @@
     <Content Include="public\style\signup.css" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="build\" />
+    <Folder Include="build\Release\" />
+    <Folder Include="build\Release\obj\" />
+    <Folder Include="build\Release\obj\calculate\" />
+    <Folder Include="build\Release\obj\calculate\calculate.tlog\" />
     <Folder Include="public\js\" />
     <Folder Include="public\" />
     <Folder Include="routes\" />
