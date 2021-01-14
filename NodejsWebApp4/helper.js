@@ -1,12 +1,16 @@
+//const calculate = require('./build/Release/calculate');
+
 const { Worker, parentPort, workerData } = require("worker_threads");
 
-const n = workerData.n;
+const n = workerData.n; //take the variables from workerData in profile.js
 
 console.log("n is : " + n);
 
-const result = test(n);
+//const result = test(n);
 
-parentPort.postMessage(result);
+const result = calculate.calc(n);
+
+parentPort.postMessage(result); //send to the parent thread the result
 parentPort.close();
 
 function test(n) {

@@ -1,9 +1,8 @@
-//const calculate = require('./../build/Release/calculate');
+
 
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads')
 
 const path = require('path');
-const workerPath = path.resolve(__dirname + "alg.js");
 
 
 const express = require('express');
@@ -374,7 +373,7 @@ router.post('/checkUpdates', async (request, response) => {
         }
     });
 
-    worker.on('message', message => console.log(message)); //get the variables through message //add here worker.terminate();
+    worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
         
 
         response.json({

@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Profile</title>
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="./style/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<body>
+    <section class="container profile-container">
+        <div>
+            <p><b>V2V charging</b></p>
+        </div>
+        <div>
+            <button id="account"><img src="./img/profile-icon.jpg" width="35" height="35"><br /><small><b>Account</b></small></button>
+            <button id="avaReq"><img src="./img/requests-icon.jpg" width="35" height="35"><br /><small><b>Available Requests</b></small></button>
+
+            <label>Status: </label>
+            <select id="status" onmouseover="dropList()" onmouseout="this.size=1;"></select>
+
+            <br /><br /><hr />
+
+           
+
+        </div>
+        <div id="request" style="display:none;">
+            <h3> Make a New Request</h3><br />
+            <small id="car"></small>
+            <div id="carDiv">
+                <div id="cars"></div>
+                <br />
+                <small onclick="continueReq()" style="cursor:pointer;"><b>Continue 🡺</b></small>
+            </div>
+
+            <div id="requestInfoDiv" style="display:none;">
+                <small><b>Current Energy Amount (kWh):</b></small>
+                <small id="value"></small><br /><br />
+
+                <small style="display: inline;">0</small>
+                <div class="slidecontainer" id="slider" style="display:inline; margin: 0px 0px;"></div>
+                <small id="max" style="display:inline;"></small>
+
+                <br /><br /><br />
+
+                <small><b>Requested Charge Amount (kWh):</b></small><br />
+                <input type="number" id="amount" name="amount" autocomplete="off"><br />
+
+                <label><small>pick a destination instead </small></label>
+                <i class="fa fa-map-marker" style="font-size:24px;color:#2196f3" id="calculate" onclick="calculate()"></i>
+                <br /><br /><br />
+                <small onclick="back()" style="cursor:pointer; text-align:left; margin:0px 5%;"><b>🡸 Back</b></small>
+
+                <button id="SRequest"><b>Send Request</b></button>
+
+            </div>
+        </div>
+
+        <div id="accepted" style="display:none;">
+            <h2>Active Request</h2><br />
+            <p id="p2"></p><br />
+            <div id="req"></div>
+        </div>
+    </section>
+
+    <script>
+        function dropList () {
+            var n = document.getElementById("status").options.length;
+            document.getElementById("status").size = n;
+        }
+    </script>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
+
+
+    <script>
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        var firebaseConfig = {
+            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
+            authDomain: "auth-c0cb3.firebaseapp.com",
+            databaseURL: "https://auth-c0cb3.firebaseio.com",
+            projectId: "auth-c0cb3",
+            storageBucket: "auth-c0cb3.appspot.com",
+            messagingSenderId: "1034981325790",
+            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
+            measurementId: "G-1GCV52KFRG"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+    </script>
+
+    <script src="./js/profile.js"></script>
+    <!-- <script src="../functions/index.js"></script> -->
+
+</body>
+    </html>
+
+
+    
