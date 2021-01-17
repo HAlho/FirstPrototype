@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "greet",
+      "target_name": "indexc",
       "cflags!": [ "-fno-exceptions" ],
       "cflags_cc!": [ "-fno-exceptions" ],
       "sources": [

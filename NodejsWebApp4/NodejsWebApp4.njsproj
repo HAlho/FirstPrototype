@@ -52,7 +52,9 @@
     <Content Include="build\Release\obj\calculate\calculate.tlog\link.read.1.tlog" />
     <Content Include="build\Release\obj\calculate\calculate.tlog\link.write.1.tlog" />
     <Content Include="build\Release\obj\calculate\win_delay_load_hook.obj" />
-    <Content Include="calculate.cc" />
+    <Content Include="greeting.cc" />
+    <Content Include="greeting.h" />
+    <Content Include="index.cc" />
     <Content Include="public\firebase-messaging-sw.js" />
     <Content Include="public\img\profile-icon.jpg" />
     <Content Include="public\img\requests-icon.jpg" />
@@ -85,7 +87,6 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="package.json" />
-    <Content Include="README.md" />
     <Content Include="public\img\avatar.svg" />
     <Content Include="public\img\edit.svg" />
     <Content Include="public\img\facebook.svg" />

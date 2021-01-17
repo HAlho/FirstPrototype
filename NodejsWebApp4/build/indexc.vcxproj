@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5E6A45FF-B382-6A7D-1183-C2A5FA2DBC59}</ProjectGuid>
+    <ProjectGuid>{4DAF793B-FA97-66A4-E9F3-9C282E50468C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>calculate</RootNamespace>
+    <RootNamespace>indexc</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
@@ -48,7 +48,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;C:\Users\halho\Downloads\NodejsWebApp4\NodejsWebApp4\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -59,7 +59,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=calculate;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;V8_ENABLE_CHECKS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=indexc;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;V8_ENABLE_CHECKS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>true</StringPooling>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -83,13 +83,13 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=calculate;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;V8_ENABLE_CHECKS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;C:\Users\halho\Downloads\NodejsWebApp4\NodejsWebApp4\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=indexc;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;V8_ENABLE_CHECKS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;C:\Users\halho\Downloads\NodejsWebApp4\NodejsWebApp4\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -102,7 +102,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=calculate;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=indexc;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <StringPooling>true</StringPooling>
@@ -127,16 +127,19 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;..\node_modules\nan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=calculate;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\include\node;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\src;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\config;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\openssl\openssl\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\uv\include;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\zlib;C:\Users\halho\AppData\Local\node-gyp\Cache\12.18.4\deps\v8\include;C:\Users\halho\Downloads\NodejsWebApp4\NodejsWebApp4\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=indexc;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\binding.gyp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\calculate.cc">
-      <ObjectFileName>$(IntDir)\calculate.obj</ObjectFileName>
+    <ClCompile Include="..\greeting.cc">
+      <ObjectFileName>$(IntDir)\greeting.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\index.cc">
+      <ObjectFileName>$(IntDir)\index.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="C:\Users\halho\AppData\Roaming\npm\node_modules\node-gyp\src\win_delay_load_hook.cc"/>
   </ItemGroup>

@@ -1,4 +1,4 @@
-//const calculate = require('./build/Release/calculate');
+const calculate = require('./build/Release/indexc');
 
 const { Worker, parentPort, workerData } = require("worker_threads");
 
