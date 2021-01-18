@@ -381,7 +381,8 @@ router.post('/checkUpdates', async (request, response) => {
     const compute = fork('helper.js');
     compute.send({n: 15});//send to the child process
     compute.on('message', sum => {//get the value from the child process
-        console.log("result is: "+sum);
+        console.log("result is: " + sum);
+        compute.kill();
     });
 
         response.json({
