@@ -1,17 +1,11 @@
 {
-  "targets": [
-    {
-      "target_name": "indexc",
-      "cflags!": [ "-fno-exceptions" ],
-      "cflags_cc!": [ "-fno-exceptions" ],
-      "sources": [
-        "greeting.cc",
-        "index.cc"
-      ],
-      "include_dirs": [
-        "<!@(node -p \"require('node-addon-api').include\")"
-      ],
-      'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS' ],
-    }
-  ]
-}
+	"targets":[
+	{
+	"target_name": "indexc",
+	"include_dirs" : [
+    "<!(node -e \"require('nan')\")"
+	],
+	"sources": ["index.cc"]
+	}
+	] 
+} 

@@ -1,6 +1,8 @@
 
 
-const { Worker, isMainThread, parentPort, workerData } = require('worker_threads')
+const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
+const { fork } = require('child_process');
+
 
 const path = require('path');
 
@@ -367,14 +369,20 @@ router.post('/checkUpdates', async (request, response) => {
         //console.log(data.status);
     }
 
-    const worker = new Worker("./helper.js", { //create a new thread that runs helper.js
-        workerData: { //pass the variables here
-            n: 100
-        }
-    });
+    //const worker = new Worker("./helper.js", { //create a new thread that runs helper.js
+    //    workerData: { //pass the variables here
+    //        n: 100
+    //    }
+    //});
 
-    worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
-        
+    //worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
+
+
+    const compute = fork('helper.js');
+    compute.send({n: 15});//send to the child process
+    compute.on('message', sum => {//get the value from the child process
+        console.log("result is: "+sum);
+    });
 
         response.json({
             status: "success",

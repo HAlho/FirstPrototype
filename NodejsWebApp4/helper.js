@@ -2,16 +2,21 @@ const calculate = require('./build/Release/indexc');
 
 const { Worker, parentPort, workerData } = require("worker_threads");
 
-const n = workerData.n; //take the variables from workerData in profile.js
+//const n = workerData.n; //take the variables from workerData in profile.js
 
-console.log("n is : " + n);
+//console.log("n is : " + n);
 
 //const result = test(n);
 
-const result = calculate.calc(n);
+//const result = calculate.calc(100);
 
-parentPort.postMessage(result); //send to the parent thread the result
-parentPort.close();
+//parentPort.postMessage(result); //send to the parent thread the result
+//parentPort.close();
+
+process.on('message', (msg) => {
+    const sum = calculate.calc(msg.n);
+    process.send(sum);
+});
 
 function test(n) {
     var num=0;
