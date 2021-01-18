@@ -30,7 +30,6 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="addon.cpp" />
     <Content Include="app.js" />
     <Content Include="binding.gyp" />
     <Content Include="build\calculate.vcxproj" />
@@ -53,14 +52,9 @@
     <Content Include="build\Release\obj\calculate\calculate.tlog\link.read.1.tlog" />
     <Content Include="build\Release\obj\calculate\calculate.tlog\link.write.1.tlog" />
     <Content Include="build\Release\obj\calculate\win_delay_load_hook.obj" />
-    <Content Include="c_exchange.h" />
-    <Content Include="exchange.cpp" />
-    <Content Include="exchange.h" />
     <Content Include="greeting.cc" />
     <Content Include="greeting.h" />
     <Content Include="index.cc" />
-    <Content Include="prime_sieve.c" />
-    <Content Include="prime_sieve.h" />
     <Content Include="public\firebase-messaging-sw.js" />
     <Content Include="public\img\profile-icon.jpg" />
     <Content Include="public\img\requests-icon.jpg" />
