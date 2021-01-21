@@ -127,6 +127,7 @@
     <Content Include="public\style\profile.css" />
     <Content Include="public\style\reset.css" />
     <Content Include="public\style\signup.css" />
+    <Content Include="wait.js" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="build\" />

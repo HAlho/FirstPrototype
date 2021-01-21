@@ -14,11 +14,12 @@ const { Worker, parentPort, workerData } = require("worker_threads");
 //parentPort.close();
 
 process.on('message', (msg) => {
+    console.log("n is " + msg.n);
     const sum = calculate.calc(msg.n);
     process.send(sum);
 });
 
-function test(n) {
+function test(n) {//O(n^10) algorithm
     var num=0;
     for (let a = 0; a < n; a++)
         for (let b = 0; b < n; b++)
@@ -31,6 +32,6 @@ function test(n) {
                                     for (let i = 0; i < n; i++)
                                         for (let j = 0; j < n; j++)
                                             num++;
-    console.log('computation done ' + num);
+    console.log('Child: computation done ' + num);
     return num;
 }

@@ -39,4 +39,11 @@ app.use((req, res, next) => {
     res.status(404).send('<h1>Page not found</h1>');
 });
 
+fs.writeFile('queue.txt', '', function (err) {//clear queue
+    if (err) return console.log(err);
+});
+fs.writeFile('procInfo.txt', '', function (err) {//clear queue
+    if (err) return console.log(err);
+});
+
 https.createServer({ key: privateKey, cert: certificate }, app).listen(3000);
