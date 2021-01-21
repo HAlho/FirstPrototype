@@ -2,6 +2,8 @@ const fs = require('fs');
 
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 const { fork } = require('child_process');
+
+const maxProc = 2;
 var numProc = 0;//number of running child processes
 
 
@@ -371,7 +373,7 @@ router.post('/checkUpdates', async (request, response) => {
     }
 
 
-    if (numProc < 2) {//was 30
+    if (numProc < maxProc) {//was 30
         const compute = fork('helper.js'); //create child process that runs helper.js
         numProc++;
         //top stack
@@ -390,7 +392,7 @@ router.post('/checkUpdates', async (request, response) => {
                 if (err) throw err;
                 // break the textblock into an array of lines
                 var lines = data.split('\n');
-                // remove one line, starting at the first position
+                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
                 lines.splice(0, 1);
                 // join the array back into a single string
                 newData = lines.join('\n');
@@ -413,6 +415,7 @@ router.post('/checkUpdates', async (request, response) => {
         worker.postMessage(worker.threadId);
         worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
     }
+    //there should be a last else for if the thread's queue is full, we ask the user to try again shortly
 
         response.json({
             status: "success",
