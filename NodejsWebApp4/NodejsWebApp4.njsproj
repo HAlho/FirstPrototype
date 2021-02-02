@@ -99,7 +99,6 @@
     <Content Include="public\img\signup.svg" />
     <Content Include="public\img\success.svg" />
     <Content Include="public\img\twitter.svg" />
-    <Content Include="Source.cpp" />
     <Content Include="test.js" />
     <Content Include="views\404.html" />
     <Content Include="views\account.html" />

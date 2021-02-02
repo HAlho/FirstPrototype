@@ -23,7 +23,7 @@ const resetRoute = require('./routes/reset');
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));//send the static js and css files with the corresponding html file
 
 app.use(signUpRoute);
 app.use(signInRoute);
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 fs.writeFile('queue.txt', '', function (err) {//clear queue
     if (err) return console.log(err);
 });
-fs.writeFile('procInfo.txt', '', function (err) {//clear queue
+fs.writeFile('procInfo.txt', '', function (err) {//clear procInfo
     if (err) return console.log(err);
 });
 

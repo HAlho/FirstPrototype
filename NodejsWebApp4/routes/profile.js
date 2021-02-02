@@ -355,7 +355,20 @@ router.use(express.json({ limit: '1mb' }));
 
 router.post('/checkUpdates', async (request, response) => {
     console.log('GOT A checkUpdates');
+    console.log('GOT A LOCATION!');
+
+    console.log(request.body);
+
     const data = request.body;
+
+    var location = db.ref('activeRequests/issued').push();
+
+    db.ref('location').child(data.userId).set({
+        latitude: data.lat,
+        longitude: data.lon,
+        timestamp: data.tim
+    });
+
     //var req = { dbref:null, id:null, role:null };//asssign them null to prevent cannot read property of null error
     const snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
     var req = snapshot.val();
@@ -371,56 +384,10 @@ router.post('/checkUpdates', async (request, response) => {
             u = false;
         //console.log(data.status);
     }
-
-
-    if (numProc < maxProc) {//was 30
-        const compute = fork('helper.js'); //create child process that runs helper.js
-        numProc++;
-        //top stack
-        fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
-            if (err) return console.log(err);
-            console.log('proc now:' + numProc);
-        });
-        compute.send({ n: 17 });//send to the child process
-        compute.on('message', sum => {//get the value from the child process
-            console.log("result is: " + sum);
-            compute.kill();
-            numProc--;
-            //pop stack
-            var newData;
-            fs.readFile('procInfo.txt', "utf8", (err, data) => {
-                if (err) throw err;
-                // break the textblock into an array of lines
-                var lines = data.split('\n');
-                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
-                lines.splice(0, 1);
-                // join the array back into a single string
-                newData = lines.join('\n');
-                console.log("new data is :" + newData);
-                fs.writeFile('procInfo.txt', newData, function (err) {
-                    if (err) return console.log(err);
-                    console.log('proc now:' + numProc);
-                });
-            });
-
-            
-        });
-    } else {//create a thread and let it check for available slots
-        const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
-            workerData: { //pass the variables here
-                n: 15
-            }
-        });
-
-        worker.postMessage(worker.threadId);
-        worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
-    }
-    //there should be a last else for if the thread's queue is full, we ask the user to try again shortly
-
-        response.json({
-            status: "success",
-            update: u
-        });
+    response.json({
+        status: "success",
+        update: u
+    });
 
     });
 

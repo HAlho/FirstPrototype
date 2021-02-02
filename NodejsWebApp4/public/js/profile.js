@@ -295,18 +295,40 @@ async function profilePage(userId) {
 
         await sleep(2000);
 
-        //check for updates
-        const d1 = { userId: userId, status: curstatus };
-        const options1 = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(d1)
-        };
-        const response1 = await fetch('/checkUpdates', options1);//check if the a user request's status changed, created, or deleted 
-        j6 = await response1.json();
-        console.log(j6);
+        if ('geolocation' in navigator) {
+            console.log('geolocation available');
+            navigator.geolocation.getCurrentPosition(async position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const tim = position.timestamp;
+                console.log(position);
+                const d1 = { userId: userId, status: curstatus, lat, lon, tim };
+                const options1 = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(d1)
+                };
+                const response1 = await fetch('/checkUpdates', options1);//check if the a user request's status changed, created, or deleted
+                j6 = await response1.json();
+                console.log(j6);
+            });
+        }
+        else {
+            console.log('geolocation not available');
+            const d1 = { userId: userId, status: curstatus };
+            const options1 = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(d1)
+            };
+            const response1 = await fetch('/checkUpdates', options1);//check if the a user request's status changed, created, or deleted
+            j6 = await response1.json();
+            console.log(j6);
+        }
     } 
 
 
