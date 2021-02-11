@@ -319,35 +319,85 @@ router.use(express.json({ limit: '1mb' }));
         var tokens = [];
         var k;
         var id;
-        console.log("keys: " + keys);
+        //console.log("keys: " + keys);
         for (i = 0; i < keys.length; i++) {//also check the user status
             k = keys[i];
-            console.log("key: " + keys[i]);
+           // console.log("key: " + keys[i]);
             id = t[k].uid;
             if (id == data.userId) continue;
             else if (u[id].status != "Available") continue;
-            console.log("token pushed is: " + t[k].token);
+            //console.log("token pushed is: " + t[k].token);
             tokens.push(t[k].token);
         }
-        console.log("tokens: " + tokens);
+       // console.log("tokens: " + tokens);
 
-        for (let i of tokens) {//do this for each token in the array
-            console.log("to be sent: " + i);
-            var registrationToken = i;
-            var payload = {
-                notification: {
-                    title: 'A new request has been made',
-                    body: data.neededEnergy
-                }
-            };
-            admin.messaging().sendToDevice(registrationToken, payload)
-                .then(function (response) {
-                    console.log("Successfully sent message:", response);
-                })
-                .catch(function (error) {
-                    console.log("Error sending message:", error);
+        //for (let i of tokens) {//do this for each token in the array
+        //    //console.log("to be sent: " + i);
+        //    var registrationToken = i;
+        //    var payload = {
+        //        notification: {
+        //            title: 'A new request has been made',
+        //            body: data.neededEnergy
+        //        }
+        //    };
+        //    admin.messaging().sendToDevice(registrationToken, payload)
+        //        .then(function (response) {
+        //            console.log("Successfully sent message:", response);
+        //        })
+        //        .catch(function (error) {
+        //            console.log("Error sending message:", error);
+        //        });
+        //}
+
+
+
+
+
+        if (numProc < maxProc) {//was 30
+            const compute = fork('helper.js'); //create child process that runs helper.js
+            numProc++;
+            //top stack
+            fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
+                if (err) return console.log(err);
+                console.log('proc now:' + numProc);
+            });
+            compute.send({ n: 17, uid: data.userId, pid: compute.pid });//send to the child process
+            compute.on('message', sum => {//get the value from the child process
+                console.log("result is: " + sum);
+                compute.kill();
+                numProc--;
+                //pop stack
+                var newData;
+                fs.readFile('procInfo.txt', "utf8", (err, data) => {
+                    if (err) throw err;
+                    // break the textblock into an array of lines
+                    var lines = data.split('\n');
+                    // remove one line, starting at the first position. Unlike slice, splice return the removed Items
+                    lines.splice(0, 1);
+                    // join the array back into a single string
+                    newData = lines.join('\n');
+                    console.log("new data is :" + newData);
+                    fs.writeFile('procInfo.txt', newData, function (err) {
+                        if (err) return console.log(err);
+                        console.log('proc now:' + numProc);
+                    });
                 });
+
+
+            });
+        } else {//create a thread and let it check for available slots
+            const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
+                workerData: { //pass the variables here
+                    n: 15,
+                    uid: data.userId
+                }
+            });
+
+            worker.postMessage(worker.threadId);
+            worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
         }
+    //there should be a last else for if the thread's queue is full, we ask the user to try again shortly
+
 
 
     });
@@ -386,51 +436,7 @@ router.post('/checkUpdates', async (request, response) => {
     }
 
 
-    if (numProc < maxProc) {//was 30
-        const compute = fork('helper.js'); //create child process that runs helper.js
-        numProc++;
-        //top stack
-        fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
-            if (err) return console.log(err);
-            console.log('proc now:' + numProc);
-        });
-        compute.send({ n: 17, uid: data.userId, pid: compute.pid });//send to the child process
-        compute.on('message', sum => {//get the value from the child process
-            console.log("result is: " + sum);
-            compute.kill();
-            numProc--;
-            //pop stack
-            var newData;
-            fs.readFile('procInfo.txt', "utf8", (err, data) => {
-                if (err) throw err;
-                // break the textblock into an array of lines
-                var lines = data.split('\n');
-                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
-                lines.splice(0, 1);
-                // join the array back into a single string
-                newData = lines.join('\n');
-                console.log("new data is :" + newData);
-                fs.writeFile('procInfo.txt', newData, function (err) {
-                    if (err) return console.log(err);
-                    console.log('proc now:' + numProc);
-                });
-            });
-
-
-        });
-    } else {//create a thread and let it check for available slots
-        const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
-            workerData: { //pass the variables here
-                n: 15,
-                uid: data.userId
-            }
-        });
-
-        worker.postMessage(worker.threadId);
-        worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
-    }
-    //there should be a last else for if the thread's queue is full, we ask the user to try again shortly
-
+    
 
     response.json({
         status: "success",
