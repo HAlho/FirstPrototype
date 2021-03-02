@@ -411,13 +411,19 @@ router.post('/checkUpdates', async (request, response) => {
 
     const data = request.body;
 
-    var location = db.ref('activeRequests/issued').push();
+    //var location = db.ref('users/' + data.userId).push();
 
-    db.ref('location').child(data.userId).set({
+    //location.child("location").set({
+    //    latitude: data.lat,
+    //    longitude: data.lon,
+    //    timestamp: data.tim
+    //});
+    db.ref('users/' + data.userId+"/location/").set({
         latitude: data.lat,
         longitude: data.lon,
         timestamp: data.tim
     });
+    
 
     //var req = { dbref:null, id:null, role:null };//asssign them null to prevent cannot read property of null error
     const snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
