@@ -7,6 +7,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <exception>
+
 
 #define SINGLE 0;
 #define FREE -1
@@ -116,29 +118,31 @@ void readMPFromFile() {
 
 //read information regarding all the available providers
 void readPFromFile(int pid) {
-    string filep = "./IOs/p" + to_string(pid) + ".txt";
-	cout << filep << endl;
-	ifstream PFile;
-	PFile.open(filep);
-	//ifstream PFile("PFile.txt");
-	string temp;
-	int j = 0;
-	while (getline(PFile, temp)) {
-		// Output the text from the file
-		istringstream my_stream(temp);
+		string filep = "./IOs/p" + to_string(pid) + ".txt";
+		cout << filep << endl;
+		ifstream PFile;
+		PFile.open(filep);
+		//ifstream PFile("PFile.txt");
+		string temp;
+		int j = 0;
+		while (getline(PFile, temp)) {
+			// Output the text from the file
+			istringstream my_stream(temp);
 
-		my_stream >> providerSet[j].uid;
-		my_stream >> providerSet[j].latitude;
-		my_stream >> providerSet[j].longitude;
-		my_stream >> providerSet[j].pUnitPrice;
-		my_stream >> providerSet[j].consumptionRate;
-		cout << "provider: " << providerSet[j].uid << " " << providerSet[j].latitude << " " << providerSet[j].longitude << " " << providerSet[j].pUnitPrice << " " << providerSet[j].consumptionRate << endl;
+			my_stream >> providerSet[j].uid;
+			my_stream >> providerSet[j].latitude;
+			my_stream >> providerSet[j].longitude;
+			my_stream >> providerSet[j].pUnitPrice;
+			my_stream >> providerSet[j].consumptionRate;
+			cout << "provider: " << providerSet[j].uid << " " << providerSet[j].latitude << " " << providerSet[j].longitude << " " << providerSet[j].pUnitPrice << " " << providerSet[j].consumptionRate << endl;
 
-		j++;
-		//my_stream >> providerSet[j].v;
-		//my_stream >> providerSet[j++].loc;
+			j++;
+			//my_stream >> providerSet[j].v;
+			//my_stream >> providerSet[j++].loc;
 
-	}
+		}
+
+	
 	
 }
 

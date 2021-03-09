@@ -81,7 +81,7 @@ void findMPs(int pid) {
 	//find the meeting points where at least 1 consumer can reach
 	for (int k = 0; k < MPSIZE; k++) {
 		for (int i = 0; i < CONSUMERS; i++) {
-			if(consumerSet[i].distanceToMP[k] <= consumerSet[i].maxDistance) {//no conversion from double to double[2]
+			if(consumerSet[i].distanceToMP[k] <= consumerSet[i].maxDistance) {
 				fout << k << endl;
 				break;
 			}

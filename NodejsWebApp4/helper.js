@@ -36,6 +36,8 @@ let myPromise = new Promise(function (myResolve, myReject) {
         console.log("helper: id is " + msg.uid);
         var snapshot = await db.ref('users/' + msg.uid + '/activeRequest').once('value');
         var u = snapshot.val();
+
+        //loop start
         snapshot = await db.ref('activeRequests/issued/' + u.id).once('value');
         var req = snapshot.val();
         //get the consumption rate of the car model used
@@ -50,11 +52,16 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
         var consumptionRate = car.avgConsumption;
         //requesters: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
-        var contents = msg.uid + " " + location.latitude + " " + location.longitude + " " + req.amount + " " + req.requester.maxDistance + " " + consumptionRate + "\n";
+        var contents = contents.concat(msg.uid + " " + location.latitude + " " + location.longitude + " " + req.amount + " " + req.requester.maxDistance + " " + consumptionRate + "\n");
         points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
-        fs.writeFile('./IOs/' + filename, contents, function (err) {//write the contents on the txt located in IOs
-            if (err) return console.log(err);
-        });
+
+        //loop end
+
+        //fs.writeFile('./IOs/' + filename, contents, function (err) {//write the contents on the txt located in IOs
+        //    if (err) return console.log(err);
+        //});
+        fs.writeFileSync('./IOs/' + filename, contents);
+
         points = points.concat('&destinations=');
         filename = './IOs/MPFile.txt';
         var data = fs.readFileSync(filename, "utf8");
@@ -104,10 +111,11 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
                         // join the array back into a single string
                         newData = lines.join('\n');
-                        fs.writeFile('./IOs/' + filename, newData, function (err) {
-                            if (err) return console.log(err);
-                        });
-                    
+                        //fs.writeFile('./IOs/' + filename, newData, function (err) {
+                        //    if (err) return console.log(err);
+                        //});
+                        fs.writeFileSync('./IOs/' + filename, newData);
+
 
                 } catch (error) {
                     console.error(error.message);
@@ -116,6 +124,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 //run the minimizing code
                 miniList.check(msg.pid);
               
+                //the consumer file will contain all 4 distances/durations
 
                 //----------------------------------------------------------------------------------------------------------------------------
 
@@ -136,7 +145,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 var availableUsers = [];
                 var k;
                 var first = true;
-                for (i = 0; i < keys.length; i++) {//also check the user status
+                for (i = 0; i < keys.length; i++) {//also check the user status  ADD that the provider does't have a request
                     if (!first)
                         points = points.concat('%7C');
                     k = keys[i];
@@ -148,24 +157,29 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
                 }
 
-                fs.writeFile('./IOs/' + filename, contents, function (err) {//write the contents on the txt located in IOs
-                    if (err) return console.log(err);
-                });
+                //fs.writeFile('./IOs/' + filename, contents, function (err) {//write the contents on the txt located in IOs
+                //    if (err) return console.log(err);
+                //});
+                fs.writeFileSync('./IOs/' + filename, contents);
+
+
                 points = points.concat('&destinations=');
                 filename = './IOs/MP' + pid + '.txt';//file does not contain the coords only the number
                 var data1 = fs.readFileSync(filename, "utf8");//read the new mp file
                 var meetingIds = data1.split("\n");
                 var mId;
-                var countmId = 0;
-                filename = './IOs/MPFile.txt';//file does not contain the coords only the number
+                var countmId = 0; //also used to know the number of chosen meeting points
+                filename = './IOs/MPFile.txt';
                 var data = fs.readFileSync(filename, "utf8");
                 var lines = data.split('\r\n');
+                var totalMeetingPoints=0;
                 first = true;
                 for (let i of lines) {
                     if (!first)
                         points = points.concat('%7C');
                     sindex = i.lastIndexOf(" ");//find the second's space index
                     mId = i.substring(0, 1);//take the id from MPFile
+                    totalMeetingPoints++;
                     if (mId.trim() != meetingIds[countmId].trim()) continue;
                     //console.log("this will be saved");
                     countmId++;
@@ -189,7 +203,6 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
                     // The whole response has been received. Print out the result.
                     resp.on('end', () => {
-                        var results = "";
                         filename = "p" + pid + ".txt"; //SAVE IT IN p
                         try {//try and catch for json.parse
 
@@ -204,18 +217,18 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                     for (let k of json.rows[i].elements) {//k is element[count]
                                         lines[i] = lines[i].concat(" " + k.distance.value + " " + k.duration.value);
                                     }
+                                    for (var j = countmId - 1; j < totalMeetingPoints; j++)
+                                        lines[i] = lines[i].concat(" -1 -1");
                                 }
 
                                 // join the array back into a single string
                                 newData = lines.join('\n');
-                                fs.writeFile('./IOs/' + filename, newData, function (err) {
-                                    if (err) return console.log(err);
-                                });
+                                //fs.writeFile('./IOs/' + filename, newData, function (err) {
+                                //    if (err) return console.log(err);
+                                //});
+                                fs.writeFileSync('./IOs/' + filename, newData);
 
 
-                            fs.writeFile('./IOs/' + filename, results, function (err) {//write the contents on the txt located in IOs
-                                if (err) return console.log(err);
-                            });
 
                         } catch (error) {
                             console.error(error.message);
