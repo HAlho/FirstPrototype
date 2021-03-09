@@ -32,30 +32,32 @@ let myPromise = new Promise(function (myResolve, myReject) {
         //create file ID
         // console.log("helper: pid is " + msg.pid);
         var filename = "c" + msg.pid + ".txt";   //since the process id is unique, it will be part of the file name
+
+
         //get the requesters information from the database
-        console.log("helper: id is " + msg.uid);
-        var snapshot = await db.ref('users/' + msg.uid + '/activeRequest').once('value');
-        var u = snapshot.val();
-
-        //loop start
-        snapshot = await db.ref('activeRequests/issued/' + u.id).once('value');
+        var snapshot = await db.ref('activeRequests/issued/').once('value');
         var req = snapshot.val();
-        //get the consumption rate of the car model used
-        snapshot = await db.ref('carList/' + req.requester.car.brand + "/" + req.requester.car.model).once('value');
-        var car = snapshot.val();
+        var keys = Object.keys(req);
+        var contents = "";
+        //for each consumer
+        for (let k of keys) {
 
-        //location coords
-        lat = 24.312099359348398;//fake location coords
-        long = 54.61871417089011;
-        snapshot = await db.ref('users/' + msg.uid + '/location').once('value');
-        var location = snapshot.val();
+            //get the consumption rate of the car model used
+            snapshot = await db.ref('carList/' + req[k].requester.car.brand + "/" + req[k].requester.car.model).once('value');
+            let car = snapshot.val();
 
-        var consumptionRate = car.avgConsumption;
-        //requesters: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
-        var contents = contents.concat(msg.uid + " " + location.latitude + " " + location.longitude + " " + req.amount + " " + req.requester.maxDistance + " " + consumptionRate + "\n");
-        points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
+            //location coords
+            lat = 24.312099359348398;//fake location coords
+            long = 54.61871417089011;
+            snapshot = await db.ref('users/' + req[k].requester.uid + '/location').once('value');
+            let location = snapshot.val();
 
-        //loop end
+            let consumptionRate = car.avgConsumption;
+            //requesters: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
+            contents = contents.concat(req[k].requester.uid + " " + location.latitude + " " + location.longitude + " " + req[k].amount + " " + req[k].requester.maxDistance + " " + consumptionRate + "\n");
+            points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
+
+        }//loop end
 
         //fs.writeFile('./IOs/' + filename, contents, function (err) {//write the contents on the txt located in IOs
         //    if (err) return console.log(err);
@@ -141,15 +143,16 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 contents = "";
                 snapshot = await db.ref('users').once('value');
                 const users = snapshot.val();
-                var keys = Object.keys(users); //ids of the tokens
+                var keys2 = Object.keys(users); //ids of the tokens
                 var availableUsers = [];
                 var k;
                 var first = true;
-                for (i = 0; i < keys.length; i++) {//also check the user status  ADD that the provider does't have a request
+                for (i = 0; i < keys2.length; i++) {//also check the user status  ADD that the provider does't have a request
                     if (!first)
                         points = points.concat('%7C');
-                    k = keys[i];
+                    k = keys2[i];
                     if (users[k].status != "Available") continue;
+                    if(users[k].activeRequest != null) continue//check if the user has a request
                     availableUsers.push(users[k]);
                     contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + consumptionRate + "\n");
                     points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);

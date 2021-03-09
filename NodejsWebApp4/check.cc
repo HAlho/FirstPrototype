@@ -27,13 +27,14 @@ using v8::Number;
 using v8::Value;
 
 
-const int MPSIZE = 2; //Max number of meeting points
-const int CONSUMERS = 8; //Max number of consumers
+const int MPSIZE = 4; //Max number of meeting points
+const int CONSUMERS = 25; //Max number of consumers  
+int countC = 0;
 
 //store all information regarding available consumers
 class consumer {
 public:
-	int uid; //user id
+	string uid; //user id
 	double latitude; //user latitude
 	double longitude; //user longitude
 	int carId; //user's car id
@@ -49,7 +50,10 @@ consumer consumerSet[CONSUMERS]; //array of consumers
 //read file written by the server regarding all the available consumers
 void readCFromFile(int pid) {
 	string filec = "./IOs/c" + to_string(pid) + ".txt";
+	cout << filec << endl;
+	//ifstream CFile("./IOs/c13040.txt");
 	ifstream CFile(filec);
+
 	string temp;
 	int i = 0;
 	while (getline(CFile, temp)) {
@@ -64,10 +68,17 @@ void readCFromFile(int pid) {
 		my_stream >> consumerSet[i].consumptionRate;
 		for (int k = 0; k < MPSIZE; k++) {
 			my_stream >> consumerSet[i].distanceToMP[k];
+			consumerSet[i].distanceToMP[k] = consumerSet[i].distanceToMP[k] / 1000;
 			my_stream >> consumerSet[i].timeToMP[k];
+			consumerSet[i].timeToMP[k] = consumerSet[i].timeToMP[k] / 3600;
 		}
+		//cout << "consumer: " << consumerSet[i].uid << " " << consumerSet[i].latitude << " " << consumerSet[i].longitude << " " << consumerSet[i].neededEnergy << " " << consumerSet[i].maxDistance << " " << consumerSet[i].consumptionRate << endl;
+
 		i++;
+		countC++;
+		cout << "consumer num " << countC << endl;
 	}
+	CFile.close();
 }
 
 
@@ -81,7 +92,9 @@ void findMPs(int pid) {
 	//find the meeting points where at least 1 consumer can reach
 	for (int k = 0; k < MPSIZE; k++) {
 		for (int i = 0; i < CONSUMERS; i++) {
+			cout << "distance to MP " << k << ": " << consumerSet[i].distanceToMP[k] << ", max distance: "<<consumerSet[i].maxDistance << endl;
 			if(consumerSet[i].distanceToMP[k] <= consumerSet[i].maxDistance) {
+				cout << "here" << endl;
 				fout << k << endl;
 				break;
 			}
