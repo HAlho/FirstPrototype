@@ -91,9 +91,9 @@ void findMPs(int pid) {
 
 	//find the meeting points where at least 1 consumer can reach
 	for (int k = 0; k < MPSIZE; k++) {
-		for (int i = 0; i < CONSUMERS; i++) {
-			cout << "distance to MP " << k << ": " << consumerSet[i].distanceToMP[k] << ", max distance: "<<consumerSet[i].maxDistance << endl;
-			if(consumerSet[i].distanceToMP[k] <= consumerSet[i].maxDistance) {
+		for (int i = 0; i < countC; i++) {
+			cout << "distance to MP " << k << ": " << consumerSet[i].distanceToMP[k] << ", max distance: " << consumerSet[i].maxDistance << endl;
+			if (consumerSet[i].distanceToMP[k] <= consumerSet[i].maxDistance) {
 				cout << "here" << endl;
 				fout << k << endl;
 				break;
@@ -106,7 +106,7 @@ void findMPs(int pid) {
 
 
 
-	
+
 
 void Method(const FunctionCallbackInfo<Value>& args) {
 	Isolate* isolate = args.GetIsolate();

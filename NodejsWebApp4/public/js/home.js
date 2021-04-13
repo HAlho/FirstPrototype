@@ -33,7 +33,7 @@ const signInWithGoogle = () => {
 
   auth.signInWithPopup(googleProvider)
   .then(() => {
-    window.location.assign('./profile');
+    window.location.assign('./carSelect');
   })
   .catch(error => {
     console.error(error);
@@ -68,7 +68,7 @@ const signInWithEmailFunction = async () => {
   auth.signInWithEmailAndPassword(email, password)
   .then(() => {
     //Signed in successfully
-    window.location.assign('./profile')
+      window.location.assign('./carSelect');
   })
   .catch(error => {
     //Something went wrong

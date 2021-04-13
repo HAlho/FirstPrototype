@@ -62,7 +62,7 @@ async function submit() {
     console.log(json);
     
     alert('Your Car was Registered Successfully!');
-    window.location.replace('../profile');
+    window.location.replace('../carSelect');
 }
 
 

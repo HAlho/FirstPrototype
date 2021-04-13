@@ -41,10 +41,12 @@ let myPromise = new Promise(function (myResolve, myReject) {
         var contents = "";
         //for each consumer
         for (let k of keys) {
-
+            console.log(req[k]);
             //get the consumption rate of the car model used
+
             snapshot = await db.ref('carList/' + req[k].requester.car.brand + "/" + req[k].requester.car.model).once('value');
-            let car = snapshot.val();
+            var car = snapshot.val();
+
 
             //location coords
             lat = 24.312099359348398;//fake location coords
@@ -56,6 +58,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
             //requesters: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
             contents = contents.concat(req[k].requester.uid + " " + location.latitude + " " + location.longitude + " " + req[k].amount + " " + req[k].requester.maxDistance + " " + consumptionRate + "\n");
             points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
+
 
         }//loop end
 
@@ -77,7 +80,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
             long = i.substring(sindex + 1, i.length);
             points = points.concat(lat + '%2C' + long);
             first = false;
-        } 
+        }
 
 
         url = 'https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=' + points + key;
@@ -93,7 +96,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
             // The whole response has been received. Print out the result.
             resp.on('end', async () => {
                 filename = "c" + msg.pid + ".txt"; //SAVE IT IN c
-                
+
                 try {//try and catch for json.parse
 
                     let json = JSON.parse(cdata);
@@ -101,31 +104,31 @@ let myPromise = new Promise(function (myResolve, myReject) {
                     var newData;
                     var fdata = fs.readFileSync('./IOs/' + filename, "utf8");
 
-                    
-                        var lines = fdata.split('\n');
-                        for (var i = 0; i < json.rows.length; i++) {
-                            var index = lines[i].lastIndexOf('\n'); //finds the \n that indicates the new line'
-                            lines[i] = lines[i].substring(index + 1, lines[i].length);
-                            for (let k of json.rows[i].elements) {//k is element[count]
-                                lines[i]= lines[i].concat(" "+k.distance.value + " " + k.duration.value);
-                            }
-                        }
 
-                        // join the array back into a single string
-                        newData = lines.join('\n');
-                        //fs.writeFile('./IOs/' + filename, newData, function (err) {
-                        //    if (err) return console.log(err);
-                        //});
-                        fs.writeFileSync('./IOs/' + filename, newData);
+                    var lines = fdata.split('\n');
+                    for (var i = 0; i < json.rows.length; i++) {
+                        var index = lines[i].lastIndexOf('\n'); //finds the \n that indicates the new line'
+                        lines[i] = lines[i].substring(index + 1, lines[i].length);
+                        for (let k of json.rows[i].elements) {//k is element[count]
+                            lines[i] = lines[i].concat(" " + k.distance.value + " " + k.duration.value);
+                        }
+                    }
+
+                    // join the array back into a single string
+                    newData = lines.join('\n');
+                    //fs.writeFile('./IOs/' + filename, newData, function (err) {
+                    //    if (err) return console.log(err);
+                    //});
+                    fs.writeFileSync('./IOs/' + filename, newData);
 
 
                 } catch (error) {
                     console.error(error.message);
                 };
-            
+
                 //run the minimizing code
                 miniList.check(msg.pid);
-              
+
                 //the consumer file will contain all 4 distances/durations
 
                 //----------------------------------------------------------------------------------------------------------------------------
@@ -139,7 +142,6 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 long = 54.364803009584996;
 
                 filename = "p" + pid + ".txt";   //since the process id is unique, it will be part of the file name
-                consumptionRate = 0.70;
                 contents = "";
                 snapshot = await db.ref('users').once('value');
                 const users = snapshot.val();
@@ -152,11 +154,18 @@ let myPromise = new Promise(function (myResolve, myReject) {
                         points = points.concat('%7C');
                     k = keys2[i];
                     if (users[k].status != "Available") continue;
-                    if(users[k].activeRequest != null) continue//check if the user has a request
-                    availableUsers.push(users[k]);
-                    contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + consumptionRate + "\n");
-                    points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);
-                    first = false;
+                    if (users[k].activeRequest != null) continue//check if the user has a request
+                    if ((Date.now() - users[k].location.timestamp) > 900000) continue; //check if the location had passed 15 mins
+                    if (users[k].cars != null) {
+                        var keys3 = Object.keys(users[k].cars); //ids of the tokens
+                        snapshot = await db.ref('carList/' + users[k].cars[keys3[0]].brand + "/" + users[k].cars[keys3[0]].model).once('value');
+                        let car = snapshot.val();
+
+                        availableUsers.push(users[k]);
+                        contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + car.avgConsumption + "\n");
+                        points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);
+                        first = false;
+                    }
 
                 }
 
@@ -175,7 +184,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 filename = './IOs/MPFile.txt';
                 var data = fs.readFileSync(filename, "utf8");
                 var lines = data.split('\r\n');
-                var totalMeetingPoints=0;
+                var totalMeetingPoints = 0;
                 first = true;
                 for (let i of lines) {
                     if (!first)
@@ -195,7 +204,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 //%2C means , and %7C means |
                 url = 'https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=' + points + key;
 
-               // console.log("helper: url is :" + url);
+                // console.log("helper: url is :" + url);
 
                 https.get(url, (resp) => {
                     let data = '';
@@ -205,31 +214,33 @@ let myPromise = new Promise(function (myResolve, myReject) {
                     });
 
                     // The whole response has been received. Print out the result.
-                    resp.on('end', () => {
+                    resp.on('end', async () => {
                         filename = "p" + pid + ".txt"; //SAVE IT IN p
                         try {//try and catch for json.parse
 
                             let json = JSON.parse(data);
 
                             var newData;
-                            var fdata=fs.readFileSync('./IOs/' + filename, "utf8");
-                                var lines = fdata.split('\n');
-                                for (var i = 0; i < json.rows.length; i++) {
-                                    var index = lines[i].lastIndexOf('\n'); //finds the \n that indicates the new line'
-                                    lines[i] = lines[i].substring(index + 1, lines[i].length);
-                                    for (let k of json.rows[i].elements) {//k is element[count]
-                                        lines[i] = lines[i].concat(" " + k.distance.value + " " + k.duration.value);
-                                    }
-                                    for (var j = countmId - 1; j < totalMeetingPoints; j++)
-                                        lines[i] = lines[i].concat(" -1 -1");
+                            var fdata = fs.readFileSync('./IOs/' + filename, "utf8");
+                            var lines = fdata.split('\n');
+                            for (var i = 0; i < json.rows.length; i++) {
+                                var index = lines[i].lastIndexOf('\n'); //finds the \n that indicates the new line'
+                                lines[i] = lines[i].substring(index + 1, lines[i].length);
+                                for (let k of json.rows[i].elements) {//k is element[count]
+                                    lines[i] = lines[i].concat(" " + k.distance.value + " " + k.duration.value);
                                 }
+                                console.log("helper: totalMeetingPoints: " + totalMeetingPoints);
+                                console.log("helper: countmId: " + countmId);
+                                for (var j = countmId; j < totalMeetingPoints; j++)
+                                    lines[i] = lines[i].concat(" -1 -1");
+                            }
 
-                                // join the array back into a single string
-                                newData = lines.join('\n');
-                                //fs.writeFile('./IOs/' + filename, newData, function (err) {
-                                //    if (err) return console.log(err);
-                                //});
-                                fs.writeFileSync('./IOs/' + filename, newData);
+                            // join the array back into a single string
+                            newData = lines.join('\n');
+                            //fs.writeFile('./IOs/' + filename, newData, function (err) {
+                            //    if (err) return console.log(err);
+                            //});
+                            fs.writeFileSync('./IOs/' + filename, newData);
 
 
 
@@ -237,8 +248,74 @@ let myPromise = new Promise(function (myResolve, myReject) {
                             console.error(error.message);
                         };
                         sum = calculate.calc(15, 24.3, pid);
+                        //send the results to database
+                        filename = "FinalFile" + pid + ".txt";
+                        fdata = fs.readFileSync('./IOs/' + filename, "utf8");
+                        var lines2 = fdata.split('\r\n');
+                        for (let a of lines2) {
+                            if (a == '') continue;
+                            //let w1 = a.lastIndexOf(" ");
+                            //let p = a.substring(w1 + 1, a.length-1) //start is included end is not included
+                            let v = a.split(" ");
+                            console.log("results are " + v[0] + " " + v[1] + " " + v[2] + " " + v[3]);
+                            snapshot = await db.ref('users/' + v[1] + '/activeRequest').once('value');
+                            var users1 = snapshot.val();
+                            db.ref('activeRequests/issued/' + users1.id + "/match/").set({
+                                provider: v[2],
+                                location: v[0],
+                                estAmount: v[3],
+                                matchMadeAt: Date.now()
+                            });
+                            //move request to matched
+                            let oldRef = db.ref('activeRequests/issued/' + users1.id);
+                            let newRef = db.ref('activeRequests/matched/' + users1.id);
+                            snapshot = await oldRef.once('value');
+                            await newRef.set(snapshot.val());
+                            await oldRef.remove();
+
+                            //change provider status to matched
+                            await db.ref('users/' + v[2]).update({ status: "matched" });
+                            await db.ref('users/' + v[2]).update({ matchedReq: users1.id });
+
+                            //find the tokens
+                            snapshot = await db.ref('tokens').once('value');
+                            const t = snapshot.val();
+                            var keys = Object.keys(t); //ids of the tokens
+                            var k;
+                            var id;
+                            var registrationToken;
+                            //console.log("keys: " + keys);
+                            for (i = 0; i < keys.length; i++) {//also check the user status
+                                k = keys[i];
+                                //console.log("key: " + keys[i]);
+                                id = t[k].uid;
+                                if (id == v[2]) {
+                                    registrationToken = t[k].token;
+                                    break;
+                                }
+                            }
+
+                            var payload = {
+                                notification: {
+                                    title: 'There is a nearby user in need of charge',
+                                    body: 'User: ' + v[1]
+                                }
+                            };
+
+
+                            await admin.messaging().sendToDevice(registrationToken, payload)
+                                .then(function (response) {
+                                    console.log("Successfully sent message:", response);
+                                })
+                                .catch(function (error) {
+                                    console.log("Error sending message:", error);
+                                });
+
+
+                        }
                         if (!isUndefined(sum))//that the algorithm is done
                             myResolve(); // when successful
+
                     });
 
                 }).on("error", (err) => {
@@ -252,10 +329,10 @@ let myPromise = new Promise(function (myResolve, myReject) {
             console.log("Error: " + err.message);
         });
 
-        
+
         //-------------------------------------------------------------------------------------------------------------
-       
-        
+
+
 
     });
 
@@ -274,21 +351,19 @@ myPromise.then(
 
 
 
-
-
-function test(n) {//O(n^10) algorithm
-    var num=0;
-    for (let a = 0; a < n; a++)
-        for (let b = 0; b < n; b++)
-            for (let c = 0; c < n; c++)
-                for (let d = 0; d < n; d++)
-                    for (let e = 0; e < n; e++)
-                        for (let f = 0; f < n; f++)
-                            for (let g = 0; g < n; g++)
-                                for (let h = 0; h < n; h++)
-                                    for (let i = 0; i < n; i++)
-                                        for (let j = 0; j < n; j++)
-                                            num++;
-    console.log('Child: computation done ' + num);
-    return num;
-}
+//function test(n) {//O(n^10) algorithm
+//    var num=0;
+//    for (let a = 0; a < n; a++)
+//        for (let b = 0; b < n; b++)
+//            for (let c = 0; c < n; c++)
+//                for (let d = 0; d < n; d++)
+//                    for (let e = 0; e < n; e++)
+//                        for (let f = 0; f < n; f++)
+//                            for (let g = 0; g < n; g++)
+//                                for (let h = 0; h < n; h++)
+//                                    for (let i = 0; i < n; i++)
+//                                        for (let j = 0; j < n; j++)
+//                                            num++;
+//    console.log('Child: computation done ' + num);
+//    return num;
+//}

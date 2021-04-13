@@ -18,7 +18,6 @@ const express = require('express');
 const router = express.Router();
 
 
-
 const { admin } = require('./firebaseConfig.js');
 
 
@@ -29,214 +28,357 @@ router.use(express.json({ limit: '1mb' }));
 
 
 
+//paypal checkout sdk
+const paypal = require('@paypal/checkout-server-sdk');
 
-    router.get('/profile', (req, res, next) => {
-        res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
-    });
-
-    router.post('/addToken', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT AN addToken!');
-
-        const data = request.body;
-
-
-        db.ref('/tokens').push({
-            token: data.token,
-            uid: data.userId
-        });
-
-        response.json({
-            status: "success",
+// Creating an environment
+let clientId = "AazgvfZgfI1XU-eb2huPK1FDVN-x7YSTolwAt-g6rabZJNQqnT5hf2fJPtaD2Vri14o0oktWCvfONZCO";
+let clientSecret = "EKzFVyLD0QPUecuN0-HiYIgkQcrSJEQ2G94hBs38QkWIpH_1-buhkiy1ingyncmL_LTnhBFceigIYGSq";
+// This sample uses SandboxEnvironment. In production, use LiveEnvironment
+let environment = new paypal.core.SandboxEnvironment(clientId, clientSecret);
+let client = new paypal.core.PayPalHttpClient(environment);
 
 
-        });
+router.post('/pay', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A payment!');
 
-    });
+    const data = request.body;
 
+    var interval;
 
-    router.post('/userRequest', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A userReq!');
-        console.log(request.body);
-        const data = request.body;
-        var snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
-        var req = snapshot.val();
+    console.log(data);
 
-        response.json({
-            status: "success",
-            req: req
-        });
+    console.log("req: " + data.req);
 
-
-    });
+    ////get estimated price for the consumer in accepted request
+    var snapshot = await db.ref('activeRequests/accepted/'+data.req+'/match').once('value');
+    var u = snapshot.val();
+    var price = (u.estAmount * 0.27).toFixed(2);
+    snapshot = await db.ref('users/' + u.provider + '/activeRequest').once('value');
+    var uinfo = snapshot.val();
 
 
-    router.post('/getActiveRequest', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A getActiveRequest!');
+    console.log("price: " + price);
+    console.log("paypal info: " + uinfo.paypal);
 
-        const data = request.body;
+   
+    //paypal checkout sdk
 
-        var snapshot = await db.ref('activeRequests/' + data.status + '/' + data.id).once('value');
-        var req = snapshot.val();
-
-        response.json({
-            status: "success",
-            req: req
-        });
-
-    });
-
-    router.post('/getSecondUser', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A getSecondUser!');
-
-        const data = request.body;
-        const userId = data.userId;
-        const reqId = data.id;
-        var user2Id;
-        var user2status;
-        await db.ref('users').once('value', function (snapshot) {//HERE
-
-            var ndata = snapshot.val();
-            var nkeys = Object.keys(ndata);
-            for (var i = 0; i < nkeys.length; i++) { //need to show only the associated requests with the user
-                var k = nkeys[i];
-                try {
-                    var requestId = ndata[k].activeRequest.id;// get id of every request
-                } catch (error) {//if user doesn't have an active request catch and continue loop
-                    continue;
+    // Construct a request object and set desired parameters
+    // Here, OrdersCreateRequest() creates a POST request to /v2/checkout/orders
+    let paypalrequest = new paypal.orders.OrdersCreateRequest();
+    paypalrequest.requestBody({
+        "intent": "CAPTURE",
+        "application_context": {
+            "return_url": "https://192.168.0.123:3000/profile",
+            "cancel_url": "https://192.168.0.123:3000/account"
+        },
+        "purchase_units": [
+            {
+                "amount": {
+                    "currency_code": "USD",
+                    "value": price
+                },
+                "payee": {
+                    "email_address": uinfo.paypal //email_address   uinfo.paypal   mobile_number phone_number
                 }
-                if (requestId != reqId) continue;
-                if (k == userId) continue;
-                user2Id = k;
-                console.log(k);
-                user2status = ndata[k].activeRequest.dbref;
-                break;
             }
-        });
-
-        response.json({
-            status: "success",
-            user2Id: user2Id,
-            user2status: user2status
-        });
+        ]
 
     });
 
-    router.post('/updateComplete', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A updateComplete!');
+    let captureOrder = async function (orderId) {
+        request = new paypal.orders.OrdersCaptureRequest(orderId);
+        request.requestBody({});
+        // Call API with your client and get a response for your call
+        let response = await client.execute(request);
+        if (response.result.status == "COMPLETED")
+            clearInterval(interval);//exit the interval
+        console.log(`Response: ${JSON.stringify(response)}`);
+        // If call returns body in response, you can get the deserialized version from the result attribute of the response.
+        console.log(`Capture: ${JSON.stringify(response.result)}`);
+    }
 
-        const data = request.body;
+    let createOrder = async function () {
+        let paypalresponse = await client.execute(paypalrequest);
+        //console.log(`Response: ${JSON.stringify(paypalresponse)}`);
+        // If call returns body in response, you can get the deserialized version from the result attribute of the response.
+        console.log(`Order: ${JSON.stringify(paypalresponse.result)}`);
+        for (let i = 0; i < paypalresponse.result.links.length; i++) {
+            if (paypalresponse.result.links[i].rel === 'approve') {
+                //response.redirect(paypalresponse.result.links[i].href);
+                response.json({ forwardLink: paypalresponse.result.links[i].href });
 
-        db.ref('users/' + data.userId).child("activeRequest").update({ dbref: "completed" });
 
-        //if status is scompleted do change status to complete and move request
-        var snapshot = await db.ref('users/' + data.user2Id + '/activeRequest').once('value');
-        var req = snapshot.val();
-        if (req.dbref == "completed") {
-            console.log("complete is now true");
+                interval = setInterval(() => {
+                    try {
+                        captureOrder(paypalresponse.result.id); //'REPLACE-WITH-APPROVED-ORDER-ID'
+                       
+                    } catch (e) {
+                        console.log(e)
+                    }
 
-            //if both users had clicked done 
-            console.log("status is finally complete....");
-            //move object to another path //don't forget to add for the supplier??
-            var oldRef = db.ref('activeRequests/accepted/' + data.id);
-            oldRef.update({ 'status': "completed" });//HERE
-            var newRef1 = db.ref('previousRequests/' + data.userId + '/' + data.id);
-            var newRef2 = db.ref('previousRequests/' + data.user2Id + '/' + data.id);
-            copyFirebaseObject(oldRef, newRef1);
-            moveFirebaseObject(oldRef, newRef2);
-            //delete active request from both users
-            db.ref('users/' + data.userId + '/activeRequest').remove();//delete from the current user
-            db.ref('users/' + data.user2Id + '/activeRequest').remove();//delete from the other user
+                }, 30000)//1.5min
+
+            }
 
         }
 
 
-        response.json({
-            status: "success",
-        });
+    }
+    createOrder();
+
+    
+
+
+
+
+
+});
+
+router.get('/profile', (req, res, next) => {
+    res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
+});
+
+router.post('/addToken', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT AN addToken!');
+
+    const data = request.body;
+
+
+    db.ref('/tokens').push({
+        token: data.token,
+        uid: data.userId
+    });
+
+    response.json({
+        status: "success",
+
 
     });
 
+});
 
-    router.post('/cancelRequest', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A cancelRequest!');
 
-        const data = request.body;
+router.post('/userRequest', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A userReq!');
+    //console.log(request.body);
+    const data = request.body;
+    var snapshot = await db.ref('users/' + data.userId).once('value');
+    var u = snapshot.val();
 
-        var newRef = db.ref('previousRequests/' + data.userId + '/' + data.id);
+    response.json({
+        status: "success",
+        user: u
+    });
+
+
+});
+
+
+router.post('/getActiveRequest', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A getActiveRequest!');
+
+    const data = request.body;
+
+    var snapshot = await db.ref('activeRequests/' + data.status + '/' + data.id).once('value');
+    var req = snapshot.val();
+
+    response.json({
+        status: "success",
+        req: req
+    });
+
+});
+
+router.post('/getSecondUser', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A getSecondUser!');
+
+    const data = request.body;
+    const userId = data.userId;
+    const reqId = data.id;
+    var user2Id;
+    var user2status;
+    await db.ref('users').once('value', function (snapshot) {//HERE
+
+        var ndata = snapshot.val();
+        var nkeys = Object.keys(ndata);
+        for (var i = 0; i < nkeys.length; i++) { //need to show only the associated requests with the user
+            var k = nkeys[i];
+            try {
+                var requestId = ndata[k].activeRequest.id;// get id of every request
+            } catch (error) {//if user doesn't have an active request catch and continue loop
+                continue;
+            }
+            if (requestId != reqId) continue;
+            if (k == userId) continue;
+            user2Id = k;
+            console.log(k);
+            user2status = ndata[k].activeRequest.dbref;
+            break;
+        }
+    });
+
+    response.json({
+        status: "success",
+        user2Id: user2Id,
+        user2status: user2status
+    });
+
+});
+
+router.post('/updateComplete', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A updateComplete!');
+
+    const data = request.body;
+
+    db.ref('users/' + data.userId).child("activeRequest").update({ dbref: "completed" });
+
+    //if status is scompleted do change status to complete and move request
+    var snapshot = await db.ref('users/' + data.user2Id + '/activeRequest').once('value');
+    var req = snapshot.val();
+    if (req.dbref == "completed") {
+        console.log("complete is now true");
+
+        //if both users had clicked done 
+        console.log("status is finally complete....");
+        //move object to another path //don't forget to add for the supplier??
+        var oldRef = db.ref('activeRequests/accepted/' + data.id);
+        oldRef.update({ 'status': "completed" });//HERE
+        var newRef1 = db.ref('previousRequests/' + data.userId + '/' + data.id);
         var newRef2 = db.ref('previousRequests/' + data.user2Id + '/' + data.id);
-        //if the requester is canceling the request
-        if (data.userIsRequester == true) {
-            if (data.status == "issued") {
-                var oldRef = db.ref('activeRequests/issued/' + data.id);
-                oldRef.update({ 'status': "canceled" });
-                moveFirebaseObject(oldRef, newRef);
-            }
-            else {
-                var oldRef = db.ref('activeRequests/accepted/' + data.id);
-                oldRef.update({ 'status': "canceled" });
-                copyFirebaseObject(oldRef, newRef2);
-                moveFirebaseObject(oldRef, newRef);
-                db.ref('users/' + data.user2Id + '/activeRequest').remove();
+        copyFirebaseObject(oldRef, newRef1);
+        moveFirebaseObject(oldRef, newRef2);
+        //delete active request from both users
+        db.ref('users/' + data.userId + '/activeRequest').remove();//delete from the current user
+        db.ref('users/' + data.user2Id + '/activeRequest').remove();//delete from the other user
 
-            }
+    }
+
+
+    response.json({
+        status: "success",
+    });
+
+});
+
+
+router.post('/cancelRequest', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A cancelRequest!');
+
+    const data = request.body;
+
+    var newRef = db.ref('previousRequests/' + data.userId + '/' + data.id);
+    var newRef2 = db.ref('previousRequests/' + data.user2Id + '/' + data.id);
+    //if the requester is canceling the request
+    if (data.userIsRequester == true) {
+        if (data.status == "issued") {
+            var oldRef = db.ref('activeRequests/issued/' + data.id);
+            oldRef.update({ 'status': "canceled" });
+            moveFirebaseObject(oldRef, newRef);
         }
-        else {  //if the supplier is canceling
-            db.ref('activeRequests/issued').child(data.id).set({
-                amount: data.amount,
-                requester: data.requester
-            });
-            db.ref('activeRequests/accepted/' + data.id).remove();
-            db.ref('users/' + data.requester.uid).child("activeRequest").update({ dbref: "issued" });
+        else {
+            var oldRef = db.ref('activeRequests/accepted/' + data.id);
+            oldRef.update({ 'status': "canceled" });
+            copyFirebaseObject(oldRef, newRef2);
+            moveFirebaseObject(oldRef, newRef);
+            db.ref('users/' + data.user2Id + '/activeRequest').remove();
 
         }
-        db.ref('users/' + data.userId + '/activeRequest').remove();
+    }
+    else {  //if the supplier is canceling
+        db.ref('activeRequests/issued').child(data.id).set({
+            amount: data.amount,
+            requester: data.requester
+        });
+        db.ref('activeRequests/accepted/' + data.id).remove();
+        db.ref('users/' + data.requester.uid).child("activeRequest").update({ dbref: "issued" });
+
+    }
+    db.ref('users/' + data.userId + '/activeRequest').remove();
+
+    response.json({
+        status: "success",
+    });
+
+});
+
+
+
+
+
+router.post('/pfile', (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A REQ!');
+    console.log(request.body);
+    const data = request.body;
+    response.json({
+        status: "success",
+        userId: data.userId,
+        newStat: data.newStat
+    });
+
+    db.ref('users/' + data.userId).update({ status: data.newStat });
+
+});
+
+
+router.post('/getStat', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A STAT!');
+
+    const data = request.body;
+
+    var snapshot = await db.ref('users/' + data.userId).once('value');
+    var info = snapshot.val();
+    var userStatus = info.status;
+    var creditScore = info.creditScore;
+    var unitPrice = info.unitPrice;
+    if (userStatus == null) {
+        userStatus = "Available";
+        db.ref('users/' + data.userId).update({ status: userStatus });
+    }
+
+    if (creditScore == null) db.ref('users/' + data.userId).update({ creditScore: 100 });
+    if (unitPrice == null) db.ref('users/' + data.userId).update({ unitPrice: 0.5 });
+
+    console.log(userStatus);
+
+    response.json({
+        status: "success",
+        stat: userStatus
+    });
+
+});
+
+router.post('/getCurrentCar', async (request, response) => { //add to recieve that post(endpoint)
+    const data = request.body;
+
+    var snapshot = await db.ref('users/' + data.userId + '/currentCar').once('value');
+    var carId = snapshot.val();
+    console.log('GOT A CAR!' + carId);
+    if (carId == null) {
+        response.json({
+            status: "0",
+        });
+    } else {
+        var snapshot = await db.ref('users/' + data.userId + '/cars/' + carId).once('value');
+        var car = snapshot.val();
+
+        var snapshotCar = await db.ref('carList/' + car.brand + '/' + car.model).once('value');
+        var consumption = snapshotCar.val().avgConsumption; //from carList
+        var batteryCapacity = snapshotCar.val().batteryCapacity; //from carList
+
+        console.log(car.brand + ' ' + consumption + ' ' + batteryCapacity);
 
         response.json({
             status: "success",
+            car: car,
+            consumption: consumption,
+            batteryCapacity: batteryCapacity
         });
+    }
+});
 
-    });
-
-
-
-
-
-    router.post('/pfile', (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A REQ!');
-        console.log(request.body);
-        const data = request.body;
-        response.json({
-            status: "success",
-            userId: data.userId,
-            newStat: data.newStat
-        });
-
-        db.ref('users/' + data.userId).update({ status: data.newStat });
-
-    });
-
-
-    router.post('/getStat', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A STAT!');
-
-        const data = request.body;
-
-        var snapshot = await db.ref('users/' + data.userId + '/status').once('value');
-        var stat = snapshot.val();
-        if (stat == null) {
-            stat = "Available";
-            db.ref('users/' + data.userId).update({ status: stat });
-        }
-
-        console.log(stat);
-
-        response.json({
-            status: "success",
-            stat: stat
-        });
-
-    });
-
+/*
     router.post('/postCars', async (request, response) => { //add to recieve that post(endpoint)
         console.log('GOT A CAR!');
 
@@ -274,140 +416,142 @@ router.use(express.json({ limit: '1mb' }));
 
     });
 
+*/
 
 
-    router.post('/reqInfo', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A REQ INFO!');
 
-        const data = request.body;
+router.post('/reqInfo', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A REQ INFO!');
 
-        var newReq = db.ref('activeRequests/issued').push();
+    const data = request.body;
 
-        newReq.set({
-            amount: data.neededEnergy,
-            timestamp: data.reqStart,
-            requester: {
-                uid: data.userId,
-                currentEnergy: data.currentEnergy,
-                currentSoC: data.currentSoC,
-                maxDistance: data.maxDistance,
-                car: {
-                    brand: data.carBrand,
-                    model: data.carModel,
-                    color: data.carColor,
-                    licenseNumber: data.carNum
-                }
+    var newReq = db.ref('activeRequests/issued').push();
 
+    newReq.set({
+        amount: data.neededEnergy,
+        timestamp: data.reqStart,
+        requester: {
+            uid: data.userId,
+            currentEnergy: data.currentEnergy,
+            currentSoC: data.currentSoC,
+            maxDistance: data.maxDistance,
+            car: {
+                brand: data.carBrand,
+                model: data.carModel,
+                color: data.carColor,
+                licenseNumber: data.carNum
             }
 
-        }).then(() => {
-            db.ref('users/' + data.userId).child("activeRequest").set({ id: newReq.key, dbref: "issued", role: "requester" });
-        })
+        }
 
-        response.json({
-            status: "success"
+    }).then(() => {
+        db.ref('users/' + data.userId).child("activeRequest").set({ id: newReq.key, dbref: "issued", role: "requester" });
+    })
+
+    response.json({
+        status: "success"
+
+    });
+
+    //send notification
+    //retrieve tokens except the user's token
+    var snapshot = await db.ref('tokens').once('value');
+    const t = snapshot.val();
+    snapshot = await db.ref('users').once('value');
+    const u = snapshot.val();
+    var keys = Object.keys(t); //ids of the tokens
+    var tokens = [];
+    var k;
+    var id;
+    //console.log("keys: " + keys);
+    for (i = 0; i < keys.length; i++) {//also check the user status
+        k = keys[i];
+        // console.log("key: " + keys[i]);
+        id = t[k].uid;
+        if (id == data.userId) continue;
+        else if (u[id].status != "Available") continue;
+        //console.log("token pushed is: " + t[k].token);
+        tokens.push(t[k].token);
+    }
+    // console.log("tokens: " + tokens);
+
+    //for (let i of tokens) {//do this for each token in the array
+    //    //console.log("to be sent: " + i);
+    //    var registrationToken = i;
+    //    var payload = {
+    //        notification: {
+    //            title: 'A new request has been made',
+    //            body: data.neededEnergy
+    //        }
+    //    };
+    //    admin.messaging().sendToDevice(registrationToken, payload)
+    //        .then(function (response) {
+    //            console.log("Successfully sent message:", response);
+    //        })
+    //        .catch(function (error) {
+    //            console.log("Error sending message:", error);
+    //        });
+    //}
+
+
+
+
+
+    if (numProc < maxProc) {//was 30
+        const compute = fork('helper.js'); //create child process that runs helper.js
+        numProc++;
+        //top stack
+        fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
+            if (err) return console.log(err);
+            console.log('proc now:' + numProc);
+        });
+        compute.send({ n: 17, uid: data.userId, pid: compute.pid });//send to the child process
+        compute.on('message', sum => {//get the value from the child process
+            console.log("result is: " + sum);
+            compute.kill();
+            numProc--;
+            //pop stack
+            var newData;
+            fs.readFile('procInfo.txt', "utf8", (err, data) => {
+                if (err) throw err;
+                // break the textblock into an array of lines
+                var lines = data.split('\n');
+                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
+                lines.splice(0, 1);
+                // join the array back into a single string
+                newData = lines.join('\n');
+                //console.log("new data is :" + newData);
+                fs.writeFile('procInfo.txt', newData, function (err) {
+                    if (err) return console.log(err);
+                    console.log('proc now:' + numProc);
+                });
+            });
+
 
         });
+    } else {//create a thread and let it check for available slots
+        const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
+            workerData: { //pass the variables here
+                n: 15,
+                uid: data.userId
+            }
+        });
 
-        //send notification
-        //retrieve tokens except the user's token
-        var snapshot = await db.ref('tokens').once('value');
-        const t = snapshot.val();
-        snapshot = await db.ref('users').once('value');
-        const u = snapshot.val();
-        var keys = Object.keys(t); //ids of the tokens
-        var tokens = [];
-        var k;
-        var id;
-        //console.log("keys: " + keys);
-        for (i = 0; i < keys.length; i++) {//also check the user status
-            k = keys[i];
-           // console.log("key: " + keys[i]);
-            id = t[k].uid;
-            if (id == data.userId) continue;
-            else if (u[id].status != "Available") continue;
-            //console.log("token pushed is: " + t[k].token);
-            tokens.push(t[k].token);
-        }
-       // console.log("tokens: " + tokens);
-
-        //for (let i of tokens) {//do this for each token in the array
-        //    //console.log("to be sent: " + i);
-        //    var registrationToken = i;
-        //    var payload = {
-        //        notification: {
-        //            title: 'A new request has been made',
-        //            body: data.neededEnergy
-        //        }
-        //    };
-        //    admin.messaging().sendToDevice(registrationToken, payload)
-        //        .then(function (response) {
-        //            console.log("Successfully sent message:", response);
-        //        })
-        //        .catch(function (error) {
-        //            console.log("Error sending message:", error);
-        //        });
-        //}
-
-
-
-
-
-        if (numProc < maxProc) {//was 30
-            const compute = fork('helper.js'); //create child process that runs helper.js
-            numProc++;
-            //top stack
-            fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
-                if (err) return console.log(err);
-                console.log('proc now:' + numProc);
-            });
-            compute.send({ n: 17, uid: data.userId, pid: compute.pid });//send to the child process
-            compute.on('message', sum => {//get the value from the child process
-                console.log("result is: " + sum);
-                compute.kill();
-                numProc--;
-                //pop stack
-                var newData;
-                fs.readFile('procInfo.txt', "utf8", (err, data) => {
-                    if (err) throw err;
-                    // break the textblock into an array of lines
-                    var lines = data.split('\n');
-                    // remove one line, starting at the first position. Unlike slice, splice return the removed Items
-                    lines.splice(0, 1);
-                    // join the array back into a single string
-                    newData = lines.join('\n');
-                    console.log("new data is :" + newData);
-                    fs.writeFile('procInfo.txt', newData, function (err) {
-                        if (err) return console.log(err);
-                        console.log('proc now:' + numProc);
-                    });
-                });
-
-
-            });
-        } else {//create a thread and let it check for available slots
-            const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
-                workerData: { //pass the variables here
-                    n: 15,
-                    uid: data.userId
-                }
-            });
-
-            worker.postMessage(worker.threadId);
-            worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
-        }
+        worker.postMessage(worker.threadId);
+        worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
+    }
     //there should be a last else for if the thread's queue is full, we ask the user to try again shortly
 
 
 
-    });
+});
 
 
 router.post('/checkUpdates', async (request, response) => {
     console.log('GOT A checkUpdates');
     console.log('GOT A LOCATION!');
 
-    console.log(request.body);
+    //console.log(request.body);
 
     const data = request.body;
 
@@ -418,12 +562,12 @@ router.post('/checkUpdates', async (request, response) => {
     //    longitude: data.lon,
     //    timestamp: data.tim
     //});
-    db.ref('users/' + data.userId+"/location/").set({
+    db.ref('users/' + data.userId + "/location/").set({
         latitude: data.lat,
         longitude: data.lon,
         timestamp: data.tim
     });
-    
+
 
     //var req = { dbref:null, id:null, role:null };//asssign them null to prevent cannot read property of null error
     const snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
@@ -442,14 +586,111 @@ router.post('/checkUpdates', async (request, response) => {
     }
 
 
-    
+
 
     response.json({
         status: "success",
         update: u
     });
 
+});
+
+router.post('/mAccept', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('Got an accept consumer request!');
+
+    const data = request.body;
+
+    //add provider payment info to database
+
+
+    //Store request info under supplier's user info
+    db.ref('users/' + data.userId).child("activeRequest").set({ id: data.reqId, dbref: "accepted", role: "supplier", paypal: data.paypal });
+    //Update request info under requester's user info
+    db.ref('users/' + data.reqId).child("activeRequest").update({ dbref: "matched" });
+
+    /*
+    //Move request from issued to accepted
+
+    db.ref('activeRequests/accepted').child(data.requestId).set({
+        amount: data.amount,
+        requester: data.reqInfo,
+        supplier: {
+            uid: data.userId
+        },
+        timestamp: data.reqAccepted
     });
+    
+    db.ref('activeRequests/matched/' + data.requestId).remove();
+    
+    //delete matching info
+    await db.ref('users/' + matched[a].match.provider).delete({ matchedReq });
+    */
+
+    var snapshot = await db.ref('activeRequests/matched/' + data.requestId + '/requester').once('value');//get requester's id
+    const req = snapshot.val();
+    console.log(req);
+    snapshot = await db.ref('tokens').once('value');
+    const t = snapshot.val();
+    var keys = Object.keys(t); //ids of the tokens
+    var k;
+    var id;
+    var registrationToken;
+    console.log("keys: " + keys);
+    for (i = 0; i < keys.length; i++) {//also check the user status
+        k = keys[i];
+        console.log("key: " + keys[i]);
+        id = t[k].uid;
+        if (id == req.uid) {
+            registrationToken = t[k].token;
+            break;
+        }
+    }
+
+    var payload = {
+        notification: {
+            title: 'Your request has been accepted',
+            body: 'Provider: ' + data.userId
+        }
+    };
+
+
+    admin.messaging().sendToDevice(registrationToken, payload)
+        .then(function (response) {
+            console.log("Successfully sent message:", response);
+        })
+        .catch(function (error) {
+            console.log("Error sending message:", error);
+        });
+
+    response.json({
+        status: "success"
+    });
+
+
+});
+
+router.post('/cmAccept', async (request, response) => { //accepting from the consumer side
+
+    console.log("Got an accept consumer request")
+
+    const data = request.body;
+
+    //Move request from matched to accepted
+    var oldRef = db.ref("activeRequests/matched/" + data.requestId);
+    var newRef = db.ref("activeRequests/accepted/" + data.requestId);
+    moveFirebaseObject(oldRef, newRef);
+
+    await db.ref('users/' + data.userId + '/activeRequest').update({ dbref: "accepted" });
+
+
+
+    response.json({
+        status: "success"
+    });
+});
+
+
+
 
 
 
@@ -478,7 +719,7 @@ function copyFirebaseObject(oldRef, newRef) {//normal function not a firebase fu
 
 
 
-
+const periodic = new Worker("./manager.js");
 
 
 

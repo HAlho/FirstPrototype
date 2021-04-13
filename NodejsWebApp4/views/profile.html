@@ -13,33 +13,24 @@
 <body>
     <section class="container profile-container">
         <div>
-            <p><b>V2V charging</b></p>
-        </div>
-        <div>
             <button id="account"><img src="./img/profile-icon.jpg" width="35" height="35"><br /><small><b>Account</b></small></button>
             <button id="avaReq"><img src="./img/requests-icon.jpg" width="35" height="35"><br /><small><b>Available Requests</b></small></button>
 
             <label>Status: </label>
             <select id="status" onmouseover="dropList()" onmouseout="this.size=1;"></select>
-
-            <br /><br /><hr />
-
-           
-
+        </div>
+        <div id="currentCar">
+            <label><small id="currentCarInfo"></small></label>
+            <i class="fa fa-pencil-square-o" style="font-size:20px;color:#2196f3; display:none;" id="edit"></i>
+            <br />
+            <hr />
         </div>
         <div id="request" style="display:none;">
-            <h3> Make a New Request</h3><br />
-            <small id="car"></small>
-            <div id="carDiv">
-                <div id="cars"></div>
-                <br />
-                <small onclick="continueReq()" style="cursor:pointer;"><b>Continue 🡺</b></small>
-            </div>
-
             <div id="requestInfoDiv" style="display:none;">
+                <b>----------- New Request -----------</b>
+                <br /><br />
                 <small><b>Current Energy Amount (kWh):</b></small>
                 <small id="value"></small><br /><br />
-
                 <small style="display: inline;">0</small>
                 <div class="slidecontainer" id="slider" style="display:inline; margin: 0px 0px;"></div>
                 <small id="max" style="display:inline;"></small>
@@ -51,12 +42,13 @@
 
                 <label><small>pick a destination instead </small></label>
                 <i class="fa fa-map-marker" style="font-size:24px;color:#2196f3" id="calculate" onclick="calculate()"></i>
-                <br /><br /><br />
-                <small onclick="back()" style="cursor:pointer; text-align:left; margin:0px 5%;"><b>🡸 Back</b></small>
 
+
+                <br /><br /><br />
                 <button id="SRequest"><b>Send Request</b></button>
 
             </div>
+            <button id="requestDivToggle"><b>Make a New Request</b></button>
         </div>
 
         <div id="accepted" style="display:none;">
@@ -64,6 +56,26 @@
             <p id="p2"></p><br />
             <div id="req"></div>
         </div>
+
+        <div id="matched" style="display:none;">
+            <h2>Matched Request</h2><br />
+            <p id="p3"></p><br />
+            <input type="text" id="paypal" value="">
+            <button id="mAccept"><b>Accept Request</b></button>
+
+        </div>
+        <div id="cmatched" style="display:none;">
+            <h2>Matched Request</h2><br />
+            <p id="p4"></p><br />
+            <button id="cmAccept"><b>Accept Request</b></button>
+
+        </div>
+
+        <div id="payment" style="display:none;">
+            <button id="pay"><b>pay</b></button>
+        </div>
+
+
     </section>
 
     <script>

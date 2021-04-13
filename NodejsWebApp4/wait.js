@@ -48,7 +48,7 @@ parentPort.on('message', message => {
         } else {//if it is the thread's turn
             if (!slotAvailable) {
                 //getFilledSlots (number of processes running)
-                console.log("Thread: getFilledSLots start");
+                console.log("Thread: getFilledSlots start");
                 var lrs = new LineReaderSync("procInfo.txt");
                 var lines = lrs.toLines();
                 numProc = lines.length;

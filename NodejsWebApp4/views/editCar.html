@@ -1,38 +1,54 @@
 ﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Account</title>
+    <title>Profile</title>
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
-    <link rel="stylesheet" href="./style/profile.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="./style/signup.css">
 </head>
 <body>
     <section class="container profile-container">
         <div>
-            <b><h3 id="name" style="display: inline;"></h3></b>
-            <button id="edit" style="position: absolute; right: 0;"><img src="./img/edit.jpg" width="15" height="15"></button> <br />
-            <small id="email"></small>
-            <br /><br /><hr /><br />
+            <h1>Edit Car</h1>
+            <hr /><br />
+            <button id="makeCurrentCar" style="display:none;" onclick="makeCurrentCar()">Make Current Car</button>
 
-            <button id="cars">Your Cars</button>
-            <button id="settings">Settings</button>
+            <p id="brand"><b>Brand</b></p>
+            <p><br></p>
 
-            <button id="payment">Payment</button>
+            <p id="model"><b>Model</b></p>
+            <p><br></p>
 
-            <br /><br />
-            <button id="unitPrice"></button><br />
-            <button id="creditScore"></button><br />
-            <button id="reqHistory">Requests History</button><br />
-            <br /><br />
-            <button id="logOut">Logout</button>
+            <p><b>License Plate Number</b></p>
+            <input type="text" id="license" placeholder="Enter Your License Plate Number">
+            <p><br></p>
+
+            <p><b>Car Color</b></p>
+            <select id="colors">
+                <option value="Black" id="Black">Black</option>
+                <option value="White" id="White">White</option>
+                <option value="Silver" id="Silver">Silver</option>
+                <option value="Grey" id="Grey">Grey</option>
+                <option value="Gold" id="Gold">Gold</option>
+                <option value="Red" id="Red">Red</option>
+                <option value="Blue" id="Blue">Blue</option>
+                <option value="Yellow" id="Yellow">Yellow</option>
+                <option value="Green" id="Green">Green</option>
+                <option value="Brown" id="Brown">Brown</option>
+                <option value="Tan" id="Tan">Tan</option>
+                <option value="Purple" id="Purple">Purple</option>
+                <option value="Orange" id="Orange">Orange</option>
+            </select>
+            <p><br></p>
+
+            <button onclick="submit()"><b>Submit</b></button>
+            <button style="position: absolute; left: 0;" onclick="deleteCar()">Delete Car</button>
+
+
         </div>
-
     </section>
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -65,37 +81,12 @@
         firebase.initializeApp(firebaseConfig);
         firebase.analytics();
     </script>
-
-    <script>
-        const auth = firebase.auth();
-
-        document.getElementById("logOut").addEventListener('click', () => {
-            //signOut() is a built in firebase function responsible for signing a user out
-            auth.signOut()
-                .then(() => {
-                    window.location.assign('../');
-                })
-                .catch(error => {
-                    console.error(error);
-                })
-        })
-
-        document.getElementById("edit").addEventListener("click", function () {
-            window.location.replace('../edit');
-        }); 
-
-        document.getElementById("reqHistory").addEventListener('click', () => {
-            window.location.assign('../requestHistory');
-        });
-
-        document.getElementById("cars").addEventListener('click', () => {
-            window.location.assign('../viewCars');
-        });
-        
-
-    </script>
-    <script src="./js/account.js"></script>
+    <script src="./js/editCar.js"></script>
 
 
 </body>
 </html>
+
+
+
+

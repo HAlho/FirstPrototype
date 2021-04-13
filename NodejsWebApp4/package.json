@@ -7,10 +7,13 @@
     "name": ""
   },
   "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.2",
+    "ejs": "^3.1.6",
     "express": "^4.17.1",
     "firebase-admin": "^9.4.1",
     "line-reader-sync": "^0.1.0",
     "nan": "^2.14.2",
-    "node-gyp": "^7.1.2"
+    "node-gyp": "^7.1.2",
+    "paypal-rest-sdk": "^1.8.1"
   }
 }

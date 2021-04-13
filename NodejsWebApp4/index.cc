@@ -70,6 +70,7 @@ class output { //final pairs (M)
 public:
 	int k;
 	int j;
+	bool matched;
 };
 
 //store info passed from the server
@@ -95,7 +96,7 @@ int Matching = 0;
 
 int countC = 0;
 int countP = 0;
-
+int cReach = 0;
 //read information regarding all the available MPs
 void readMPFromFile() {
 	ifstream MPFile("./IOs/MPFile.txt");
@@ -178,6 +179,13 @@ void readCFromFile(int pid) {
 		}
 		//cout << "consumer: " << consumerSet[i].uid << " " << consumerSet[i].latitude << " " << consumerSet[i].longitude << " " << consumerSet[i].neededEnergy << " " << consumerSet[i].maxDistance << " " << consumerSet[i].consumptionRate << endl;
 
+
+		for (int k = 0; k < MPSIZE; k++) {
+			if (consumerSet[i].distanceToMP[k] < consumerSet[i].maxDistance) {
+				cReach++;
+				break;
+			}
+		}
 		i++;
 		countC++;
 		cout << "consumer num " << countC << endl;
@@ -200,29 +208,34 @@ const double batteryDegradationCoefficient = 0.27;
 double findCost(int i, int j, int k) {
 	//initialize variables
 	double neededEnergy = consumerSet[i].neededEnergy;
-	double dPToMP = providerSet[j].distanceToMP[k];
 	double dCToMP = consumerSet[i].distanceToMP[k];
-	double tPToMP = providerSet[j].timeToMP[k];
-	double tCToMP = consumerSet[i].timeToMP[k];
-	double vP = dPToMP / tPToMP;
-	double vC = dCToMP / tCToMP;
+	double dPToMP = providerSet[j].distanceToMP[k];
+	double travelCT = consumerSet[i].timeToMP[k];
+	double travelPT = providerSet[j].timeToMP[k];
 	double pUnitPrice = providerSet[j].pUnitPrice;
 	double consumptionRateC = consumerSet[i].consumptionRate;
 	double consumptionRateP = providerSet[j].consumptionRate;
 
-	//calculations
-	double travelCT = dCToMP / vC; // estimated time from map API
-	double travelPT = dPToMP / vP; // estimated time from map API
+	//travel cost calculations
 	double chargingT = neededEnergy / (powerTransEff * CR);
 	double waitingT = abs(travelCT - travelPT);
-	double totalCT = (travelCT + chargingT + waitingT) * Y;
-	double totalPT = (travelPT + chargingT + waitingT) * Y;
+	double totalCT, totalPT;
+	if (travelPT > travelCT) { //consumer reaches MP first
+		totalCT = (travelCT + chargingT + waitingT) * Y;
+		totalPT = (travelPT + chargingT) * Y;
+	}
+	else { //provider reaches MP first
+		totalCT = (travelCT + chargingT) * Y;
+		totalPT = (travelPT + chargingT + waitingT) * Y;
+	}
+	double travelCostCToMP = unitPrice * dCToMP * consumptionRateC;
+	double travelCostPToMP = pUnitPrice * dPToMP * consumptionRateP;
+
+	//payment cost calculations
 	double energyCost = pUnitPrice * neededEnergy;
 	double batteryDegradationCost = batteryRepCost * batteryDegradationCoefficient * neededEnergy;
-	double travelCostPToMP = pUnitPrice * dPToMP * consumptionRateP;
 	double operationalCost = totalPT + batteryDegradationCost + travelCostPToMP;
 	double paymentCToP = energyCost + operationalCost;
-	double travelCostCToMP = pUnitPrice * dCToMP * consumptionRateC;
 
 	return travelCostCToMP + totalCT + paymentCToP; //return cost
 }
@@ -451,6 +464,8 @@ void satisfaction() {
 	int prov = consumerCurrentMatch[mp][cons];
 	M[cons].k = mp;
 	M[cons].j = prov;
+	M[cons].matched = true;
+
 	Matching++;
 	cout << "M = " << cons << ", " << prov << ", " << mp << endl;
 
@@ -514,6 +529,8 @@ namespace calcMain {
 		//calculate cost and profit for each pair while also sorting each user's preference list
 		calculate();
 
+		for (int i = 0; i < countC; i++) M[i].matched = false;
+
 		//display costs, profits, and pref. lists
 		cout << "\n profit. for each provider:\n";
 		for (int k = 0; k < MPSIZE; k++) {
@@ -565,7 +582,7 @@ namespace calcMain {
 
 		//the matching algorithm
 		int iteration = 1; //incremented after each iteration
-		while (iteration < MaxNumOfIter && Matching < countC) {
+		while (iteration < MaxNumOfIter && Matching < cReach && Matching < countP) {
 
 			//run the Gale Shapely algorithm then display the results
 			galeShapely();
@@ -587,9 +604,9 @@ namespace calcMain {
 
 		cout << "\n\nfinal final matchings (M): " << endl;
 		for (int i = 0; i < countC; i++) {
-			if (consumerCurrentMatch[0][i] == PAIRED) {
+			if (M[i].matched == true) {
 				cout << i << ":" << M[i].j << " at MP: " << M[i].k << endl;
-				FinalMatching << M[i].k << " " << consumerSet[i].uid << " " << providerSet[M[i].j].uid << endl;
+				FinalMatching << M[i].k << " " << consumerSet[i].uid << " " << providerSet[M[i].j].uid << " " << pairSet[M[i].k][i][M[i].j].cost << endl;
 			}
 		}
 		FinalMatching.close();
@@ -629,3 +646,5 @@ namespace calcMain {
 
 	NODE_MODULE(indexc, Initialize);
 }
+
+
