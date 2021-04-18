@@ -22,13 +22,12 @@ firebase.auth().onAuthStateChanged(async function (user) {
         car = json.car;
         currentCarId = json.currentCarId;
 
-        document.getElementById("brand").innerHTML = "<b>Brand: </b>" + car.brand;
-        document.getElementById("model").innerHTML = "<b>Model: </b>" + car.model;
+        document.getElementById("car").innerHTML = car.brand + ' ' + car.model;
         document.getElementById("license").value = car.licenseNumber;
         document.getElementById(car.color).selected = true;
 
         console.log(carId + " " + currentCarId);
-        if (carId != currentCarId) document.getElementById("makeCurrentCar").style.display = "block";
+        if (carId != currentCarId) document.getElementById("makeCurrentCar").style.display = "inline-block";
 
     } else window.location.assign('../');
 });

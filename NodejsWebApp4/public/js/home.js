@@ -29,15 +29,15 @@ const signInWithGoogleButton = document.getElementById('signInWithGoogle');
 const auth = firebase.auth();
 
 const signInWithGoogle = () => {
-  const googleProvider = new firebase.auth.GoogleAuthProvider();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-  auth.signInWithPopup(googleProvider)
-  .then(() => {
-    window.location.assign('./carSelect');
-  })
-  .catch(error => {
-    console.error(error);
-  })
+    auth.signInWithPopup(googleProvider)
+        .then(() => {
+            window.location.assign('./carSelect');
+        })
+        .catch(error => {
+            console.error(error);
+        })
 }
 
 //signInWithGoogleButton.addEventListener('click', signInWithGoogle);
@@ -49,7 +49,7 @@ const signInWithEmailFunction = async () => {
     const email = mailField.value;
     const password = passwordField.value;
 
-    const data = {email, password};
+    const data = { email, password };
     console.log(data);
     console.log(email);
     console.log(password);
@@ -64,16 +64,18 @@ const signInWithEmailFunction = async () => {
     const json = await response.json();
     console.log(json);
 
-  //Built in firebase function responsible for authentication
-  auth.signInWithEmailAndPassword(email, password)
-  .then(() => {
-    //Signed in successfully
-      window.location.assign('./carSelect');
-  })
-  .catch(error => {
-    //Something went wrong
-    console.error(error);
-  })
+    //Built in firebase function responsible for authentication
+    auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+            //Signed in successfully
+            window.location.assign('./carSelect');
+        })
+        .catch(error => {
+            //Something went wrong
+            console.error("error");
+            var alert = document.getElementById("alert");
+            alert.innerHTML = "Incorrect email or password";
+        })
 
 }
 
@@ -89,75 +91,75 @@ signInWithMail.addEventListener('click', signInWithEmailFunction);
 
 //Go to signup page
 signUp.addEventListener('click', () => {
-  window.location.assign('./signup');
+    window.location.assign('./signup');
 });
 
 //Animations
 const initializeInputAnimationState = (fieldName, labelNumber) => {
-  if(fieldName.value)
-    labels.item(labelNumber).className = 'initial-focused-field'
-  else
-    labels.item(labelNumber).className = 'initial-unfocused-field'
+    if (fieldName.value)
+        labels.item(labelNumber).className = 'initial-focused-field'
+    else
+        labels.item(labelNumber).className = 'initial-unfocused-field'
 }
 
 authenticationMethod1.addEventListener('change', () => {
-  mailContainer.className = shownMailContainer
-  socialMediaContainer.className = hiddenPhoneContainer
-  phoneContainer.className = hiddenSocialMediaContainer
-  initializeInputAnimationState(mailField, 0);
-  initializeInputAnimationState(passwordField, 1);
+    mailContainer.className = shownMailContainer
+    socialMediaContainer.className = hiddenPhoneContainer
+    phoneContainer.className = hiddenSocialMediaContainer
+    initializeInputAnimationState(mailField, 0);
+    initializeInputAnimationState(passwordField, 1);
 });
 
 authenticationMethod2.addEventListener('change', () => {
-  mailContainer.className = hiddenMailContainer
-  socialMediaContainer.className = shownSocialMediaContainer
-  phoneContainer.className = hiddenSocialMediaContainer
+    mailContainer.className = hiddenMailContainer
+    socialMediaContainer.className = shownSocialMediaContainer
+    phoneContainer.className = hiddenSocialMediaContainer
 });
 
 authenticationMethod3.addEventListener('change', () => {
-  mailContainer.className = hiddenMailContainer
-  socialMediaContainer.className = hiddenPhoneContainer
-  phoneContainer.className = shownPhoneContainer
-  initializeInputAnimationState(phoneNumberField, 2);
-  initializeInputAnimationState(codeField, 3);
+    mailContainer.className = hiddenMailContainer
+    socialMediaContainer.className = hiddenPhoneContainer
+    phoneContainer.className = shownPhoneContainer
+    initializeInputAnimationState(phoneNumberField, 2);
+    initializeInputAnimationState(codeField, 3);
 });
 
 mailField.addEventListener('focus', () => {
-  if(!mailField.value)
-  labels.item(0).className = "focused-field"
+    if (!mailField.value)
+        labels.item(0).className = "focused-field"
 });
 
 passwordField.addEventListener('focus', () => {
-  if(!passwordField.value)
-  labels.item(1).className = "focused-field"
+    if (!passwordField.value)
+        labels.item(1).className = "focused-field"
 });
 
 mailField.addEventListener('blur', () => {
-  if(!mailField.value)
-    labels.item(0).className = "unfocused-field"
+    if (!mailField.value)
+        labels.item(0).className = "unfocused-field"
 });
 
 passwordField.addEventListener('blur', () => {
-  if(!passwordField.value)
-    labels.item(1).className = "unfocused-field"
+    if (!passwordField.value)
+        labels.item(1).className = "unfocused-field"
 });
 
 phoneNumberField.addEventListener('focus', () => {
-  if(!phoneNumberField.value)
-    labels.item(2).className = "focused-field"
+    if (!phoneNumberField.value)
+        labels.item(2).className = "focused-field"
 })
 
 codeField.addEventListener('focus', () => {
-  if(!codeField.value)
-    labels.item(3).className = "focused-field"
+    if (!codeField.value)
+        labels.item(3).className = "focused-field"
 })
 
 phoneNumberField.addEventListener('blur', () => {
-  if(!phoneNumberField.value)
-  labels.item(2).className = "unfocused-field"
+    if (!phoneNumberField.value)
+        labels.item(2).className = "unfocused-field"
 })
 
 codeField.addEventListener('blur', () => {
-  if(!codeField.value)
-  labels.item(3).className = "unfocused-field"
+    if (!codeField.value)
+        labels.item(3).className = "unfocused-field"
 })

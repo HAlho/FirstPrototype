@@ -1,0 +1,229 @@
+﻿<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Account</title>
+    <link rel="stylesheet" href="./style/account.css">
+    <link rel="stylesheet" href="./style/mainmenu.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
+</head>
+<body style="background-color:white;">
+    <a href="../account" class="back">
+        <i class="fa fa-angle-left" style="color:black;"></i>
+        <small style="vertical-align:top; padding-top:5px;"> Back</small>
+    </a>
+    <div class="pageName">EDIT ACCOUNT</div>
+    <div style="width:30%; margin:auto;"><img src="./img/edit.svg" ></div>
+
+    <div class="accountMenu">
+        <a id="editName">
+            <table>
+                <tr>
+                    <td style="width:80px;">Name</td>
+                    <td id="name" class="accountMenuText"></td>
+                </tr>
+            </table>
+            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+        </a><hr />
+        <a id="editEmail">
+            <table>
+                <tr>
+                    <td style="width:80px;">Email</td>
+                    <td id="email" class="accountMenuText"></td>
+                </tr>
+            </table>
+            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+        </a><hr />
+        <a id="changePassword">
+            <table>
+                <tr>
+                    <td style="width:80px;">Password</td>
+                </tr>
+            </table>
+            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+        </a><hr />
+    </div>
+
+    <div id="dimContent" class="dimContent"></div>
+
+    <div id="windowPromptName" class="windowPrompt">
+        <p>Name</p>
+        <input type="text" id="nameInput">
+        <button class="cancel" onclick="cancel()">cancel</button>
+        <button onclick="editName()">ok</button>
+    </div>
+
+
+
+    <div id="windowPromptEmail" class="windowPrompt">
+        <p>Email</p>
+        <input type="text" id="emailInput">
+        <button class="cancel" onclick="cancel()">cancel</button>
+        <button onclick="editEmail()">ok</button>
+    </div>
+
+    <div id="windowPromptEmailConfirm" class="windowPrompt">
+        <p>Input your password to continue</p>
+        <input type="password" id="emailConfirmInput">
+        <button class="cancel" onclick="cancel()">cancel</button>
+        <button onclick="editEmailConfirm()">ok</button>
+    </div>
+
+
+
+    <div id="windowPromptPassword" class="windowPrompt">
+        <p>Current password</p>
+        <input type="password" id="passwordInput">
+        <button class="cancel" onclick="cancel()">cancel</button>
+        <button onclick="changePassword()">ok</button>
+    </div>
+
+    <div id="windowPromptPasswordConfirm" class="windowPrompt">
+        <p>New password</p>
+        <input type="password" id="passwordConfirmInput">
+        <button class="cancel" onclick="cancel()">cancel</button>
+        <button onclick="changePasswordConfirm()">ok</button>
+    </div>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
+
+
+    <script>
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        var firebaseConfig = {
+            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
+            authDomain: "auth-c0cb3.firebaseapp.com",
+            databaseURL: "https://auth-c0cb3.firebaseio.com",
+            projectId: "auth-c0cb3",
+            storageBucket: "auth-c0cb3.appspot.com",
+            messagingSenderId: "1034981325790",
+            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
+            measurementId: "G-1GCV52KFRG"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+    </script>
+
+    <script>
+        // JavaScript source code
+        firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) {
+                user = firebase.auth().currentUser;
+                name = user.displayName;
+                email = user.email;
+
+                document.getElementById("name").innerHTML = name;
+                document.getElementById("email").innerHTML = email;
+
+            } else window.location.assign('../');
+        });
+
+        function cancel() {
+            document.getElementById("dimContent").classList.remove("dimVisible");
+            var prompts = document.getElementsByClassName("windowPrompt");
+            for (var i = 0; i < prompts.length; i++) {
+                prompts[i].style.display = 'none';
+            }
+        }
+
+        //edit name
+        document.getElementById("editName").addEventListener("click", function () {
+            document.getElementById("nameInput").value = name;
+
+            document.getElementById("dimContent").classList.add("dimVisible");
+            setTimeout(function () { document.getElementById("windowPromptName").style.display = "block"; }, 250);
+        });
+
+        function editName() {
+            let newName = document.getElementById("nameInput").value;
+            if (newName != null && newName != '' && newName != name) {
+                firebase.auth().currentUser.updateProfile({
+                    displayName: newName
+                }).then(function () {
+                    location.reload();
+                });
+            } else cancel();
+            
+        }
+
+        //edit email
+        document.getElementById("editEmail").addEventListener("click", function () {
+            document.getElementById("emailInput").value = email;
+
+            document.getElementById("dimContent").classList.add("dimVisible");
+            setTimeout(function () { document.getElementById("windowPromptEmail").style.display = "block"; }, 250);
+        });
+
+        function editEmail() {
+            let newEmail = document.getElementById("emailInput").value;
+            if (newEmail != null && newEmail != '' && newEmail != email) {
+                document.getElementById("windowPromptEmail").style.display = "none";
+                document.getElementById("emailConfirmInput").value = '';
+                document.getElementById("windowPromptEmailConfirm").style.display = "block";
+
+            } else cancel();
+        }
+
+        function editEmailConfirm() {
+            let password = document.getElementById("emailConfirmInput").value;
+            let newEmail = document.getElementById("emailInput").value;
+
+            firebase.auth().signInWithEmailAndPassword(email, password).then(() => {
+                firebase.auth().currentUser.updateEmail(newEmail).then(function () {
+                    location.reload();
+                });
+            }).catch(error => {
+                cancel();
+                console.error(error);
+            })
+        }
+
+        //change password
+        document.getElementById("changePassword").addEventListener("click", function () {
+            document.getElementById("passwordInput").value = '';
+
+            document.getElementById("dimContent").classList.add("dimVisible");
+            setTimeout(function () { document.getElementById("windowPromptPassword").style.display = "block"; }, 250);
+        });
+
+        function changePassword() {
+            let password = document.getElementById("passwordInput").value;
+            if (password != null && password != '') {
+                firebase.auth().signInWithEmailAndPassword(email, password).then(() => {
+                    document.getElementById("windowPromptPassword").style.display = "none";
+                    document.getElementById("passwordConfirmInput").value = '';
+
+                    document.getElementById("dimContent").classList.add("dimVisible");
+                    setTimeout(function () { document.getElementById("windowPromptPasswordConfirm").style.display = "block"; }, 250);
+                }).catch(error => {
+                    console.error(error);
+                })
+            } else cancel();
+        }
+
+        function changePasswordConfirm() {
+            let newPassword = document.getElementById("passwordConfirmInput").value;
+
+            if (newPassword != null && newPassword != '') {
+                firebase.auth().currentUser.updatePassword(newPassword).then(function () {
+                    location.reload();
+                });
+            } else cancel();
+        }
+
+    </script>
+
+</body>
+</html>

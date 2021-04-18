@@ -62,7 +62,6 @@
     <Content Include="public\js\avaReq.js" />
     <Content Include="public\js\edit.js" />
     <Content Include="public\js\home.js" />
-    <Content Include="public\js\payment.js" />
     <Content Include="public\js\profile.js" />
     <Content Include="public\js\registerCar.js" />
     <Content Include="public\js\requestHistory.js" />
@@ -76,7 +75,6 @@
     <Content Include="routes\firebaseConfig.js">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="routes\payment.js" />
     <Content Include="routes\profile.js" />
     <Content Include="routes\registerCar.js" />
     <Content Include="routes\requestHistory.js" />
@@ -107,7 +105,6 @@
     <Content Include="views\avaReq.html" />
     <Content Include="views\edit.html" />
     <Content Include="views\index.html" />
-    <Content Include="views\payment.html" />
     <Content Include="views\profile.html" />
     <Content Include="views\registerCar.html" />
     <Content Include="views\requestHistory.html" />

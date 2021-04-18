@@ -61,8 +61,8 @@ setInterval(async () => { //retrieve tokens except the user's token
         k = keys[i];
         // console.log("key: " + keys[i]);
         id = t[k].uid;
-        // console.log(id);
-        if (u[id].status != "Available") continue;
+        //console.log(id);
+        if (u[id].status != "Available") continue;//user must be available
         if (u[id].activeRequest != null) continue//check if the user has a request
         // console.log(Date.now() - u[id].location.timestamp);
         if ((Date.now() - u[id].location.timestamp) < 900000) continue; //check if the location had passed 15 mins
@@ -89,7 +89,7 @@ setInterval(async () => { //retrieve tokens except the user's token
                 console.log("Error sending message:", error);
             });
     }
-}, 900000);
+}, 60000);//900000
 
 setInterval(async () => {
     console.log("manager: starting periodic matched check");
@@ -99,6 +99,9 @@ setInterval(async () => {
         var mkeys = Object.keys(matched); //ids of the tokens
         for (a of mkeys) {
             if (Date.now() - matched[a].match.matchMadeAt < 300000) continue; //if 5min had not passed
+
+            await db.ref('activeRequests/matched/' + a + '/match').remove();
+
             //move request from matched to issued
             let oldRef = db.ref('activeRequests/matched/' + a);
             let newRef = db.ref('activeRequests/issued/' + a);
@@ -106,9 +109,12 @@ setInterval(async () => {
             await newRef.set(snapshot.val());
             await oldRef.remove();
 
+            //change requester's request reference to issued
+            await db.ref('users/' + matched[a].requester.uid).child('activeRequest').update({ dbref: "issued" });
+
             //change provider status to Available and delete matched request from user
             await db.ref('users/' + matched[a].match.provider).update({ status: "Available" });
-            await db.ref('users/' + matched[a].match.provider).remove({ matchedReq });
+            await db.ref('users/' + matched[a].match.provider + '/matchedReq').remove();
 
         }
     }

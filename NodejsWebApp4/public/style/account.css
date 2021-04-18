@@ -1,0 +1,170 @@
+* {
+    padding: 0;
+    margin: 0;
+    font-family: 'Segoe UI';
+    overflow: hidden;
+}
+
+body {
+    background: #A0D8DC;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #ddd;
+}
+
+p {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+i {
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+button {
+    margin: 5px 15px 12px 15px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    background-color: transparent;
+    border: none;
+}
+
+.logout {
+    color: red;
+    font-weight: bold;
+    margin: 20px 0 0 35px;
+}
+
+.userInfo { 
+    margin-left: 8%;
+    margin-top: 5%;
+    width: 80%;
+    bottom: 10%;
+}
+
+.edit { /*edit link*/
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+    float: right;
+}
+
+.container {
+    position: absolute;
+    bottom: 0;
+    height: 75%;
+    width: 100%;
+    border-radius: 35px 35px 0px 0px;
+    background-color: white;
+    padding-top:30px;
+}
+
+.buttonsSection {
+    width: max-content;
+    margin: auto;
+    margin-bottom: 12px;
+}
+
+.accountMenu { /*div for */
+    width: 85%;
+    margin: auto;
+    margin-top:25px;
+}
+
+    .accountMenu a {
+        display:block;
+        color: black;
+        padding: 5px;
+        text-decoration: none;
+    }
+    .accountMenu table {
+        width: 89%;
+        margin: 5px;
+        display: inline-table;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+.accountMenuText {
+    color: gray;
+    text-align: right;
+}
+
+
+
+
+
+.creditScore .target {
+    stroke-dasharray: 0px 367px;
+    stroke-dashoffset: 0%;
+    stroke: #6dbec3;
+}
+
+.creditScore .background {
+    stroke: #eaeaea;
+}
+
+svg path {
+    transition: all 1.5s ease;
+}
+
+
+
+#creditScoreVal {
+    position: absolute;
+    width: 100%;
+    top: 40%;
+    left: 0;
+    font-size: 25px;
+    color: #6dbec3;
+}
+
+
+
+
+
+
+.unitPriceContainer {
+    width: 80%;
+    margin: auto;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    text-align: center;
+    margin: 15px auto 30px auto;
+}
+
+    .unitPriceContainer h1 {
+        display: inline;
+        color: #6dbec3;
+        font-size: 28px;
+        line-height: 25px;
+        padding: 5px;
+    }
+
+/* Chrome, Safari, Edge, Opera */
+    .unitPriceContainer input::-webkit-outer-spin-button,
+    .unitPriceContainer input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+/* Firefox */
+    .unitPriceContainer input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+#unitPriceVal {
+    border: none;
+    text-align: center;
+    width: 40%;
+    line-height: 35px;
+    font-size: 15px;
+    display: inline;
+    margin: 0;
+    padding: 0;
+    color: #444;
+}

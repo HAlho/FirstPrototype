@@ -22,86 +22,177 @@ firebase.auth().onAuthStateChanged(async function (user) {
         console.log(json);
         data = json.hist;
 
+
+
+        if (data != null) {
+
+
             var keys = Object.keys(data); //get request ids
             console.log(keys);
 
-            if (data == null) {
-                document.getElementById("p2").innerHTML = "No History";
-                return;
-            } else document.getElementById("p2").innerHTML = "";
-
-            var table = document.createElement('table');
-
-            let r = document.createElement('tr');
-
-            let thReqId = document.createElement('th');
-            let thRole = document.createElement('th');
-            let thStatus = document.createElement('th');
-            let thAmount = document.createElement('th');
-            let thReqCar = document.createElement('th');
-
-            let h1 = document.createTextNode("Request ID");
-            let h2 = document.createTextNode("Role");
-            let h5 = document.createTextNode("Status");
-            let h3 = document.createTextNode("Charge Amount");
-            let h4 = document.createTextNode("Requester's Car");
-
-            thReqId.appendChild(h1); thRole.appendChild(h2); thStatus.appendChild(h5); thAmount.appendChild(h3); thReqCar.appendChild(h4);
-            r.appendChild(thReqId); r.appendChild(thRole); r.appendChild(thStatus); r.appendChild(thAmount); r.appendChild(thReqCar);
-            table.appendChild(r);
-
-            var reqCompleted = 0;
-            var provCompleted = 0;
-            var reqCancelled = 0;
-
             for (var i = 0; i < keys.length; i++) { //need to show only the associated requests with the user
                 //get request information
+                let k = keys[i];
+                let timestamp = data[k].timestamp;
+                let date = timestamp.substr(4, 11);
+                let amount = data[k].amount + " kWh";
+                let status = data[k].status;
+                let cost = data[k].cost + " AED";
+                let role;
+                data[k].requester.uid == userId ? role = "requester" : role = "provider";
 
-
-                var k = keys[i];
-                console.log(data[k].requester.uid);
-                var role;
-                if (data[k].requester.uid == userId) role = "requester";
-                else if (data[k].supplier.uid == userId) role = "supplier";
-
-                var car = data[k].requester.car;
-                var status = data[k].status;
-
-                if (status == "completed" && role == "requester") reqCompleted = reqCompleted + 1;
-                if (status == "completed" && role == "supplier") provCompleted++;
-                if (status == "canceled" && role == "requester") reqCancelled++;
-                console.log(reqCompleted);
-
-
-                let tr = document.createElement('tr');
-
-                let tdReqId = document.createElement('td');
-                let tdRole = document.createElement('td');
-                let tdStatus = document.createElement('td');
-                let tdAmount = document.createElement('td');
-                let tdReqCar = document.createElement('td');
-
-                let ReqId = document.createTextNode(k);
-                let Role = document.createTextNode(role);
-                let Status = document.createTextNode(status);
-                let Amount = document.createTextNode(String(data[k].amount));
-                let ReqCar = document.createTextNode(car.brand + ' ' + car.model);
-
-                tdReqId.appendChild(ReqId); tdRole.appendChild(Role); tdStatus.appendChild(Status); tdAmount.appendChild(Amount); tdReqCar.appendChild(ReqCar);
-
-                tr.appendChild(tdReqId); tr.appendChild(tdRole); tr.appendChild(tdStatus); tr.appendChild(tdAmount); tr.appendChild(tdReqCar);
-
-                table.appendChild(tr);
+                appendRequest(k, role, date, amount, status, cost);
+                appendRequestToAll(k, role, date, amount, status, cost);
             }
-            console.log("Requests completed as a requester: " + reqCompleted + "<br><br> Requests completed as a provider: " + provCompleted + " <br><br>Cancelled requests: " + reqCancelled);
-            document.getElementById("p2").innerHTML = "Requests completed as a requester: " + reqCompleted + "<br><br> Requests completed as a provider: " + provCompleted + " <br><br>Cancelled requests: " + reqCancelled;
-            document.getElementById("mydiv").appendChild(table);
+        }
+
+        if (document.getElementById("allDiv").innerHTML == "") {
+            let tAll = document.createElement('p');
+            tAll.innerHTML = "No requests to show.";
+            tAll.classList.add('noRequests');
+            document.getElementById("allDiv").appendChild(tAll);
+        }
+        if (document.getElementById("requestedDiv").innerHTML == "") {
+            let tRequested = document.createElement('p');
+            tRequested.innerHTML = "You have not made any charge requests yet.";
+            tRequested.classList.add('noRequests');
+            document.getElementById("requestedDiv").appendChild(tRequested);
+        }
+        if (document.getElementById("acceptedDiv").innerHTML == "") {
+            let tAccepted = document.createElement('p');
+            tAccepted.innerHTML = "You have not accepted any requests yet.";
+            tAccepted.classList.add('noRequests');
+            document.getElementById("acceptedDiv").appendChild(tAccepted);
+        }
 
 
 
     } else {
-        console.log("user is not signed")
         window.location.replace('../signup'); //redirect user to main page
-
     }
 });
+
+function appendRequest(k, role, date, amount, status, cost) {
+    let request = document.createElement('table');
+
+    let dateTd = document.createElement('td');
+    dateTd.colSpan = "3";
+    let dateText = document.createTextNode(date);
+    dateTd.appendChild(dateText);
+    dateTd.classList.add('date');
+
+    let arrowTd = document.createElement('td');
+    arrowTd.rowSpan = "3";
+
+    arrowTd.innerHTML = '<i class="fas fa-chevron-right" style="color:darkgray; font-size:1.1em;"></i>';
+    arrowTd.style.textAlign = "right";
+    arrowTd.style.width = "20px";
+    let tr1 = document.createElement('tr');
+    tr1.appendChild(dateTd); tr1.appendChild(arrowTd);
+
+
+    let emptyTdTr2 = document.createElement('td');
+    emptyTdTr2.style.width = "10px";
+
+    let amountTd = document.createElement('td');
+    let amountText = document.createTextNode(amount);
+    amountTd.appendChild(amountText);
+
+    let costTd = document.createElement('td');
+    costTd.style.textAlign = "right"; costTd.style.width = "100px";
+    if (status == 'completed') {
+        let costText = document.createTextNode(cost);
+        costTd.appendChild(costText);
+    }
+
+    let tr2 = document.createElement('tr');
+    tr2.appendChild(emptyTdTr2); tr2.appendChild(amountTd); tr2.appendChild(costTd);
+
+    let emptyTdTr3 = document.createElement('td');
+    let statusTd = document.createElement('td');
+    statusTd.colSpan = "2";
+
+    let statusText = document.createTextNode(status);
+    statusTd.appendChild(statusText);
+
+    if (status == 'completed') statusTd.classList.add('statCompleted');
+    else statusTd.classList.add('statCanceled');
+    let tr3 = document.createElement('tr');
+    tr3.appendChild(emptyTdTr3); tr3.appendChild(statusTd);
+
+    document.getElementById("requested").appendChild(request);
+
+    request.appendChild(tr1);
+    request.appendChild(tr2);
+    request.appendChild(tr3);
+
+    let reqLink = document.createElement('a');
+    reqLink.href = '../requestInfo?reqId=' + k;
+    reqLink.appendChild(request);
+    role == "requester" ? document.getElementById("requestedDiv").appendChild(reqLink) : document.getElementById("acceptedDiv").appendChild(reqLink);
+}
+
+
+
+
+function appendRequestToAll(k, role, date, amount, status, cost) {
+    let request = document.createElement('table');
+
+    let dateTd = document.createElement('td');
+    dateTd.colSpan = "3";
+    let dateText = document.createTextNode(date);
+    dateTd.appendChild(dateText);
+    dateTd.classList.add('date');
+
+    let arrowTd = document.createElement('td');
+    arrowTd.rowSpan = "3";
+
+    arrowTd.innerHTML = '<i class="fas fa-chevron-right" style="color:darkgray; font-size:1.1em;"></i>';
+    arrowTd.style.textAlign = "right";
+    arrowTd.style.width = "20px";
+    let tr1 = document.createElement('tr');
+    tr1.appendChild(dateTd); tr1.appendChild(arrowTd);
+
+
+    let emptyTdTr2 = document.createElement('td');
+    emptyTdTr2.style.width = "10px";
+    let amountTd = document.createElement('td');
+    role == "requester" ? amount += " (requested)" : amount += " (provided)";
+    let amountText = document.createTextNode(amount);
+    amountTd.appendChild(amountText);
+
+    let costTd = document.createElement('td');
+    costTd.style.textAlign = "right";
+    costTd.style.width = "100px";
+    if (status == 'completed') {
+        role == "requester" ? cost = '-' + cost : cost = '+' + cost;
+        let costText = document.createTextNode(cost + " AED");
+        costTd.appendChild(costText);
+    }
+
+    let tr2 = document.createElement('tr');
+    tr2.appendChild(emptyTdTr2); tr2.appendChild(amountTd); tr2.appendChild(costTd);
+
+    let emptyTdTr3 = document.createElement('td');
+
+    let statusTd = document.createElement('td');
+    statusTd.colSpan = "2";
+
+    let statusText = document.createTextNode(status);
+    statusTd.appendChild(statusText);
+
+    if (status == 'completed') statusTd.classList.add('statCompleted');
+    else statusTd.classList.add('statCanceled');
+    let tr3 = document.createElement('tr');
+    tr3.appendChild(emptyTdTr3); tr3.appendChild(statusTd);
+
+    request.appendChild(tr1);
+    request.appendChild(tr2);
+    request.appendChild(tr3);
+
+    let reqLink = document.createElement('a');
+    reqLink.href = '../requestInfo?reqId=' + k;
+    reqLink.appendChild(request);
+
+    document.getElementById("allDiv").appendChild(reqLink);
+}

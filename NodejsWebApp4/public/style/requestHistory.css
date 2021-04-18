@@ -1,0 +1,106 @@
+﻿* {
+    padding: 0;
+    margin: 0;
+    font-family: 'Segoe UI';
+    overflow: hidden; /* No scrolling*/
+}
+
+.switch {
+    margin: 30px 0 5px 0;
+    position: relative;
+    border: 0;
+    background-color: #eaeaea;
+    height: 40px;
+    line-height: 30px;
+}
+
+    .switch input {
+        position: absolute;
+        opacity: 0;
+        display: none;
+    }
+
+    .switch label {
+        position: relative;
+        z-index: 2;
+        float: left;
+        width: 40%;
+        padding: 5px 0 7px 0;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        transition: color 0s ease .1s;
+        cursor: pointer;
+    }
+
+    .switch .labelSelected {
+        color: white;
+    }
+
+    .switch .switch-button {
+        position: absolute;
+        top: 0;
+        z-index: 1;
+        width: 40%;
+        height: 100%;
+        background-color: #6dbec3;
+        transition: all .3s ease-out;
+    }
+
+    .switch input:nth-of-type(1):checked ~ .switch-button {
+        left: 0;
+        width: 20%;
+    }
+
+    .switch input:nth-of-type(2):checked ~ .switch-button {
+        left: 20%;
+    }
+
+    .switch input:last-of-type:checked ~ .switch-button {
+        left: 60%;
+    }
+
+table {
+    margin: auto;
+    margin-top: 12px;
+    line-height:20px;
+    padding-bottom: 9px;
+    border-collapse: collapse;
+    border-bottom: 1px solid #ddd;
+    width: 85%;
+    font-weight: 600;
+    font-size: 14px;
+    color: black;
+}
+
+th, td {
+    padding: 2px 3px 3px 2px;
+    text-align: left;
+}
+
+.statCanceled {
+    color: orangered;
+    padding-bottom: 6px;
+    font-size: 12px;
+    font-weight: normal;
+}
+.statCompleted {
+    color: #6dbec3;
+    padding-bottom: 6px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.date {
+    font-size: 13.5px;
+    font-weight: normal;
+}
+
+.noRequests {
+    margin: auto;
+    margin-top: 50%;
+    width: max-content;
+    font-size: 14px;
+    color: #777;
+}

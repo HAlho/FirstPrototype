@@ -31,6 +31,19 @@ document.getElementById("brands").addEventListener('change', (event) => {
     } else document.getElementById("models").disabled = true;
 });
 
+document.getElementById("models").addEventListener('change', (event) => {
+    if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '')
+        document.getElementById("submit").classList.remove('disabled');
+    else document.getElementById("submit").classList.add('disabled');
+});
+
+document.getElementById("license").addEventListener('change', (event) => {
+    if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '')
+        document.getElementById("submit").classList.remove('disabled');
+    else document.getElementById("submit").classList.add('disabled');
+
+});
+
 //clear car model's dropmenu
 function clearDropmenu(selectElement) {
     var i, L = selectElement.options.length - 1;
@@ -38,6 +51,8 @@ function clearDropmenu(selectElement) {
     var option = document.createElement("option");
     option.text = "Select a Model";
     selectElement.appendChild(option);
+
+    document.getElementById("submit").classList.add('disabled');
 }
 
 async function submit() {
@@ -45,6 +60,9 @@ async function submit() {
     carModel = document.getElementById("models").value;
     licenseNum = document.getElementById("license").value;
     carColor = document.getElementById("colors").value;
+
+    if (carBrand == "Select a Brand" || carModel == "Select a Model" || licenseNum == '') return;
+    
     const userId = firebase.auth().currentUser.uid;
 
     const sdata = { carBrand, carModel, licenseNum, carColor, userId };
@@ -64,6 +82,5 @@ async function submit() {
     alert('Your Car was Registered Successfully!');
     window.location.replace('../carSelect');
 }
-
 
 

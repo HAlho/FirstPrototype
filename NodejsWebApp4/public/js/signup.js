@@ -4,7 +4,7 @@ const displayNameField = document.getElementById('displayName');
 //const phonenumber = document.getElementById("phonenumber");
 const photoField = document.getElementById('photo');
 const labels = document.getElementsByTagName('label');
-const signUp = document.getElementById('signUp');
+const signUp = document.getElementById('signup');
 const failureModal = document.querySelector('.failure');
 const feedbackMessage = document.querySelector('.feedbackMessage');
 
@@ -26,35 +26,35 @@ const signUpFunction = () => {
 
     //Built in firebase function responsible for signing up a user
     auth.createUserWithEmailAndPassword(email, password)
-    .then(() => {
-        console.log('Signed Up Successfully !');
-        var user = firebase.auth().currentUser; // Get current user
-        user.updateProfile({
-            displayName: name,
-            //phoneNumber: pnumber
-        }).then(function () {
-            sendVerificationEmail();
-        }).catch(function (error) {
-            // An error happened.
-        });
+        .then(() => {
+            console.log('Signed Up Successfully !');
+            var user = firebase.auth().currentUser; // Get current user
+            user.updateProfile({
+                displayName: name,
+                //phoneNumber: pnumber
+            }).then(function () {
+                sendVerificationEmail();
+            }).catch(function (error) {
+                // An error happened.
+            });
 
-    })
-    .catch(error => {
-        console.error(error);
-    })
+        })
+        .catch(error => {
+            console.error(error);
+        })
 }
 
 //Function called right after the signUpWithEmailAndPassword to send verification emails
 const sendVerificationEmail = () => {
     //Built in firebase function responsible for sending the verification email
     auth.currentUser.sendEmailVerification()
-    .then(() => {
-        console.log('Verification Email Sent Successfully !');
-        window.location.assign('../profile');
-    })
-    .catch(error => {
-        console.error(error);
-    })
+        .then(() => {
+            console.log('Verification Email Sent Successfully !');
+            window.location.assign('../profile');
+        })
+        .catch(error => {
+            console.error(error);
+        })
 }
 
 signUp.addEventListener('click', signUpFunction);

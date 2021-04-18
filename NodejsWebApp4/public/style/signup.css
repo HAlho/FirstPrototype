@@ -3,7 +3,8 @@
 * {
     padding: 0;
     margin: 0;
-    font-family: 'Montserrat Medium'
+    font-family: "Lucida Console";
+    background: #A0D8DC;
 }
 
 main {
@@ -16,20 +17,24 @@ main {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center
+    align-items: center;
 }
 
 .container {
     position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%)
+    bottom: 20%;
+    left: 10%;
+    width: 80%;
+    height: 60%;
+    background: white;
+    border-radius: 10px
 }
 
 fieldset, .feedbackContainer {
     border: rgb(192,192,192,0.1) 1px solid;
     height: 460px;
-    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.12)
+    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.12);
+    background: white;
 }
 
 
@@ -38,32 +43,50 @@ input[type = "password"],
 input[type = "tel"],
 input[type = "email"],
 input[type = "url"] {
-    width: 340px;
+    width: 200px;
     margin-top: 8px;
+    margin: 20px 40px;
     padding: 2px 6px;
     border: none;
+    border-radius: 10px;
     background-color: #f7f7f7;
     height: 40px;
-    outline-color: #2196f3;
-    font-size: 1rem
+    outline-color: #6dbec3; /*buttons color*/
+    font-size: 1rem;
+    position: relative;
 }
 
+
+.rectangle-1 {
+    box-sizing: border-box;
+    height: 54px;
+    width: 222px;
+    border-radius: 8px;
+    background-color: #A0D8DC;
+    height: 40px;
+    width: 196px;
+    color: #FFF;
+    font-family: "Lucida Console";
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 40px;
+    text-align: center;
+}
+
+
 button:first-of-type, button {
-    float: right;
-    margin: 20px 42px 0px 0px;
-    padding: 10px 20px;
-    border: 1px solid #2196f3
+    margin: 30px 120px 10px 120px;
+    border: 1px solid #A0D8DC
 }
 
 button {
     background-color: white;
 }
 
-button:first-of-type {
-    float: right;
-    background-color: #2196f3;
-    color: white
-}
+    button:first-of-type {
+        background-color: #A0D8DC;
+        color: white;
+    }
 
 .clear {
     clear: both
@@ -91,7 +114,7 @@ img {
     display: block
 }
 
-.signup-container div:first-of-type {   
+.signup-container div:first-of-type {
     width: 340px;
     margin-top: 50px;
 }
@@ -117,6 +140,7 @@ label {
         color: #505050;
         font-size: 1rem
     }
+
     100% {
         top: 0%;
         left: 0px;
@@ -139,6 +163,7 @@ label {
         color: #2196f3;
         font-size: 0.9rem
     }
+
     100% {
         top: 56%;
         left: 6px;
@@ -169,7 +194,7 @@ label {
     top: 50%;
     transform: translate(-50%, -50%);
     background-color: #fff;
-    display: none 
+    display: none
 }
 
 .feedbackIcon {

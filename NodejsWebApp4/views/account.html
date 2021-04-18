@@ -1,37 +1,118 @@
 ﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Account</title>
-    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
-    <link rel="stylesheet" href="./style/profile.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="./style/account.css">
+    <link rel="stylesheet" href="./style/mainmenu.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body>
+    <div class="pageName">ACCOUNT</div>
+    <div class="userInfo">
+        <img src="./img/account-black.png" width="30%" style="float:left;">
+        <b><h3 id="name"></h3></b>
+        <p id="email" style="font-weight:normal; display:inline;"></p>
+        <br /><p><a href="../editAccount" class="edit">edit account <i class="fa fa-caret-right" style="color:black;"></i></a></p>
+
+    </div>
     <section class="container profile-container">
         <div>
-            <b><h3 id="name" style="display: inline;"></h3></b>
-            <button id="edit" style="position: absolute; right: 0;"><img src="./img/edit.jpg" width="15" height="15"></button> <br />
-            <small id="email"></small>
-            <br /><br /><hr /><br />
+            <div class="buttonsSection">
+                <button id="cars"><i class="fas fa-car" style="color:black; font-size:3.2em; padding:5px 5px 0 5px;"></i><br /><p>Your Cars</p></button>
+                <button id="settings"><i class="fas fa-cogs" style="color:black; font-size:2.5em;padding:5px;"></i><br /><p>Settings</p></button>
+                <button id="payment"><i class="fas fa-credit-card" style="color:black; -webkit-text-stroke-width: 2px; -webkit-text-stroke-color: #000;font-size:2.3em; padding:5px;"></i><br /><p>Payment</p></button>
+            </div>
 
-            <button id="cars">Your Cars</button>
-            <button id="settings">Settings</button>
+            <div class="accountMenu">
+                <a id="viewCreditScore">
+                    <table>
+                        <tr>
+                            <td>Credit Score</td>
+                            <td id="creditScore" class="accountMenuText" style="width:50px;"></td>
+                        </tr>
+                    </table>
+                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+                </a><hr />
+                <a id="reqHistory">
+                    <table>
+                        <tr>
+                            <td>History</td>
+                        </tr>
+                    </table>
+                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+                </a><hr />
+                <a id="editUnitPrice">
+                    <table>
+                        <tr>
+                            <td>Unit Price</td>
+                            <td id="unitPrice" class="accountMenuText"></td>
+                        </tr>
+                    </table>
+                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+                </a><hr />
+            </div>
 
-            <button id="payment">Payment</button>
+            <br />
+            <button id="logout" class="logout">Logout</button>
 
-            <br /><br />
-            <button id="unitPrice"></button><br />
-            <button id="creditScore"></button><br />
-            <button id="reqHistory">Requests History</button><br />
-            <br /><br />
-            <button id="logOut">Logout</button>
+        </div>
+    </section>
+    <div id="creditScorePopUp" class="windowPrompt">
+        <p>Credit Score</p>
+        <p id="creditScoreVal"></p>
+        <div>
+            <svg class='creditScore' style="display:block; margin:auto;" x="0px" y="0px"
+                 width="142.924px" height="120px" viewBox="0 0 142.924 142.924" enable-background="new 0 0 142.924 142.924"
+                 xml:space="preserve">    
+            <path fill="none" class="background" stroke="#000000" stroke-width="15" stroke-miterlimit="0" d="M71.462,13.129 c32.217,0,58.334,26.116,58.334,58.333s-26.117,58.334-58.334,58.334s-58.333-26.117-58.333-58.334S39.245,13.129,71.462,13.129" />
+
+            <path id='creditScorePercent' fill="none" class="target" stroke="#000000" stroke-width="15" stroke-miterlimit="0" d="M71.462,13.129 c32.217,0,58.334,26.116,58.334,58.333s-26.117,58.334-58.334,58.334s-58.333-26.117-58.333-58.334S39.245,13.129,71.462,13.129" />
+
+        </svg>
+        </div>
+        <button class="cancel" onclick="cancel()">close</button>
+
+    </div>
+
+    <div id="windowPromptUnitPrice" class="windowPrompt">
+        <p>Unit Price</p>
+
+        <div class="unitPriceContainer">
+            <h1 ontouchstart="decrement()" ontouchend="stop()" id="decrement">–</h1>
+            <input type="number" min="0.37" max="0.74" step="0.01" id="unitPriceVal" class="unitPriceInput" />
+            <h1 ontouchstart="increment()" ontouchend="stop()" id="increment">+</h1>
         </div>
 
-    </section>
+        <button class="cancel" onclick="cancel()">cancel</button>
+        <button onclick="updateUnitPrice()">ok</button>
+    </div>
+
+
+    <div class="mainMenu">
+        <table>
+            <tr>
+                <td><button class="circle" id="status" onclick="openStatusMenu()"></button></td>
+                <td><button class="circle" id="home"><img src="./img/home.png" height="30"></button></td>
+                <td><button class="circle active" id="account"><img src="./img/account.png" height="30"></button></td>
+            </tr>
+            <tr>
+                <td><small>STATUS</small></td>
+                <td><small>HOME</small></td>
+                <td><small><b>ACCOUNT</b></small></td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="statusMenu" class="statusMenu tail">
+        <a onclick="setStatus('Available')"><button class="statusCircle"><img src="./img/status-available.png" height="15px"></button>Available</a>
+        <hr />
+        <a onclick="setStatus('Do Not Disturb')"><button class="statusCircle" style="background-color:#DD5F56;"><img src="./img/status-busy.png" height="15px"></button>Busy</a>
+    </div>
+
+
+    <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
+
+
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
@@ -66,34 +147,7 @@
         firebase.analytics();
     </script>
 
-    <script>
-        const auth = firebase.auth();
-
-        document.getElementById("logOut").addEventListener('click', () => {
-            //signOut() is a built in firebase function responsible for signing a user out
-            auth.signOut()
-                .then(() => {
-                    window.location.assign('../');
-                })
-                .catch(error => {
-                    console.error(error);
-                })
-        })
-
-        document.getElementById("edit").addEventListener("click", function () {
-            window.location.replace('../edit');
-        }); 
-
-        document.getElementById("reqHistory").addEventListener('click', () => {
-            window.location.assign('../requestHistory');
-        });
-
-        document.getElementById("cars").addEventListener('click', () => {
-            window.location.assign('../viewCars');
-        });
-        
-
-    </script>
+    <script src="./js/status.js"></script>
     <script src="./js/account.js"></script>
 
 

@@ -6,84 +6,117 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Profile</title>
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+
     <link rel="stylesheet" href="./style/profile.css">
+    <link rel="stylesheet" href="./style/mainmenu.css">
+
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 </head>
 <body>
-    <section class="container profile-container">
-        <div>
-            <button id="account"><img src="./img/profile-icon.jpg" width="35" height="35"><br /><small><b>Account</b></small></button>
-            <button id="avaReq"><img src="./img/requests-icon.jpg" width="35" height="35"><br /><small><b>Available Requests</b></small></button>
+    <section>
 
-            <label>Status: </label>
-            <select id="status" onmouseover="dropList()" onmouseout="this.size=1;"></select>
-        </div>
-        <div id="currentCar">
-            <label><small id="currentCarInfo"></small></label>
+        <div class="currentCar" id="currentCar">
+            <label><b id="currentCarInfo"></b></label>
             <i class="fa fa-pencil-square-o" style="font-size:20px;color:#2196f3; display:none;" id="edit"></i>
             <br />
             <hr />
         </div>
-        <div id="request" style="display:none;">
-            <div id="requestInfoDiv" style="display:none;">
-                <b>----------- New Request -----------</b>
-                <br /><br />
-                <small><b>Current Energy Amount (kWh):</b></small>
-                <small id="value"></small><br /><br />
-                <small style="display: inline;">0</small>
-                <div class="slidecontainer" id="slider" style="display:inline; margin: 0px 0px;"></div>
-                <small id="max" style="display:inline;"></small>
 
-                <br /><br /><br />
+        <div id="buttons">
+            <button class="rectangle" id="requestFormToggle"><b>Request Charge</b></button>
+            <button class="rectangle disabled" id="avaReq">No Available Requests</button>
+        </div>
 
-                <small><b>Requested Charge Amount (kWh):</b></small><br />
-                <input type="number" id="amount" name="amount" autocomplete="off"><br />
+        <div id="requestForm" style="display:none;">
+            <b>----------- New Request -----------</b>
+            <br /><br />
+            <small><b>Current Energy Amount (kWh):</b></small>
+            <small id="value"></small><br /><br />
+            <small style="display: inline;">0</small>
+            <div class="slidecontainer" id="slider" style="display:inline; margin: 0px 0px;"></div>
+            <small id="max" style="display:inline;"></small>
+            <br /><br /><br />
 
-                <label><small>pick a destination instead </small></label>
-                <i class="fa fa-map-marker" style="font-size:24px;color:#2196f3" id="calculate" onclick="calculate()"></i>
+            <table>
+                <tr>
+                    <td>
+                        <small><b>Request Charge by Amount (kWh):</b></small><br />
+                        <input type="number" id="amount" name="amount" autocomplete="off"><br />
+                    </td>
+                    <td>
+                        <label><small><b>pick a destination instead </b> </small></label>
+                        <i class="fa fa-map-marker" style="font-size:24px;color:#ffd800" id="calculate" onclick="calculate()"></i>
+                    </td>
+                </tr>
+            </table>
 
+            <br /><br /><br />
+            <table style="width: 100%">
+                <tr>
+                    <td><button class="rectangle1" id="cancelRequest" style="display:none;"><b>Cancel</b></button></td>
+                    <td><button class="rectangle1" id="SRequest"><b>Send Request</b></button></td>
+                </tr>
+            </table>
 
-                <br /><br /><br />
-                <button id="SRequest"><b>Send Request</b></button>
+        </div>
 
+        <div id="activeRequest">
+            <div id="request" style="display:none;">
+                <h2>Active Request</h2><br />
+                <p id="requestText"></p><br />
+                <div id="req"></div>
+                <input type="text" id="paypal" value="" style="display:none;">
+                <button id="cancel" style="display:none;"><b>Cancel</b></button>
+                <button id="accept" style="display:none;"><b>Accept Request</b></button>
             </div>
-            <button id="requestDivToggle"><b>Make a New Request</b></button>
+
+            <div id="payment" style="display:none;">
+                <button id="pay"><b>pay</b></button>
+            </div>
         </div>
-
-        <div id="accepted" style="display:none;">
-            <h2>Active Request</h2><br />
-            <p id="p2"></p><br />
-            <div id="req"></div>
-        </div>
-
-        <div id="matched" style="display:none;">
-            <h2>Matched Request</h2><br />
-            <p id="p3"></p><br />
-            <input type="text" id="paypal" value="">
-            <button id="mAccept"><b>Accept Request</b></button>
-
-        </div>
-        <div id="cmatched" style="display:none;">
-            <h2>Matched Request</h2><br />
-            <p id="p4"></p><br />
-            <button id="cmAccept"><b>Accept Request</b></button>
-
-        </div>
-
-        <div id="payment" style="display:none;">
-            <button id="pay"><b>pay</b></button>
-        </div>
-
-
     </section>
 
-    <script>
-        function dropList () {
-            var n = document.getElementById("status").options.length;
-            document.getElementById("status").size = n;
-        }
-    </script>
+
+    <div id="windowPromptAvaReq" class="windowPrompt" style="display:none;">
+        <br />
+        <button id="closeAvaReq" class="close">X</button>
+        <p id="avaReqText"></p><br />
+        <div id="avaReqDiv"></div>
+
+        <input type="text" id="paypalAvaReq" value="">
+
+        <button class="cancel" id="avaReqCancel">Decline</button>
+        <button id="avaReqAccept">Accept</button>
+
+    </div>
+
+    <div class="mainMenu">
+        <table>
+            <tr>
+                <td><button class="circle" id="status" onclick="openStatusMenu()"></button></td>
+                <td><button class="circle active" id="home"><img src="./img/home.png" height="30"></button></td>
+                <td><button class="circle" id="account"><img src="./img/account.png" height="30"></button></td>
+            </tr>
+            <tr>
+                <td><small>STATUS</small></td>
+                <td><small><b>HOME</b></small></td>
+                <td><small>ACCOUNT</small></td>
+            </tr>
+        </table>
+    </div>
+
+
+    <div id="statusMenu" class="statusMenu tail">
+        <a onclick="setStatus('Available')"><button class="statusCircle"><img src="./img/status-available.png" height="15px"></button>Available</a>
+        <hr />
+        <a onclick="setStatus('Do Not Disturb')"><button class="statusCircle" style="background-color:#DD5F56;"><img src="./img/status-busy.png" height="15px"></button>Busy</a>
+    </div>
+
+
+    <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
+
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -117,6 +150,7 @@
         firebase.analytics();
     </script>
 
+    <script src="./js/status.js"></script>
     <script src="./js/profile.js"></script>
     <!-- <script src="../functions/index.js"></script> -->
 

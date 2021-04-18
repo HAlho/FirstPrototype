@@ -1,0 +1,176 @@
+﻿<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="./style/mainmenu.css">
+    <link rel="stylesheet" href="./style/settings.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
+</head>
+<body style="background-color:white;">
+    <a href="../account" class="back">
+        <i class="fa fa-angle-left" style="color:black;"></i>
+        <small style="vertical-align:top; padding-top:5px;"> Back</small>
+    </a>
+    <div class="pageName">SETTINGS</div>
+
+    <div class="settingsMenu">
+            <table>
+                <tr>
+                    <td style="width:100%;">Notifications</td>
+                    <td><label class="switch"><input type="checkbox" id="notifications"><span class="slider"></span></label></td>
+                </tr>
+            </table>
+        <hr />
+            <table>
+                <tr>
+                    <td style="width:100%;">Location Access</td>
+                    <td><label class="switch"><input type="checkbox" id="location"><span class="slider"></span></label></td>
+                </tr>
+            </table>
+        <hr />
+
+        <button id="deleteAccount" class="deleteAccount">Delete Account</button>
+    </div>
+    <p id="text"></p>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
+
+
+    <script>
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        var firebaseConfig = {
+            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
+            authDomain: "auth-c0cb3.firebaseapp.com",
+            databaseURL: "https://auth-c0cb3.firebaseio.com",
+            projectId: "auth-c0cb3",
+            storageBucket: "auth-c0cb3.appspot.com",
+            messagingSenderId: "1034981325790",
+            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
+            measurementId: "G-1GCV52KFRG"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+    </script>
+
+    <script>
+        // JavaScript source code
+        firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) {
+                updateSettings(); //check if user changed the browser's settings
+                setSettings(); //set settings checkboxes
+            } else window.location.assign('../');
+        });
+
+        function updateSettings() {
+            if (Notification.permission === 'denied' || Notification.permission === 'default') localStorage.setItem('notificationsPermission', 'denied');
+            else if (localStorage.getItem('notificationsPermission') == null) localStorage.setItem('notificationsPermission', Notification.permission);
+
+            navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+                if (result.state == 'prompt' || result.state == 'denied') localStorage.setItem('locationPermission', 'denied');
+                else if (localStorage.getItem('locationPermission') == null) localStorage.setItem('locationPermission', result.state);
+            });
+
+            console.log("noti: " + localStorage.getItem('notificationsPermission'));
+            console.log("loc: " + localStorage.getItem('locationPermission'));
+        }
+
+        function setSettings() {
+            if (localStorage.getItem('notificationsPermission') == 'granted') document.getElementById("notifications").checked = true;
+            else {
+                localStorage.setItem('notificationsPermission', 'denied');
+                document.getElementById("notifications").checked = false;
+            }
+
+            if (localStorage.getItem('locationPermission') == 'granted') document.getElementById("location").checked = true;
+            else {
+                localStorage.setItem('locationPermission', 'denied');
+                document.getElementById("location").checked = false;
+            }
+        }
+
+        document.getElementById("notifications").addEventListener('change', function () {
+            if (this.checked) {
+                notificationsPermission = Notification.permission;
+                switch (notificationsPermission) {
+                    case "denied":
+                        document.getElementById("notifications").checked = false;
+                        localStorage.setItem('notificationsPermission', 'denied');
+                        alert("Notifications permission blocked. Please enable them in your browser.");
+                        break;
+                    case "default":
+                        Notification.requestPermission().then(function (permission) {
+                            // If the user accepts, let's create a notification
+                            if (permission === "granted") {
+                                var notification = new Notification("Hi there!");
+                            }
+                        });
+                    case "granted":
+                        localStorage.setItem('notificationsPermission', 'granted');
+                }
+            } else {
+                localStorage.setItem('notificationsPermission', 'denied');
+            }
+        });
+
+        document.getElementById("location").addEventListener('change', function () {
+            if (this.checked) {
+                navigator.geolocation.getCurrentPosition(async position => {
+                    localStorage.setItem('locationPermission', 'granted');
+                }, function () {
+                        document.getElementById("location").checked = false;
+                        localStorage.setItem('locationPermission', 'denied');
+                        alert("Location permission blocked. Please enable them in your browser.");
+                });
+            } else {
+                localStorage.setItem('locationPermission', 'denied');
+            }
+        });
+
+        document.getElementById("deleteAccount").addEventListener('click', function () {
+            var user = firebase.auth().currentUser; //current user
+            var userId = user.uid; //current user id
+            console.log("deleting..");
+
+            deleteUser(userId);
+            
+
+        });
+
+        async function deleteUser(userId) {
+            const sdata = { userId };
+            console.log(sdata);
+
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(sdata)
+            };
+            const response = await fetch('/deleteUser', options);
+            const json = await response.json();
+            console.log(json);
+
+            localStorage.removeItem('notificationsPermission');
+            localStorage.removeItem('locationPermission');
+            window.location.replace('../');
+
+        }
+
+    </script>
+
+</body>
+</html>

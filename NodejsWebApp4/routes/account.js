@@ -36,9 +36,46 @@ router.post('/getUserInfo', async (request, response) => { //add to recieve that
     response.json({
         status: "success",
         unitPrice: unitPrice,
-        creditScore: creditScore
+        creditScore: creditScore,
+    });
+});
+
+
+router.post('/getStat', async (request, response) => { //add to recieve that post(endpoint)
+    console.log('GOT A STAT!');
+
+    const data = request.body;
+
+    var snapshot = await db.ref('users/' + data.userId).once('value');
+    var info = snapshot.val();
+    var userStatus = info.status;
+    var creditScore = info.creditScore;
+    var unitPrice = info.unitPrice;
+    if (userStatus == null) {
+        userStatus = "Available";
+        db.ref('users/' + data.userId).update({ status: userStatus });
+    }
+
+    if (creditScore == null) db.ref('users/' + data.userId).update({ creditScore: 100 });
+    if (unitPrice == null) db.ref('users/' + data.userId).update({ unitPrice: 0.5 });
+
+    console.log(userStatus);
+
+    response.json({
+        status: "success",
+        stat: userStatus
     });
 
+});
+
+router.post('/setStat', (request, response) => { //add to recieve that post(endpoint)
+    console.log(request.body);
+    const data = request.body;
+
+    db.ref('users/' + data.userId).update({ status: data.stat });
+    response.json({
+        status: "success",
+    });
 });
 
 router.post('/updateUnitPrice', async (request, response) => { //add to recieve that post(endpoint)
@@ -50,5 +87,7 @@ router.post('/updateUnitPrice', async (request, response) => { //add to recieve 
     });
 
 });
+
+
 
 module.exports = router;

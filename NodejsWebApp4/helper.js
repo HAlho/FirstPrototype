@@ -158,13 +158,19 @@ let myPromise = new Promise(function (myResolve, myReject) {
                     if ((Date.now() - users[k].location.timestamp) > 900000) continue; //check if the location had passed 15 mins
                     if (users[k].cars != null) {
                         var keys3 = Object.keys(users[k].cars); //ids of the tokens
-                        snapshot = await db.ref('carList/' + users[k].cars[keys3[0]].brand + "/" + users[k].cars[keys3[0]].model).once('value');
-                        let car = snapshot.val();
 
-                        availableUsers.push(users[k]);
-                        contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + car.avgConsumption + "\n");
-                        points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);
-                        first = false;
+                        for (j = 0; j < keys3.length; j++) {
+                            if (keys3[j] == users[k].currentCar) {
+                                snapshot = await db.ref('carList/' + users[k].cars[keys3[j]].brand + "/" + users[k].cars[keys3[j]].model).once('value');
+                                let car = snapshot.val();
+
+                                availableUsers.push(users[k]);
+                                contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + car.avgConsumption + "\n");
+                                points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);
+                                first = false;
+                            }
+                        }
+
                     }
 
                 }
@@ -266,12 +272,16 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                 estAmount: v[3],
                                 matchMadeAt: Date.now()
                             });
+
                             //move request to matched
                             let oldRef = db.ref('activeRequests/issued/' + users1.id);
                             let newRef = db.ref('activeRequests/matched/' + users1.id);
                             snapshot = await oldRef.once('value');
                             await newRef.set(snapshot.val());
                             await oldRef.remove();
+
+                            //change requester's reference status to matched
+                            await db.ref('users/' + v[1]).child('activeRequest').update({ dbref: "matched" });
 
                             //change provider status to matched
                             await db.ref('users/' + v[2]).update({ status: "matched" });
@@ -311,6 +321,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                     console.log("Error sending message:", error);
                                 });
 
+                          
 
                         }
                         if (!isUndefined(sum))//that the algorithm is done

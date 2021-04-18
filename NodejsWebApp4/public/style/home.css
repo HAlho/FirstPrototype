@@ -1,43 +1,63 @@
 * {
     padding: 0;
     margin: 0;
-    font-family: 'Montserrat Medium'
+    font-family: "Lucida Console";
 }
 
-main {
-    width: 100vw;
-    height: 800px
+small {
+    background: white;
+    color: red;
 }
 
-.container,
-.feedbackContainer,
-main {
+body {
+    background: #A0D8DC;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+h6 {
+    margin-bottom: 50px;
+    color: #c1c1c1
+}
+
+
+
+.rectangle-1 {
+    box-sizing: border-box;
+    height: 54px;
+    width: 222px;
+    border-radius: 8px;
+    background-color: #A0D8DC;
+    height: 40px;
+    width: 196px;
+    color: #FFF;
+    font-family: "Lucida Console";
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 40px;
+    text-align: center;
+}
+
+
+.container {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center
+    align-items: center;
+    border-radius: 10px;
 }
 
 .container {
     position: absolute;
-    left: 50%;
-    top: 80%;
-    transform: translate(-50%, -80%)
+    bottom: 15%;
+    left: 10%;
+    width: 80%;
+    height: 70%;
+    background: white;
 }
 
-.socialMedia-container,
-.phone-container {
-    display: none
-}
-
-.wrapper {
-    position: relative;
-    height: 80%;
-}
-
-input[type = "radio"] {
-    margin: 10px
-}
 
 fieldset, .feedbackContainer {
     border: rgb(192,192,192,0.1) 1px solid;
@@ -65,21 +85,23 @@ input[type = "text"],
 input[type = "password"],
 input[type = "tel"],
 input[type = "email"] {
-    width: 340px;
+    width: 200px;
     margin-top: 8px;
     padding: 2px 6px;
     border: none;
     background-color: #f7f7f7;
     height: 40px;
-    outline-color: #2196f3;
-    font-size: 1rem
+    outline-color: #A0D8DC;
+    border-radius: 10px;
+    font-size: 1rem;
+    margin: 20px 40px;
+    position: relative;
 }
 
 button:first-of-type, button {
     float: right;
-    margin: 20px 42px 0px 0px;
-    padding: 10px 20px;
-    border: 1px solid #2196f3
+    margin: 20px 4px 0px 0px;
+    border: 1px solid #6dbec3;
 }
 
 button {
@@ -87,26 +109,26 @@ button {
     color: #2196f3
 }
 
-button:first-of-type {
-    float: right;
-    background-color: #2196f3;
-    color: white
-}
+    button:first-of-type {
+        float: right;
+        background-color: #6dbec3;
+        color: white
+    }
 
 a {
     float: right;
-    margin: 10px 44px 0px 0px;
+    margin: 90px 4px 0px 0px;
     text-decoration: none;
-    color: #2196f3;
-    font-size: 0.8rem
+    color: #6dbec3;
+    font-size: 0.8rem;
 }
 
-a:hover {
-    text-decoration: underline
-}
+    a:hover {
+        text-decoration: underline
+    }
 
 button:hover {
-    background-color: #2196f3;
+    background-color: #afe3e2a8;
     color: white;
     cursor: pointer
 }
@@ -119,10 +141,7 @@ button {
     clear: both
 }
 
-.container div {
-    margin: 20px 40px;
-    position: relative
-}
+
 
 .mail-container img,
 .phone-container img {
@@ -132,8 +151,12 @@ button {
     display: block
 }
 
+.fields {
+    width: 10%;
+}
+
 .mail-container div:first-of-type,
-.phone-container div:first-of-type {   
+.phone-container div:first-of-type {
     width: 340px;
     margin: 40px 40px
 }
@@ -167,6 +190,7 @@ label {
         color: #505050;
         font-size: 1rem
     }
+
     100% {
         top: 0%;
         left: 0px;
@@ -189,6 +213,7 @@ label {
         color: #2196f3;
         font-size: 0.9rem
     }
+
     100% {
         top: 56%;
         left: 6px;
@@ -225,10 +250,10 @@ label {
     color: #2196f3
 }
 
-.socialMedia-container button:hover {
-    background-color: #f7f7f7;
-    box-shadow: 1px 0px 7px 0px rgba(0,0,0,0.15)
-}
+    .socialMedia-container button:hover {
+        background-color: #f7f7f7;
+        box-shadow: 1px 0px 7px 0px rgba(0,0,0,0.15)
+    }
 
 .feedbackContainer {
     height: 300px;
@@ -238,7 +263,7 @@ label {
     top: 50%;
     transform: translate(-50%, -50%);
     background-color: #fff;
-    display: none 
+    display: none
 }
 
 .feedbackIcon {

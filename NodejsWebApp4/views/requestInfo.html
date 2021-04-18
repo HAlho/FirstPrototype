@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request History</title>
+    <link rel="stylesheet" href="./style/mainmenu.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-family: 'Segoe UI';
+            overflow: hidden; /* No scrolling*/
+        }
+
+        h3 {
+            font-size: 15px;
+            margin: 30px 0 8px 22px;
+        }
+
+        p {
+            font-size: 13.5px;
+            margin: 5px 30px 0 40px;
+            padding: 5px 0 5px 0;
+        }
+
+        td {
+            padding: 5px 0 5px 0;
+        }
+
+        .info {
+            width: 100%;
+            margin: auto;
+        }
+
+        .summaryBox {
+            background: #eaeaea;
+            padding: 5px 30px 15px 30px;
+            font-size: 13.5px;
+        }
+    </style>
+</head>
+<body>
+    <a href="../requestHistory" class="back">
+        <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
+        <small style="vertical-align:top; padding-top:5px;"> Back</small>
+    </a>
+    <div class="pageName">REQUEST INFORMATION</div>
+    <div class="info">
+        <div>
+            <h3>Summary</h3>
+            <div class="summaryBox">
+                <table style="width:95%; margin:auto">
+                    <tr><td colspan="2" id="date"></td></tr>
+                    <tr><td>Status</td><td id="status"></td></tr>
+                    <tr><td width="80%">Charge amount</td><td id="amount"></td></tr>
+                    <tr><td>Time taken</td><td id="time"></td></tr>
+                </table>
+            </div>
+        </div>
+        <div>
+            <h3>Car Used</h3>
+            <p id="car"></p>
+            <p id="plateNumber"></p>
+        </div>
+        <div id="locationDiv" style="display:none;">
+            <h3>Meet-Up Location</h3>
+            <p id="location"></p>
+        </div>
+    </div>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        var firebaseConfig = {
+            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
+            authDomain: "auth-c0cb3.firebaseapp.com",
+            databaseURL: "https://auth-c0cb3.firebaseio.com",
+            projectId: "auth-c0cb3",
+            storageBucket: "auth-c0cb3.appspot.com",
+            messagingSenderId: "1034981325790",
+            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
+            measurementId: "G-1GCV52KFRG"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+    </script>
+    <script>
+
+
+        requestId = document.location.search.replace(/^.*?\=/, '');
+
+        firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) {
+                var userId = firebase.auth().currentUser.uid; //current user
+
+                const sdata = { userId, requestId };
+                console.log(sdata);
+
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(sdata)
+                };
+                const response = await fetch('/getRequest', options);
+                const json = await response.json();
+                console.log(json);
+                let request = json.request;
+                let timestamp = request.timestamp.substr(4,17);
+                let amount = request.amount;
+                let status = request.status;
+                let time = "50";
+
+                let car;
+                if (request.requester.uid == userId) car = request.requester.car;
+                else car = request.supplier.car;
+
+                let carModel = car.brand + car.model;
+                let carNumber = car.licenseNumber;
+
+                let location = request.location;
+
+
+                document.getElementById("date").innerHTML = timestamp;
+                document.getElementById("amount").innerHTML = amount + " kWh";
+                document.getElementById("status").innerHTML = status;
+                document.getElementById("time").innerHTML = time + " mins";
+
+                document.getElementById("car").innerHTML = carModel;
+                document.getElementById("plateNumber").innerHTML = "Plate Number: " + carNumber;
+
+                if (status == 'complete') {
+                    document.getElementById("location").innerHTML = location;
+                    console.log(timestamp + " " + amount);
+                    document.getElementById("locationDiv").style.display = "block";
+                }
+
+            } else window.location.assign('../');
+        });
+    </script>
+
+</body>
+</html>

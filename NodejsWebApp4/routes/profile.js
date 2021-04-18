@@ -26,8 +26,6 @@ var db = admin.database();
 
 router.use(express.json({ limit: '1mb' }));
 
-
-
 //paypal checkout sdk
 const paypal = require('@paypal/checkout-server-sdk');
 
@@ -38,30 +36,28 @@ let clientSecret = "EKzFVyLD0QPUecuN0-HiYIgkQcrSJEQ2G94hBs38QkWIpH_1-buhkiy1ingy
 let environment = new paypal.core.SandboxEnvironment(clientId, clientSecret);
 let client = new paypal.core.PayPalHttpClient(environment);
 
+router.get('/profile', (req, res, next) => {
+    res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
+});
+
 
 router.post('/pay', async (request, response) => { //add to recieve that post(endpoint)
     console.log('GOT A payment!');
-
     const data = request.body;
-
     var interval;
-
     console.log(data);
-
     console.log("req: " + data.req);
 
     ////get estimated price for the consumer in accepted request
-    var snapshot = await db.ref('activeRequests/accepted/'+data.req+'/match').once('value');
+    var snapshot = await db.ref('activeRequests/accepted/' + data.req + '/match').once('value');
     var u = snapshot.val();
     var price = (u.estAmount * 0.27).toFixed(2);
     snapshot = await db.ref('users/' + u.provider + '/activeRequest').once('value');
     var uinfo = snapshot.val();
 
-
     console.log("price: " + price);
     console.log("paypal info: " + uinfo.paypal);
 
-   
     //paypal checkout sdk
 
     // Construct a request object and set desired parameters
@@ -84,7 +80,6 @@ router.post('/pay', async (request, response) => { //add to recieve that post(en
                 }
             }
         ]
-
     });
 
     let captureOrder = async function (orderId) {
@@ -113,38 +108,22 @@ router.post('/pay', async (request, response) => { //add to recieve that post(en
                 interval = setInterval(() => {
                     try {
                         captureOrder(paypalresponse.result.id); //'REPLACE-WITH-APPROVED-ORDER-ID'
-                       
+
                     } catch (e) {
                         console.log(e)
                     }
 
                 }, 30000)//1.5min
-
             }
-
         }
-
-
     }
     createOrder();
-
-    
-
-
-
-
-
 });
 
-router.get('/profile', (req, res, next) => {
-    res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
-});
 
 router.post('/addToken', async (request, response) => { //add to recieve that post(endpoint)
     console.log('GOT AN addToken!');
-
     const data = request.body;
-
 
     db.ref('/tokens').push({
         token: data.token,
@@ -153,16 +132,13 @@ router.post('/addToken', async (request, response) => { //add to recieve that po
 
     response.json({
         status: "success",
-
-
     });
-
 });
 
 
-router.post('/userRequest', async (request, response) => { //add to recieve that post(endpoint)
+router.post('/userRequest', async (request, response) => {
+    //send user information to the client side
     console.log('GOT A userReq!');
-    //console.log(request.body);
     const data = request.body;
     var snapshot = await db.ref('users/' + data.userId).once('value');
     var u = snapshot.val();
@@ -171,8 +147,6 @@ router.post('/userRequest', async (request, response) => { //add to recieve that
         status: "success",
         user: u
     });
-
-
 });
 
 
@@ -181,7 +155,7 @@ router.post('/getActiveRequest', async (request, response) => { //add to recieve
 
     const data = request.body;
 
-    var snapshot = await db.ref('activeRequests/' + data.status + '/' + data.id).once('value');
+    var snapshot = await db.ref('activeRequests/' + data.dbref + '/' + data.id).once('value');
     var req = snapshot.val();
 
     response.json({
@@ -242,7 +216,7 @@ router.post('/updateComplete', async (request, response) => { //add to recieve t
 
         //if both users had clicked done 
         console.log("status is finally complete....");
-        //move object to another path //don't forget to add for the supplier??
+        //move object to another path //don't forget to add for the provider??
         var oldRef = db.ref('activeRequests/accepted/' + data.id);
         oldRef.update({ 'status': "completed" });//HERE
         var newRef1 = db.ref('previousRequests/' + data.userId + '/' + data.id);
@@ -255,7 +229,6 @@ router.post('/updateComplete', async (request, response) => { //add to recieve t
 
     }
 
-
     response.json({
         status: "success",
     });
@@ -266,59 +239,79 @@ router.post('/updateComplete', async (request, response) => { //add to recieve t
 router.post('/cancelRequest', async (request, response) => { //add to recieve that post(endpoint)
     console.log('GOT A cancelRequest!');
 
-    const data = request.body;
+    const data = request.body; //const d = { userId: userId, userIsRequester: userIsRequester, requestRef: requestRef, request: request, matchedProviderFlag: matchedProviderFlag };
+    const userId = data.userId;
+    const userIsRequester = data.userIsRequester;
+    const matchedProviderFlag = data.matchedProviderFlag;
+    const requestRef = data.requestRef;
+    const req = data.req;
 
-    var newRef = db.ref('previousRequests/' + data.userId + '/' + data.id);
-    var newRef2 = db.ref('previousRequests/' + data.user2Id + '/' + data.id);
-    //if the requester is canceling the request
-    if (data.userIsRequester == true) {
-        if (data.status == "issued") {
-            var oldRef = db.ref('activeRequests/issued/' + data.id);
-            oldRef.update({ 'status': "canceled" });
-            moveFirebaseObject(oldRef, newRef);
+    if (matchedProviderFlag) {
+        db.ref('activeRequests/issued').child(requestRef).set(req);
+        db.ref('activeRequests/issued/' + requestRef + '/match').remove();
+        db.ref('activeRequests/matched/' + requestRef).remove();
+
+        db.ref('users/' + req.requester.uid + '/activeRequest').update({ dbref: 'issued' });
+        db.ref('users/' + userId + '/matchedReq').remove();
+        db.ref('users/' + userId).update({ status: "Available" });
+    } else {
+        const requestStatus = requestRef.dbref;
+        const requestId = requestRef.id;
+        var oldRef;
+        var newRef = db.ref('previousRequests/' + userId + '/' + requestId);
+        var user2Id, newRef2;
+
+        if (requestStatus != 'issued') {
+            if (userIsRequester) user2Id = req.match.provider;
+            else user2Id = req.requester.uid;
+            newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId);
         }
-        else {
-            var oldRef = db.ref('activeRequests/accepted/' + data.id);
-            oldRef.update({ 'status': "canceled" });
-            copyFirebaseObject(oldRef, newRef2);
-            moveFirebaseObject(oldRef, newRef);
-            db.ref('users/' + data.user2Id + '/activeRequest').remove();
+            
+        db.ref('users/' + userId + '/activeRequest').remove();
+        db.ref('users/' + userId).update({ status: "Available" });
 
+        switch (requestStatus) {
+            case 'issued':
+                oldRef = db.ref('activeRequests/issued/' + requestId);
+                break;
+            case 'matched':
+                db.ref('users/' + user2Id + '/matchedReq').remove();
+                db.ref('users/' + user2Id).update({ status: "Available" });
+                oldRef = db.ref('activeRequests/matched/' + requestId);
+                break;
+            case 'pending':
+                if (userIsRequester) {
+                    db.ref('users/' + user2Id + '/activeRequest').remove();
+                    db.ref('users/' + user2Id).update({ status: "Available" });
+                }
+                oldRef = db.ref('activeRequests/pending/' + requestId);
+                break;
+            case 'accepted':
+                if (userIsRequester) {
+                    db.ref('users/' + user2Id + '/activeRequest').remove();
+                    db.ref('users/' + user2Id).update({ status: "Available" });
+                }
+                oldRef = db.ref('activeRequests/accepted/' + requestId);
+                break;
+            //default: oldRef = db.ref('activeRequests/accepted/' + data.id);
+        }
+
+        if (userIsRequester) {
+            oldRef.update({ 'status': "canceled" });
+            if (requestStatus == 'pending' || requestStatus == 'accepted' || requestStatus == 'completed')
+                copyFirebaseObject(oldRef, newRef2);
+            moveFirebaseObject(oldRef, newRef);
+        } else {
+            oldRef.child('match').remove();
+            newRef = db.ref('activeRequests/issued/' + requestId);
+            moveFirebaseObject(oldRef, newRef);
+            db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "issued" });
         }
     }
-    else {  //if the supplier is canceling
-        db.ref('activeRequests/issued').child(data.id).set({
-            amount: data.amount,
-            requester: data.requester
-        });
-        db.ref('activeRequests/accepted/' + data.id).remove();
-        db.ref('users/' + data.requester.uid).child("activeRequest").update({ dbref: "issued" });
-
-    }
-    db.ref('users/' + data.userId + '/activeRequest').remove();
 
     response.json({
         status: "success",
     });
-
-});
-
-
-
-
-
-router.post('/pfile', (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A REQ!');
-    console.log(request.body);
-    const data = request.body;
-    response.json({
-        status: "success",
-        userId: data.userId,
-        newStat: data.newStat
-    });
-
-    db.ref('users/' + data.userId).update({ status: data.newStat });
-
 });
 
 
@@ -349,6 +342,17 @@ router.post('/getStat', async (request, response) => { //add to recieve that pos
 
 });
 
+router.post('/setStat', (request, response) => { //add to recieve that post(endpoint)
+    console.log(request.body);
+    const data = request.body;
+
+    db.ref('users/' + data.userId).update({ status: data.stat });
+    response.json({
+        status: "success",
+    });
+});
+
+
 router.post('/getCurrentCar', async (request, response) => { //add to recieve that post(endpoint)
     const data = request.body;
 
@@ -378,49 +382,9 @@ router.post('/getCurrentCar', async (request, response) => { //add to recieve th
     }
 });
 
-/*
-    router.post('/postCars', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT A CAR!');
-
-        const data = request.body;
-
-        var snapshot = await db.ref('users/' + data.userId + '/cars').once('value');
-        var cars = snapshot.val();
 
 
-        console.log(cars);
-
-        response.json({
-            status: "success",
-            cars: cars
-        });
-
-    });
-
-    router.post('/carInfo', async (request, response) => { //add to recieve that post(endpoint)
-        console.log('GOT AN INFO!');
-
-        const data = request.body;
-
-        var snapshot = await db.ref('carList/' + data.carBrand + '/' + data.carModel).once('value');
-        var consumption = snapshot.val().avgConsumption; //from carList
-        var batteryCapacity = snapshot.val().batteryCapacity; //from carList
-
-
-        response.json({
-            status: "success",
-            consumption: consumption,
-            batteryCapacity: batteryCapacity
-
-        });
-
-    });
-
-*/
-
-
-
-router.post('/reqInfo', async (request, response) => { //add to recieve that post(endpoint)
+router.post('/newRequest', async (request, response) => { //add to recieve that post(endpoint)
     console.log('GOT A REQ INFO!');
 
     const data = request.body;
@@ -446,11 +410,11 @@ router.post('/reqInfo', async (request, response) => { //add to recieve that pos
 
     }).then(() => {
         db.ref('users/' + data.userId).child("activeRequest").set({ id: newReq.key, dbref: "issued", role: "requester" });
+        db.ref('users/' + data.userId).update({ status: "Busy" });
     })
 
     response.json({
         status: "success"
-
     });
 
     //send notification
@@ -473,28 +437,6 @@ router.post('/reqInfo', async (request, response) => { //add to recieve that pos
         //console.log("token pushed is: " + t[k].token);
         tokens.push(t[k].token);
     }
-    // console.log("tokens: " + tokens);
-
-    //for (let i of tokens) {//do this for each token in the array
-    //    //console.log("to be sent: " + i);
-    //    var registrationToken = i;
-    //    var payload = {
-    //        notification: {
-    //            title: 'A new request has been made',
-    //            body: data.neededEnergy
-    //        }
-    //    };
-    //    admin.messaging().sendToDevice(registrationToken, payload)
-    //        .then(function (response) {
-    //            console.log("Successfully sent message:", response);
-    //        })
-    //        .catch(function (error) {
-    //            console.log("Error sending message:", error);
-    //        });
-    //}
-
-
-
 
 
     if (numProc < maxProc) {//was 30
@@ -540,10 +482,6 @@ router.post('/reqInfo', async (request, response) => { //add to recieve that pos
         worker.postMessage(worker.threadId);
         worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
     }
-    //there should be a last else for if the thread's queue is full, we ask the user to try again shortly
-
-
-
 });
 
 
@@ -551,28 +489,18 @@ router.post('/checkUpdates', async (request, response) => {
     console.log('GOT A checkUpdates');
     console.log('GOT A LOCATION!');
 
-    //console.log(request.body);
-
     const data = request.body;
 
-    //var location = db.ref('users/' + data.userId).push();
-
-    //location.child("location").set({
-    //    latitude: data.lat,
-    //    longitude: data.lon,
-    //    timestamp: data.tim
-    //});
     db.ref('users/' + data.userId + "/location/").set({
         latitude: data.lat,
         longitude: data.lon,
         timestamp: data.tim
     });
 
-
     //var req = { dbref:null, id:null, role:null };//asssign them null to prevent cannot read property of null error
     const snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
     var req = snapshot.val();
-
+    
     var u = true;
 
     try {
@@ -580,20 +508,18 @@ router.post('/checkUpdates', async (request, response) => {
             u = false;
     } catch (error) {
         //console.log(error);
-        if ((data.status == null && req == null))
+        if (data.status == null && req == null)
             u = false;
         //console.log(data.status);
     }
-
-
-
 
     response.json({
         status: "success",
         update: u
     });
-
 });
+
+
 
 router.post('/mAccept', async (request, response) => { //add to recieve that post(endpoint)
     console.log('Got an accept consumer request!');
@@ -602,31 +528,20 @@ router.post('/mAccept', async (request, response) => { //add to recieve that pos
 
     //add provider payment info to database
 
+    //Store request info under provider's user info
+    db.ref('users/' + data.userId).child("activeRequest").set({ id: data.requestId, dbref: 'pending', role: 'provider', paypal: data.paypal });
+    db.ref('users/' + data.userId).update({ status: "Busy" });
+    db.ref('users/' + data.userId + '/matchedReq').remove();
 
-    //Store request info under supplier's user info
-    db.ref('users/' + data.userId).child("activeRequest").set({ id: data.reqId, dbref: "accepted", role: "supplier", paypal: data.paypal });
     //Update request info under requester's user info
-    db.ref('users/' + data.reqId).child("activeRequest").update({ dbref: "matched" });
+    db.ref('users/' + data.reqId).child("activeRequest").update({ dbref: 'pending' });
 
-    /*
-    //Move request from issued to accepted
+    //Move request from matched to pending
+    var oldRef = db.ref("activeRequests/matched/" + data.requestId);
+    var newRef = db.ref("activeRequests/pending/" + data.requestId);
+    moveFirebaseObject(oldRef, newRef);
 
-    db.ref('activeRequests/accepted').child(data.requestId).set({
-        amount: data.amount,
-        requester: data.reqInfo,
-        supplier: {
-            uid: data.userId
-        },
-        timestamp: data.reqAccepted
-    });
-    
-    db.ref('activeRequests/matched/' + data.requestId).remove();
-    
-    //delete matching info
-    await db.ref('users/' + matched[a].match.provider).delete({ matchedReq });
-    */
-
-    var snapshot = await db.ref('activeRequests/matched/' + data.requestId + '/requester').once('value');//get requester's id
+    var snapshot = await db.ref('activeRequests/pending/' + data.requestId + '/requester').once('value');//get requester's id
     const req = snapshot.val();
     console.log(req);
     snapshot = await db.ref('tokens').once('value');
@@ -676,12 +591,13 @@ router.post('/cmAccept', async (request, response) => { //accepting from the con
     const data = request.body;
 
     //Move request from matched to accepted
-    var oldRef = db.ref("activeRequests/matched/" + data.requestId);
+    var oldRef = db.ref("activeRequests/pending/" + data.requestId);
     var newRef = db.ref("activeRequests/accepted/" + data.requestId);
     moveFirebaseObject(oldRef, newRef);
 
+    //update request status for both users
     await db.ref('users/' + data.userId + '/activeRequest').update({ dbref: "accepted" });
-
+    await db.ref('users/' + data.provider + '/activeRequest').update({ dbref: "accepted" });
 
 
     response.json({

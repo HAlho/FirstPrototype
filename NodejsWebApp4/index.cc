@@ -495,16 +495,16 @@ namespace calcMain {
 
 	int test(int n) {
 		int num = 0;
-		for (int a = 0; a < n;a++)
-			for (int b = 0;b < n;b++)
-				for (int c = 0;c < n;c++)
-					for (int d = 0;d < n;d++)
-						for (int e = 0;e < n;e++)
-							for (int f = 0;f < n;f++)
-								for (int g = 0;g < n;g++)
-									for (int h = 0; h < n;h++)
-										for (int i = 0;i < n;i++)
-											for (int j = 0;j < n;j++)
+		for (int a = 0; a < n; a++)
+			for (int b = 0; b < n; b++)
+				for (int c = 0; c < n; c++)
+					for (int d = 0; d < n; d++)
+						for (int e = 0; e < n; e++)
+							for (int f = 0; f < n; f++)
+								for (int g = 0; g < n; g++)
+									for (int h = 0; h < n; h++)
+										for (int i = 0; i < n; i++)
+											for (int j = 0; j < n; j++)
 												num++;
 		cout << "from c++: result: " << num << endl;
 		return num;
