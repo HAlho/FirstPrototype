@@ -1,30 +1,18 @@
-const fs = require('fs');
-
-const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
-const { fork } = require('child_process');
-
-const maxProc = 2;
-var numProc = 0;//number of running child processes
-
-
+// JavaScript source code
 const path = require('path');
-
-
 const express = require('express');
-
-//const messaging = require('firebase/messaging');
-
-
 const router = express.Router();
-
-
 const { admin } = require('./firebaseConfig.js');
 
+const fs = require('fs');
+const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
+const { fork } = require('child_process');
+const maxProc = 2;
+var numProc = 0;//number of running child processes
+//const messaging = require('firebase/messaging');
 
-// Get a database reference to our posts
+//database reference
 var db = admin.database();
-
-router.use(express.json({ limit: '1mb' }));
 
 //paypal checkout sdk
 const paypal = require('@paypal/checkout-server-sdk');
@@ -36,27 +24,572 @@ let clientSecret = "EKzFVyLD0QPUecuN0-HiYIgkQcrSJEQ2G94hBs38QkWIpH_1-buhkiy1ingy
 let environment = new paypal.core.SandboxEnvironment(clientId, clientSecret);
 let client = new paypal.core.PayPalHttpClient(environment);
 
+router.use(express.json({ limit: '1mb' }));
+
 router.get('/profile', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
 });
 
 
-router.post('/pay', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A payment!');
-    const data = request.body;
-    var interval;
-    console.log(data);
-    console.log("req: " + data.req);
+//try to fix any errors in the user's account
+router.post('/debugAccount', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
 
-    ////get estimated price for the consumer in accepted request
-    var snapshot = await db.ref('activeRequests/accepted/' + data.req + '/match').once('value');
-    var u = snapshot.val();
-    var price = (u.estAmount * 0.27).toFixed(2);
-    snapshot = await db.ref('users/' + u.provider + '/activeRequest').once('value');
-    var uinfo = snapshot.val();
+    //get user information from the database
+    var snapshot = await db.ref('users/' + userId).once('value');
+    var user = snapshot.val();
+
+    //check for errors
+
+    //errors regarding active requests
+    if (user.activeRequest != null) {
+        //if user has an active request, check if it actually exists
+        var snapshot = await db.ref('activeRequests/' + user.activeRequest.dbref + '/' + user.activeRequest.id).once('value');
+        if (snapshot.val() == null) { //if request doesn't exist, remove it from the user's account
+            db.ref('users/' + userId + '/activeRequest').remove();
+            db.ref('users/' + userId).update({ status: 'Available' });
+        } else if (user.status != 'Busy') //if request exists but user's status is not 'Busy', change it to 'Busy'
+            db.ref('users/' + userId).update({ status: 'Busy' });
+    } else if (user.status == 'Busy')  //if request doesn't exist but user's status is 'Busy', change status to 'Available'
+        db.ref('users/' + userId).update({ status: 'Available' });
+
+    //errors regarding matched requests
+    if (user.matchedReq != null) {
+        //if user has a matched request, check if it actually exists
+        var snapshot = await db.ref('activeRequests/matched/' + user.matchedReq).once('value');
+        if (snapshot.val() == null) { //if request doesn't exist, remove it from the user's account
+            db.ref('users/' + userId + '/matchedReq').remove();
+            db.ref('users/' + userId).update({ status: 'Available' });
+        } else if (user.status != 'matched') //if request exists but user's status is not 'matched', change it to 'matched'
+            db.ref('users/' + userId).update({ status: 'matched' });
+    } else if (user.status == 'matched') //if request doesn't exist but user's status is 'matched', change status to 'Available'
+        db.ref('users/' + userId).update({ status: 'Available' });
+
+    //if user's current car doesn't exist
+    if (user.currentCar != null) { //user has a current car, check if it exists
+        if (user.cars[user.currentCar] == null) //if car doesn't exist, remove 'currentCar'
+            db.ref('users/' + userId + '/currentCar').remove();
+    }
+
+    //if user status is null
+    if (user.status == null) db.ref('users/' + userId).update({ status: 'Available' });
+
+    //if user credit score is null
+    if (user.creditScore == null) db.ref('users/' + userId).update({ creditScore: 100 });
+
+    //if user unit price is null
+    if (user.unitPrice == null) db.ref('users/' + userId).update({ unitPrice: 0.37 });
+
+
+    //set and send response
+    response.json({
+        status: "success"
+    });
+});
+
+
+//get user status and send it to the client
+router.post('/getStat', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+
+    //get user information from the database
+    var snapshot = await db.ref('users/' + userId).once('value');
+    var user = snapshot.val();
+
+    //send user status to client
+    response.json({
+        status: "success",
+        stat: user.status
+    });
+});
+
+//update user status
+router.post('/setStat', (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const stat = request.body.status; //user status
+
+    //save changes to database
+    db.ref('users/' + userId).update({ status: stat });
+
+    // send response to client
+    response.json({
+        status: "success",
+    });
+});
+
+
+//get user information from the db and send it to the client
+router.post('/getUser', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+
+    //get user info from the database
+    var snapshot = await db.ref('users/' + userId).once('value');
+    var user = snapshot.val();
+
+    //send user information to client
+    response.json({
+        status: "success",
+        user: user
+    });
+});
+
+
+//get the user's current car information and send it to client
+router.post('/getCurrentCar', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+
+    //get user's info from the database
+    var snapshot = await db.ref('users/' + userId).once('value');
+    var user = snapshot.val();
+    var currentCar = user.currentCar;
+
+    let carsFlag = false; //true if user has registered cars
+    let currentCarFlag = false; //true if user selected a current car
+    let car, batteryCapacity, consumption; //store current car info
+
+    if (user.cars != null) carsFlag = true; //user has registered cars
+    if (user.currentCar != null) { //user has a current car
+        currentCarFlag = true;
+        //get current car
+        car = user.cars[currentCar]; 
+
+        //get technical car info
+        var snapshot = await db.ref('carList/' + car.brand + '/' + car.model).once('value'); 
+        batteryCapacity = snapshot.val().batteryCapacity;
+        consumption = snapshot.val().consumption;
+    }
+
+    //send car to client
+    response.json({ status: "success", carsFlag, currentCarFlag, car, batteryCapacity, consumption });
+});
+
+
+router.post('/addToken', async (request, response) => {                                                             ///////////////////////////////////////////////////////???????
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const token = request.body.token; //user token
+
+    //add token to the database
+    db.ref('/tokens').push({
+        token: token,
+        uid: userId
+    });
+
+    //send response to client
+    response.json({
+        status: "success",
+    });
+});
+
+//update user's location
+router.post('/storeGeolocation', async (request, response) => { 
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const lat = request.body.lat; //user latitude
+    const lon = request.body.lon; //user longitude
+    const tim = request.body.tim; //time
+
+    //update user's location in the database
+    db.ref('users/' + userId + "/location/").set({
+        latitude: lat,
+        longitude: lon,
+        timestamp: tim
+    });
+
+    //send response to client
+    response.json({
+        status: "success"
+    });
+});
+
+//get the user's active request information
+router.post('/getActiveRequest', async (request, response) => {
+    //get client request info
+    const requestId = request.body.requestId; //request ID
+    const dbref = request.body.dbref; //the directory the request is in (activeRequests/dbref/requestId) 
+
+    //get request information from the database
+    var snapshot = await db.ref('activeRequests/' + dbref + '/' + requestId).once('value');
+    var req = snapshot.val();
+
+    //send request information to client
+    response.json({
+        status: "success",
+        req: req
+    });
+});
+
+//submit a new request
+router.post('/submitRequest', async (request, response) => {
+    //get client request info
+    const data = request.body; //data = { userId, neededEnergy, reqStart, currentEnergy, currentSoC, maxDistance, carBrand, carModel, carColor, carNum }
+
+    var newReq = db.ref('activeRequests/issued').push(); //create reference to a new request
+    //set requet information in the database
+    newReq.set({
+        amount: data.neededEnergy,
+        timestamp: data.reqStart,
+        requester: {
+            uid: data.userId,
+            currentEnergy: data.currentEnergy,
+            currentSoC: data.currentSoC,
+            maxDistance: data.maxDistance,
+            car: { brand: data.carBrand, model: data.carModel, color: data.carColor, licenseNumber: data.carNum }
+        }
+    }).then(() => {
+        db.ref('users/' + data.userId).child('activeRequest').set({ id: newReq.key, dbref: 'issued', role: 'requester' }); //save request info under user information
+        db.ref('users/' + data.userId).update({ status: 'Busy' }); //set user status to 'busy'
+    })
+
+    //send response to client
+    response.json({
+        status: "success"
+    });
+
+    //send notification                                                                                            ///////////////////////////////////////////////////////??????? maybe make this a function?
+    //retrieve tokens except the user's token
+    var snapshot = await db.ref('tokens').once('value');
+    const t = snapshot.val();
+    snapshot = await db.ref('users').once('value');
+    const u = snapshot.val();
+    var keys = Object.keys(t); //ids of the tokens
+    var tokens = [];
+    var k;
+    var id;
+    for (i = 0; i < keys.length; i++) {//also check the user status
+        k = keys[i];
+        id = t[k].uid;
+        if (id == data.userId) continue;
+        else if (u[id].status != "Available") continue;
+        tokens.push(t[k].token);
+    }
+
+
+    if (numProc < maxProc) {//was 30                                                                                            ///////////////////////////////////////////////////////???????
+        const compute = fork('helper.js'); //create child process that runs helper.js
+        numProc++;
+        //top stack
+        fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
+            if (err) return console.log(err);
+            console.log('proc now:' + numProc);
+        });
+        compute.send({ n: 17, uid: data.userId, pid: compute.pid });//send to the child process
+        compute.on('message', sum => {//get the value from the child process
+            console.log("result is: " + sum);
+            compute.kill();
+            numProc--;
+            //pop stack
+            var newData;
+            fs.readFile('procInfo.txt', "utf8", (err, data) => {
+                if (err) throw err;
+                // break the textblock into an array of lines
+                var lines = data.split('\n');
+                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
+                lines.splice(0, 1);
+                // join the array back into a single string
+                newData = lines.join('\n');
+                fs.writeFile('procInfo.txt', newData, function (err) {
+                    if (err) return console.log(err);
+                    console.log('proc now:' + numProc);
+                });
+            });
+
+
+        });
+    } else {//create a thread and let it check for available slots
+        const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
+            workerData: { //pass the variables here
+                n: 15,
+                uid: data.userId
+            }
+        });
+
+        worker.postMessage(worker.threadId);
+        worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
+    }
+});
+
+
+//cancel an active request 
+    //if the person canceling is the requester, the request will have to be completely removed from activeRequests
+    //if the person canceling is the provider, the request will have to be moved back to 'activeRequests/issued'
+router.post('/cancelRequest', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const userIsRequester = request.body.userIsRequester; //true if user is requester
+    const requestStatus = request.body.requestRef.dbref; //request status (also dbref)
+    const requestId = request.body.requestRef.id; //request ID
+    const req = request.body.req; //request information
+
+    var newRef = db.ref('previousRequests/' + userId + '/' + requestId); //path to move the request to the user's history
+    var newRef2, user2Id; //get user ID and the request's path for the second user
+    if (requestStatus != 'issued' && requestStatus != 'matched') { //get second user's info
+        userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
+        newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
+    }
+
+    //clear request information from the user's account
+    db.ref('users/' + userId + '/activeRequest').remove();
+    db.ref('users/' + userId).update({ status: "Available" });
+
+    //get the request's path for the user
+    var oldRef;
+    switch (requestStatus) { //get the request's path (activeRequests/dbref/requestID) and clear second user's account if needed
+        case 'issued':
+            oldRef = db.ref('activeRequests/issued/' + requestId); //get the request's path
+            break;
+        case 'matched':
+            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                db.ref('users/' + user2Id + '/matchedReq').remove();
+                db.ref('users/' + user2Id).update({ status: "Available" });
+            }
+            oldRef = db.ref('activeRequests/matched/' + requestId); //get the request's path
+            break;
+        case 'pending':
+            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                db.ref('users/' + user2Id + '/activeRequest').remove();
+                db.ref('users/' + user2Id).update({ status: "Available" });
+            }
+            oldRef = db.ref('activeRequests/pending/' + requestId); //get the request's path
+            break;
+        case 'accepted':
+            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                db.ref('users/' + user2Id + '/activeRequest').remove();
+                db.ref('users/' + user2Id).update({ status: "Available" });
+            } 
+            oldRef = db.ref('activeRequests/accepted/' + requestId); //get the request's path
+            break;
+        case 'completed':
+            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                db.ref('users/' + user2Id + '/activeRequest').remove();
+                db.ref('users/' + user2Id).update({ status: "Available" });
+            }
+            oldRef = db.ref('activeRequests/completed/' + requestId); //get the request's path
+            break;
+    }
+
+
+    //move request to the user(s) history 
+    if (userIsRequester) { //user is the requester
+        oldRef.update({ 'status': "canceled" }); //change status to canceled
+
+        //copy request to provider's history
+        if (requestStatus != 'issued' && requestStatus != 'matched')
+            copyFirebaseObject(oldRef, newRef2);
+
+        //copy request to consumer's history then delete if from active requests
+        moveFirebaseObject(oldRef, newRef);
+    } else { //user is the provider
+        //copy request information to the provider's history
+        copyFirebaseObject(oldRef, newRef);
+        newRef.update({ 'status': "canceled" });
+
+        //remove the provider from the request then  move the request back to activeRequests/issued
+        oldRef.child('match').remove();
+        issuedRef = db.ref('activeRequests/issued/' + requestId);
+        moveFirebaseObject(oldRef, issuedRef);
+
+        //update active request info of the consumer
+        db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "issued" });
+    }
+
+    //send response to client
+    response.json({
+        status: "success",
+    });
+});
+
+
+//function for providers to decline a charge request when matched
+router.post('/declineRequest', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const requestId = request.body.requestId; //request ID
+    const req = request.body.req; //request information
+
+    //move request back to activeRequests/issued
+    //old and new paths to request
+    oldRef = db.ref('activeRequests/matched/' + requestId);
+    newRef = db.ref('activeRequests/issued/' + requestId);
+
+    //move request
+    moveFirebaseObject(oldRef, newRef);
+
+    //remove match from request
+    oldRef.child('match').remove();
+
+    //update active request info of the consumer
+    db.ref('users/' + req.requester.uid + '/activeRequest').update({ dbref: 'issued' });
+
+    //remove active request info from the provider
+    db.ref('users/' + userId + '/matchedReq').remove();
+    db.ref('users/' + userId).update({ status: "Available" });
+
+    //send response to client
+    response.json({
+        status: "success"
+    });
+});
+
+
+//function for providers to accept a charge request when matched
+router.post('/matchAccept', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID (user is the provider)
+    const requesterId = request.body.reqId; //other user ID (the consumer)
+    const requestId = request.body.requestId; //request ID
+    const paypal = request.body.paypal; //user's paypal
+
+    //move request from 'activeRequests/matched' to 'activeRequests/pending'
+    var oldRef = db.ref("activeRequests/matched/" + requestId);
+    var newRef = db.ref("activeRequests/pending/" + requestId);
+    moveFirebaseObject(oldRef, newRef);
+
+    //set the provider's activeRequest info in the database and update status
+    db.ref('users/' + userId).child("activeRequest").set({ id: requestId, dbref: 'pending', role: 'provider', paypal: paypal });
+    db.ref('users/' + userId).update({ status: "Busy" }); //update user status
+    db.ref('users/' + userId + '/matchedReq').remove();
+
+    //update request info under requester's user info
+    db.ref('users/' + requesterId).child("activeRequest").update({ dbref: 'pending' });
+
+
+    //get user's token                                                                                                  ///////////////////////////////////////////////////////???????
+    snapshot = await db.ref('tokens').once('value');
+    const t = snapshot.val();
+    var keys = Object.keys(t); //ids of the tokens
+    var k;
+    var id;
+    var registrationToken;
+    console.log("keys: " + keys);
+    for (i = 0; i < keys.length; i++) {//also check the user status
+        k = keys[i];
+        console.log("key: " + keys[i]);
+        id = t[k].uid;
+        if (id == requesterId) {
+            registrationToken = t[k].token;
+            break;
+        }
+    }
+
+    var payload = {
+        notification: {
+            title: 'Your request has been accepted',
+            body: 'Provider: ' + data.userId
+        }
+    };
+
+    admin.messaging().sendToDevice(registrationToken, payload)
+        .then(function (response) {
+            console.log("Successfully sent message:", response);
+        })
+        .catch(function (error) {
+            console.log("Error sending message:", error);
+        });
+
+
+
+
+    //send response to client
+    response.json({
+        status: "success"
+    });
+});
+
+
+//function for consumers to accept a request match
+router.post('/consumerMatchAccept', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID (user is the consumer)
+    const user2Id = request.body.user2Id; //other user ID (the provider)
+    const requestId = request.body.requestId; //request ID
+
+    //Move request from 'activeRequests/pending' to 'activeRequests/accepted'
+    var oldRef = db.ref("activeRequests/pending/" + requestId); //path to request
+    var newRef = db.ref("activeRequests/accepted/" + requestId); //desired path to request
+    moveFirebaseObject(oldRef, newRef); //move request to new path
+
+    //update request status for both users
+    await db.ref('users/' + userId + '/activeRequest').update({ dbref: "accepted" });
+    await db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "accepted" });
+
+    //send response to client
+    response.json({
+        status: "success"
+    });
+});
+
+
+//function for when users are done with a request
+//when the first user clicks the 'done' button, the request is moved from 'activeRequests/accepted' to 'activeRequests/completed'
+//when the second user clicks the 'done' button, the request is removed from the activeRequests directory and copied to both users previous requests
+router.post('/requestComplete', async (request, response) => { 
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const user2Id = request.body.user2Id; //second user's ID 
+    const requestId = request.body.requestId; //request ID
+
+    //check if the second user clicked the 'done' button
+    var snapshot = await db.ref('users/' + user2Id + '/activeRequest').once('value'); //get user 2 activeRequest info
+
+    if (snapshot.val().completed != null) { //second user clicked 'done'
+        //both users pressed 'done', remove request from activeRequests directory
+        var oldRef = db.ref('activeRequests/completed/' + requestId); //path to request
+        oldRef.update({ 'status': "completed" }); //request was completed
+
+        //get paths to both users' previousRequests directory then move request info there
+        var newRef1 = db.ref('previousRequests/' + userId + '/' + requestId);
+        var newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId);
+        copyFirebaseObject(oldRef, newRef1); //copy request to user 1 previousRequests
+        moveFirebaseObject(oldRef, newRef2); //copy request to user 2 previousRequests  then remove it from activeRequests
+
+        //update users' information
+        db.ref('users/' + data.userId + '/activeRequest').remove();//delete from the current user
+        db.ref('users/' + data.user2Id + '/activeRequest').remove();//delete from the other user
+        db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+        db.ref('users/' + user2Id).update({ status: 'Available' }); //set status to available
+
+    } else { //second user still didn't click 'done'
+        //move request from 'activeRequests/accepted' to 'activeRequests/completed'
+        var oldRef = db.ref('activeRequests/accepted/' + requestId); //current path
+        var newRef = db.ref('activeRequests/completed/' + requestId); //desired path
+        moveFirebaseObject(oldRef, newRef);
+
+        //updated the user's activeRequest to note this change
+        db.ref('users/' + userId).child("activeRequest").update({ completed: "true" });
+
+        //change dbref for both users
+        db.ref('users/' + userId).child("activeRequest").update({ dbref: "completed" });
+        db.ref('users/' + user2Id).child("activeRequest").update({ dbref: "completed" });
+    }
+
+    //send response to client
+    response.json({
+        status: "success",
+    });
+
+});
+
+
+
+
+router.post('/pay', async (request, response) => {                                                                                      ///////////////////////////////////////////////////////???????
+    //get client request info
+    const match = request.body.match; //match info
+
+    var interval;
+
+    var price = (match.estAmount * 0.27).toFixed(2);
+    snapshot = await db.ref('users/' + match.provider + '/activeRequest').once('value');
+    var provider = snapshot.val();
 
     console.log("price: " + price);
-    console.log("paypal info: " + uinfo.paypal);
+    console.log("paypal info: " + provider.paypal);
 
     //paypal checkout sdk
 
@@ -76,7 +609,7 @@ router.post('/pay', async (request, response) => { //add to recieve that post(en
                     "value": price
                 },
                 "payee": {
-                    "email_address": uinfo.paypal //email_address   uinfo.paypal   mobile_number phone_number
+                    "email_address": provider.paypal //email_address   uinfo.paypal   mobile_number phone_number
                 }
             }
         ]
@@ -121,522 +654,38 @@ router.post('/pay', async (request, response) => { //add to recieve that post(en
 });
 
 
-router.post('/addToken', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT AN addToken!');
-    const data = request.body;
-
-    db.ref('/tokens').push({
-        token: data.token,
-        uid: data.userId
-    });
-
-    response.json({
-        status: "success",
-    });
-});
-
-
-router.post('/userRequest', async (request, response) => {
-    //send user information to the client side
-    console.log('GOT A userReq!');
-    const data = request.body;
-    var snapshot = await db.ref('users/' + data.userId).once('value');
-    var u = snapshot.val();
-
-    response.json({
-        status: "success",
-        user: u
-    });
-});
-
-
-router.post('/getActiveRequest', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A getActiveRequest!');
-
-    const data = request.body;
-
-    var snapshot = await db.ref('activeRequests/' + data.dbref + '/' + data.id).once('value');
-    var req = snapshot.val();
-
-    response.json({
-        status: "success",
-        req: req
-    });
-
-});
-
-router.post('/getSecondUser', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A getSecondUser!');
-
-    const data = request.body;
-    const userId = data.userId;
-    const reqId = data.id;
-    var user2Id;
-    var user2status;
-    await db.ref('users').once('value', function (snapshot) {//HERE
-
-        var ndata = snapshot.val();
-        var nkeys = Object.keys(ndata);
-        for (var i = 0; i < nkeys.length; i++) { //need to show only the associated requests with the user
-            var k = nkeys[i];
-            try {
-                var requestId = ndata[k].activeRequest.id;// get id of every request
-            } catch (error) {//if user doesn't have an active request catch and continue loop
-                continue;
-            }
-            if (requestId != reqId) continue;
-            if (k == userId) continue;
-            user2Id = k;
-            console.log(k);
-            user2status = ndata[k].activeRequest.dbref;
-            break;
-        }
-    });
-
-    response.json({
-        status: "success",
-        user2Id: user2Id,
-        user2status: user2status
-    });
-
-});
-
-router.post('/updateComplete', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A updateComplete!');
-
-    const data = request.body;
-
-    db.ref('users/' + data.userId).child("activeRequest").update({ dbref: "completed" });
-
-    //if status is scompleted do change status to complete and move request
-    var snapshot = await db.ref('users/' + data.user2Id + '/activeRequest').once('value');
-    var req = snapshot.val();
-    if (req.dbref == "completed") {
-        console.log("complete is now true");
-
-        //if both users had clicked done 
-        console.log("status is finally complete....");
-        //move object to another path //don't forget to add for the provider??
-        var oldRef = db.ref('activeRequests/accepted/' + data.id);
-        oldRef.update({ 'status': "completed" });//HERE
-        var newRef1 = db.ref('previousRequests/' + data.userId + '/' + data.id);
-        var newRef2 = db.ref('previousRequests/' + data.user2Id + '/' + data.id);
-        copyFirebaseObject(oldRef, newRef1);
-        moveFirebaseObject(oldRef, newRef2);
-        //delete active request from both users
-        db.ref('users/' + data.userId + '/activeRequest').remove();//delete from the current user
-        db.ref('users/' + data.user2Id + '/activeRequest').remove();//delete from the other user
-
-    }
-
-    response.json({
-        status: "success",
-    });
-
-});
-
-
-router.post('/cancelRequest', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A cancelRequest!');
-
-    const data = request.body; //const d = { userId: userId, userIsRequester: userIsRequester, requestRef: requestRef, request: request, matchedProviderFlag: matchedProviderFlag };
-    const userId = data.userId;
-    const userIsRequester = data.userIsRequester;
-    const matchedProviderFlag = data.matchedProviderFlag;
-    const requestRef = data.requestRef;
-    const req = data.req;
-
-    if (matchedProviderFlag) {
-        db.ref('activeRequests/issued').child(requestRef).set(req);
-        db.ref('activeRequests/issued/' + requestRef + '/match').remove();
-        db.ref('activeRequests/matched/' + requestRef).remove();
-
-        db.ref('users/' + req.requester.uid + '/activeRequest').update({ dbref: 'issued' });
-        db.ref('users/' + userId + '/matchedReq').remove();
-        db.ref('users/' + userId).update({ status: "Available" });
-    } else {
-        const requestStatus = requestRef.dbref;
-        const requestId = requestRef.id;
-        var oldRef;
-        var newRef = db.ref('previousRequests/' + userId + '/' + requestId);
-        var user2Id, newRef2;
-
-        if (requestStatus != 'issued') {
-            if (userIsRequester) user2Id = req.match.provider;
-            else user2Id = req.requester.uid;
-            newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId);
-        }
-            
-        db.ref('users/' + userId + '/activeRequest').remove();
-        db.ref('users/' + userId).update({ status: "Available" });
-
-        switch (requestStatus) {
-            case 'issued':
-                oldRef = db.ref('activeRequests/issued/' + requestId);
-                break;
-            case 'matched':
-                db.ref('users/' + user2Id + '/matchedReq').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
-                oldRef = db.ref('activeRequests/matched/' + requestId);
-                break;
-            case 'pending':
-                if (userIsRequester) {
-                    db.ref('users/' + user2Id + '/activeRequest').remove();
-                    db.ref('users/' + user2Id).update({ status: "Available" });
-                }
-                oldRef = db.ref('activeRequests/pending/' + requestId);
-                break;
-            case 'accepted':
-                if (userIsRequester) {
-                    db.ref('users/' + user2Id + '/activeRequest').remove();
-                    db.ref('users/' + user2Id).update({ status: "Available" });
-                }
-                oldRef = db.ref('activeRequests/accepted/' + requestId);
-                break;
-            //default: oldRef = db.ref('activeRequests/accepted/' + data.id);
-        }
-
-        if (userIsRequester) {
-            oldRef.update({ 'status': "canceled" });
-            if (requestStatus == 'pending' || requestStatus == 'accepted' || requestStatus == 'completed')
-                copyFirebaseObject(oldRef, newRef2);
-            moveFirebaseObject(oldRef, newRef);
-        } else {
-            oldRef.child('match').remove();
-            newRef = db.ref('activeRequests/issued/' + requestId);
-            moveFirebaseObject(oldRef, newRef);
-            db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "issued" });
-        }
-    }
-
-    response.json({
-        status: "success",
-    });
-});
-
-
-router.post('/getStat', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A STAT!');
-
-    const data = request.body;
-
-    var snapshot = await db.ref('users/' + data.userId).once('value');
-    var info = snapshot.val();
-    var userStatus = info.status;
-    var creditScore = info.creditScore;
-    var unitPrice = info.unitPrice;
-    if (userStatus == null) {
-        userStatus = "Available";
-        db.ref('users/' + data.userId).update({ status: userStatus });
-    }
-
-    if (creditScore == null) db.ref('users/' + data.userId).update({ creditScore: 100 });
-    if (unitPrice == null) db.ref('users/' + data.userId).update({ unitPrice: 0.5 });
-
-    console.log(userStatus);
-
-    response.json({
-        status: "success",
-        stat: userStatus
-    });
-
-});
-
-router.post('/setStat', (request, response) => { //add to recieve that post(endpoint)
-    console.log(request.body);
-    const data = request.body;
-
-    db.ref('users/' + data.userId).update({ status: data.stat });
-    response.json({
-        status: "success",
-    });
-});
-
-
-router.post('/getCurrentCar', async (request, response) => { //add to recieve that post(endpoint)
-    const data = request.body;
-
-    var snapshot = await db.ref('users/' + data.userId + '/currentCar').once('value');
-    var carId = snapshot.val();
-    console.log('GOT A CAR!' + carId);
-    if (carId == null) {
-        response.json({
-            status: "0",
-        });
-    } else {
-        var snapshot = await db.ref('users/' + data.userId + '/cars/' + carId).once('value');
-        var car = snapshot.val();
-
-        var snapshotCar = await db.ref('carList/' + car.brand + '/' + car.model).once('value');
-        var consumption = snapshotCar.val().avgConsumption; //from carList
-        var batteryCapacity = snapshotCar.val().batteryCapacity; //from carList
-
-        console.log(car.brand + ' ' + consumption + ' ' + batteryCapacity);
-
-        response.json({
-            status: "success",
-            car: car,
-            consumption: consumption,
-            batteryCapacity: batteryCapacity
-        });
-    }
-});
-
-
-
-router.post('/newRequest', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A REQ INFO!');
-
-    const data = request.body;
-
-    var newReq = db.ref('activeRequests/issued').push();
-
-    newReq.set({
-        amount: data.neededEnergy,
-        timestamp: data.reqStart,
-        requester: {
-            uid: data.userId,
-            currentEnergy: data.currentEnergy,
-            currentSoC: data.currentSoC,
-            maxDistance: data.maxDistance,
-            car: {
-                brand: data.carBrand,
-                model: data.carModel,
-                color: data.carColor,
-                licenseNumber: data.carNum
-            }
-
-        }
-
-    }).then(() => {
-        db.ref('users/' + data.userId).child("activeRequest").set({ id: newReq.key, dbref: "issued", role: "requester" });
-        db.ref('users/' + data.userId).update({ status: "Busy" });
-    })
-
-    response.json({
-        status: "success"
-    });
-
-    //send notification
-    //retrieve tokens except the user's token
-    var snapshot = await db.ref('tokens').once('value');
-    const t = snapshot.val();
-    snapshot = await db.ref('users').once('value');
-    const u = snapshot.val();
-    var keys = Object.keys(t); //ids of the tokens
-    var tokens = [];
-    var k;
-    var id;
-    //console.log("keys: " + keys);
-    for (i = 0; i < keys.length; i++) {//also check the user status
-        k = keys[i];
-        // console.log("key: " + keys[i]);
-        id = t[k].uid;
-        if (id == data.userId) continue;
-        else if (u[id].status != "Available") continue;
-        //console.log("token pushed is: " + t[k].token);
-        tokens.push(t[k].token);
-    }
-
-
-    if (numProc < maxProc) {//was 30
-        const compute = fork('helper.js'); //create child process that runs helper.js
-        numProc++;
-        //top stack
-        fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
-            if (err) return console.log(err);
-            console.log('proc now:' + numProc);
-        });
-        compute.send({ n: 17, uid: data.userId, pid: compute.pid });//send to the child process
-        compute.on('message', sum => {//get the value from the child process
-            console.log("result is: " + sum);
-            compute.kill();
-            numProc--;
-            //pop stack
-            var newData;
-            fs.readFile('procInfo.txt', "utf8", (err, data) => {
-                if (err) throw err;
-                // break the textblock into an array of lines
-                var lines = data.split('\n');
-                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
-                lines.splice(0, 1);
-                // join the array back into a single string
-                newData = lines.join('\n');
-                //console.log("new data is :" + newData);
-                fs.writeFile('procInfo.txt', newData, function (err) {
-                    if (err) return console.log(err);
-                    console.log('proc now:' + numProc);
-                });
-            });
-
-
-        });
-    } else {//create a thread and let it check for available slots
-        const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
-            workerData: { //pass the variables here
-                n: 15,
-                uid: data.userId
-            }
-        });
-
-        worker.postMessage(worker.threadId);
-        worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
-    }
-});
-
-
-router.post('/checkUpdates', async (request, response) => {
-    console.log('GOT A checkUpdates');
-    console.log('GOT A LOCATION!');
-
-    const data = request.body;
-
-    db.ref('users/' + data.userId + "/location/").set({
-        latitude: data.lat,
-        longitude: data.lon,
-        timestamp: data.tim
-    });
-
-    //var req = { dbref:null, id:null, role:null };//asssign them null to prevent cannot read property of null error
-    const snapshot = await db.ref('users/' + data.userId + '/activeRequest').once('value');
-    var req = snapshot.val();
-    
-    var u = true;
-
-    try {
-        if (data.status == req.dbref)
-            u = false;
-    } catch (error) {
-        //console.log(error);
-        if (data.status == null && req == null)
-            u = false;
-        //console.log(data.status);
-    }
-
-    response.json({
-        status: "success",
-        update: u
-    });
-});
-
-
-
-router.post('/mAccept', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('Got an accept consumer request!');
-
-    const data = request.body;
-
-    //add provider payment info to database
-
-    //Store request info under provider's user info
-    db.ref('users/' + data.userId).child("activeRequest").set({ id: data.requestId, dbref: 'pending', role: 'provider', paypal: data.paypal });
-    db.ref('users/' + data.userId).update({ status: "Busy" });
-    db.ref('users/' + data.userId + '/matchedReq').remove();
-
-    //Update request info under requester's user info
-    db.ref('users/' + data.reqId).child("activeRequest").update({ dbref: 'pending' });
-
-    //Move request from matched to pending
-    var oldRef = db.ref("activeRequests/matched/" + data.requestId);
-    var newRef = db.ref("activeRequests/pending/" + data.requestId);
-    moveFirebaseObject(oldRef, newRef);
-
-    var snapshot = await db.ref('activeRequests/pending/' + data.requestId + '/requester').once('value');//get requester's id
-    const req = snapshot.val();
-    console.log(req);
-    snapshot = await db.ref('tokens').once('value');
-    const t = snapshot.val();
-    var keys = Object.keys(t); //ids of the tokens
-    var k;
-    var id;
-    var registrationToken;
-    console.log("keys: " + keys);
-    for (i = 0; i < keys.length; i++) {//also check the user status
-        k = keys[i];
-        console.log("key: " + keys[i]);
-        id = t[k].uid;
-        if (id == req.uid) {
-            registrationToken = t[k].token;
-            break;
-        }
-    }
-
-    var payload = {
-        notification: {
-            title: 'Your request has been accepted',
-            body: 'Provider: ' + data.userId
-        }
-    };
-
-
-    admin.messaging().sendToDevice(registrationToken, payload)
-        .then(function (response) {
-            console.log("Successfully sent message:", response);
-        })
-        .catch(function (error) {
-            console.log("Error sending message:", error);
-        });
-
-    response.json({
-        status: "success"
-    });
-
-
-});
-
-router.post('/cmAccept', async (request, response) => { //accepting from the consumer side
-
-    console.log("Got an accept consumer request")
-
-    const data = request.body;
-
-    //Move request from matched to accepted
-    var oldRef = db.ref("activeRequests/pending/" + data.requestId);
-    var newRef = db.ref("activeRequests/accepted/" + data.requestId);
-    moveFirebaseObject(oldRef, newRef);
-
-    //update request status for both users
-    await db.ref('users/' + data.userId + '/activeRequest').update({ dbref: "accepted" });
-    await db.ref('users/' + data.provider + '/activeRequest').update({ dbref: "accepted" });
-
-
-    response.json({
-        status: "success"
-    });
-});
-
-
-
 
 
 
 
 //functions
 
-//move requests in DB
-function moveFirebaseObject(oldRef, newRef) {//normal function not a firebase function
+//move an object to a new path in the database
+function moveFirebaseObject(oldRef, newRef) {
+    //oldRef is the current path to the object
+    //newRef is the desired path
+    //copy an object to the desired path then delete it from its current path
     oldRef.once('value', function (snap) {
         newRef.set(snap.val(), function (error) {
-            if (!error) { oldRef.remove(); console.log("move successful") }
-            else if (typeof (console) !== 'undefined' && console.error) { console.error(error); }
+            if (!error) { oldRef.remove(); } //remove item from its current path
+            else if (typeof (console) !== 'undefined' && console.error) { console.error(error); } //error copying item
         });
     });
 }
 
-//copy requests in DB
-function copyFirebaseObject(oldRef, newRef) {//normal function not a firebase function
+//copy an object in the database
+function copyFirebaseObject(oldRef, newRef) {
+    //oldRef is the current path to the object
+    //newRef is the desired path
+    //copy an object to the desired path
     oldRef.once('value', function (snap) {
         newRef.set(snap.val(), function (error) {
-            if (!error) { console.log("copy successful") }
-            else if (typeof (console) !== 'undefined' && console.error) { console.error(error); }
+            if (error && (typeof (console) !== 'undefined' && console.error)) { console.error(error); } //error copying item
         });
     });
 }
 
 
-
-const periodic = new Worker("./manager.js");
-
-
+const periodic = new Worker("./manager.js");                                                                    ///////////////////////////////////////////////////////???????       variable is not used/ delete?                                                    
 
 module.exports = router;

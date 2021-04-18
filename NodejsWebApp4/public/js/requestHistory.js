@@ -1,15 +1,44 @@
+// JavaScript source code
+var allDiv = document.getElementById('allDiv'); //section to display all requests
+var requestedDiv = document.getElementById('requestedDiv'); //section to display all requests
+var acceptedDiv = document.getElementById('acceptedDiv'); //section to display all requests
+var allLabel = document.getElementById('allLabel'); //all label
+var requestedLabel = document.getElementById('requestedLabel'); //requested label
+var acceptedLabel = document.getElementById('acceptedLabel'); //accepted label
 
-const auth = firebase.auth();
+document.getElementById("all").checked = true; //display all requests initially
+
+//when the 'all' button is clicked
+document.getElementById("all").addEventListener('click', () => {
+    //show 'allDiv' and hide the rest, give class 'labelSelected' to the div's label
+    allDiv.style.display = "block"; allLabel.classList.add("labelSelected");
+    requestedDiv.style.display = "none"; requestedLabel.classList.remove("labelSelected");
+    acceptedDiv.style.display = "none"; acceptedLabel.classList.remove("labelSelected");
+});
+
+//when the 'requested' button is clicked
+document.getElementById("requested").addEventListener('click', () => {
+    //show 'requestedDiv' and hide the rest, give class 'labelSelected' to the div's label
+    allDiv.style.display = "none"; allLabel.classList.remove("labelSelected");
+    requestedDiv.style.display = "block"; requestedLabel.classList.add("labelSelected");
+    acceptedDiv.style.display = "none"; acceptedLabel.classList.remove("labelSelected");
+});
+
+//when the 'accepted' button is clicked
+document.getElementById("accepted").addEventListener('click', () => {
+    //show 'acceptedDiv' and hide the rest, give class 'labelSelected' to the div's label
+    allDiv.style.display = "none"; allLabel.classList.remove("labelSelected");
+    requestedDiv.style.display = "none"; requestedLabel.classList.remove("labelSelected");   
+    acceptedDiv.style.display = "block"; acceptedLabel.classList.add("labelSelected");
+});
 
 firebase.auth().onAuthStateChanged(async function (user) {
-    if (user) {
-        console.log(user);
-        // User is signed in.
-        var userId = auth.currentUser.uid;
+    if (user) { //if user is authenticated
+        var userId = firebase.auth().currentUser.uid; //current user Id
 
+        //get all previous requests from the server
         const sdata = { userId };
         console.log(sdata);
-
         const options = {
             method: 'POST',
             headers: {
@@ -19,116 +48,116 @@ firebase.auth().onAuthStateChanged(async function (user) {
         };
         const response = await fetch('/getHistory', options);
         const json = await response.json();
-        console.log(json);
-        data = json.hist;
+        data = json.previousRequests; //previous requests
 
-
-
-        if (data != null) {
-
-
+        if (data != null) { //if there are previous requests
             var keys = Object.keys(data); //get request ids
-            console.log(keys);
-
-            for (var i = 0; i < keys.length; i++) { //need to show only the associated requests with the user
+            for (var i = 0; i < keys.length; i++) {
                 //get request information
-                let k = keys[i];
-                let timestamp = data[k].timestamp;
-                let date = timestamp.substr(4, 11);
-                let amount = data[k].amount + " kWh";
-                let status = data[k].status;
-                let cost = data[k].cost + " AED";
-                let role;
-                data[k].requester.uid == userId ? role = "requester" : role = "provider";
+                let k = keys[i]; //request ID
+                let timestamp = data[k].timestamp; //request timestamp
+                let date = timestamp.substr(4, 11); //get date from the timestamp
+                let amount = data[k].amount + " kWh"; //requested charge amount
+                let cost = data[k].cost + " AED"; //amount of money charged/payed
+                let status = data[k].status; //request status (completed/canceled)
+                let role; //user's role in the request (requester/provider)
+                data[k].requester.uid == userId ? role = "requester" : role = "provider"; //set role
 
-                appendRequest(k, role, date, amount, status, cost);
-                appendRequestToAll(k, role, date, amount, status, cost);
+                appendRequest(k, role, date, amount, status, cost); //append request to 'requestedDiv' or 'acceptedDiv'
+                appendRequestToAll(k, role, date, amount, status, cost); //append request to 'allDiv'
             }
         }
 
-        if (document.getElementById("allDiv").innerHTML == "") {
-            let tAll = document.createElement('p');
-            tAll.innerHTML = "No requests to show.";
-            tAll.classList.add('noRequests');
-            document.getElementById("allDiv").appendChild(tAll);
+        //display text message if a div is empty (i.e. doesn't have requests)
+        if (allDiv.innerHTML == "") { //allDiv is empty
+            let text = document.createElement('p');
+            text.innerHTML = "No requests to show.";
+            text.classList.add('noRequests');
+            allDiv.appendChild(text);
         }
-        if (document.getElementById("requestedDiv").innerHTML == "") {
-            let tRequested = document.createElement('p');
-            tRequested.innerHTML = "You have not made any charge requests yet.";
-            tRequested.classList.add('noRequests');
-            document.getElementById("requestedDiv").appendChild(tRequested);
+        if (requestedDiv.innerHTML == "") { //requestedDiv is empty
+            let text = document.createElement('p');
+            text.innerHTML = "You have not made any charge requests yet.";
+            text.classList.add('noRequests');
+            requestedDiv.appendChild(text);
         }
-        if (document.getElementById("acceptedDiv").innerHTML == "") {
-            let tAccepted = document.createElement('p');
-            tAccepted.innerHTML = "You have not accepted any requests yet.";
-            tAccepted.classList.add('noRequests');
-            document.getElementById("acceptedDiv").appendChild(tAccepted);
+        if (acceptedDiv.innerHTML == "") { //acceptedDiv is empty
+            let text = document.createElement('p');
+            text.innerHTML = "You have not accepted any requests yet.";
+            text.classList.add('noRequests');
+            acceptedDiv.appendChild(text);
         }
 
-
-
-    } else {
-        window.location.replace('../signup'); //redirect user to main page
-    }
+    } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
 
-function appendRequest(k, role, date, amount, status, cost) {
-    let request = document.createElement('table');
 
-    let dateTd = document.createElement('td');
-    dateTd.colSpan = "3";
+//function to append request to 'requestedDiv' or 'acceptedDiv'
+function appendRequest(k, role, date, amount, status, cost) {
+    //create table to put request info in
+    let requestTable = document.createElement('table');
+
+
+    //td elements
+    //create a td element to display request date (col span = 3)
+    let dateTd = document.createElement('td'); dateTd.colSpan = "3"; dateTd.classList.add('date');
     let dateText = document.createTextNode(date);
     dateTd.appendChild(dateText);
-    dateTd.classList.add('date');
 
-    let arrowTd = document.createElement('td');
-    arrowTd.rowSpan = "3";
-
+    //create a td element to display an arrow (row span = 3)
+    let arrowTd = document.createElement('td'); arrowTd.rowSpan = "3";
     arrowTd.innerHTML = '<i class="fas fa-chevron-right" style="color:darkgray; font-size:1.1em;"></i>';
-    arrowTd.style.textAlign = "right";
-    arrowTd.style.width = "20px";
-    let tr1 = document.createElement('tr');
-    tr1.appendChild(dateTd); tr1.appendChild(arrowTd);
+    arrowTd.style.textAlign = "right"; arrowTd.style.width = "20px"; //style element
 
-
-    let emptyTdTr2 = document.createElement('td');
-    emptyTdTr2.style.width = "10px";
-
+    //create a td element to display requested charge amount
     let amountTd = document.createElement('td');
     let amountText = document.createTextNode(amount);
     amountTd.appendChild(amountText);
 
+    //create a td element to display cost
     let costTd = document.createElement('td');
-    costTd.style.textAlign = "right"; costTd.style.width = "100px";
-    if (status == 'completed') {
+    costTd.style.textAlign = "right"; costTd.style.width = "100px"; //style element
+    if (status == 'completed') { //show cost if request was completed
         let costText = document.createTextNode(cost);
         costTd.appendChild(costText);
     }
 
+    //create a td element to display request status (col span = 2)
+    let statusTd = document.createElement('td'); statusTd.colSpan = "2";
+    let statusText = document.createTextNode(status);
+    statusTd.appendChild(statusText);
+    status == 'completed' ? statusTd.classList.add('statCompleted') : statusTd.classList.add('statCanceled');
+
+    //create empty tds to add space
+    let emptyTdTr2 = document.createElement('td'); emptyTdTr2.style.width = "10px";
+    let emptyTdTr3 = document.createElement('td');
+
+
+    //tr elements
+    //create row and append request date and an arrow
+    let tr1 = document.createElement('tr');
+    tr1.appendChild(dateTd); tr1.appendChild(arrowTd);
+
+    //create row and append charge amount and cost
     let tr2 = document.createElement('tr');
     tr2.appendChild(emptyTdTr2); tr2.appendChild(amountTd); tr2.appendChild(costTd);
 
-    let emptyTdTr3 = document.createElement('td');
-    let statusTd = document.createElement('td');
-    statusTd.colSpan = "2";
-
-    let statusText = document.createTextNode(status);
-    statusTd.appendChild(statusText);
-
-    if (status == 'completed') statusTd.classList.add('statCompleted');
-    else statusTd.classList.add('statCanceled');
+    //create row and append request status
     let tr3 = document.createElement('tr');
     tr3.appendChild(emptyTdTr3); tr3.appendChild(statusTd);
 
-    document.getElementById("requested").appendChild(request);
 
-    request.appendChild(tr1);
-    request.appendChild(tr2);
-    request.appendChild(tr3);
+    //append rows to tha table
+    requestTable.appendChild(tr1);
+    requestTable.appendChild(tr2);
+    requestTable.appendChild(tr3);
 
+    //create link to take user to the request's detailed page
     let reqLink = document.createElement('a');
     reqLink.href = '../requestInfo?reqId=' + k;
-    reqLink.appendChild(request);
+    reqLink.appendChild(requestTable); //append table to link
+
+    //append request to page
     role == "requester" ? document.getElementById("requestedDiv").appendChild(reqLink) : document.getElementById("acceptedDiv").appendChild(reqLink);
 }
 
@@ -136,63 +165,71 @@ function appendRequest(k, role, date, amount, status, cost) {
 
 
 function appendRequestToAll(k, role, date, amount, status, cost) {
-    let request = document.createElement('table');
+    //create table to put request info in
+    let requestTable = document.createElement('table');
 
-    let dateTd = document.createElement('td');
-    dateTd.colSpan = "3";
+
+    //td elements
+    //create a td element to display request date (col span = 3)
+    let dateTd = document.createElement('td'); dateTd.colSpan = "3"; dateTd.classList.add('date');
     let dateText = document.createTextNode(date);
     dateTd.appendChild(dateText);
-    dateTd.classList.add('date');
 
-    let arrowTd = document.createElement('td');
-    arrowTd.rowSpan = "3";
-
+    //create a td element to display an arrow (row span = 3)
+    let arrowTd = document.createElement('td'); arrowTd.rowSpan = "3";
     arrowTd.innerHTML = '<i class="fas fa-chevron-right" style="color:darkgray; font-size:1.1em;"></i>';
-    arrowTd.style.textAlign = "right";
-    arrowTd.style.width = "20px";
-    let tr1 = document.createElement('tr');
-    tr1.appendChild(dateTd); tr1.appendChild(arrowTd);
+    arrowTd.style.textAlign = "right"; arrowTd.style.width = "20px"; //style element
 
-
-    let emptyTdTr2 = document.createElement('td');
-    emptyTdTr2.style.width = "10px";
+    //create a td element to display requested charge amount
     let amountTd = document.createElement('td');
     role == "requester" ? amount += " (requested)" : amount += " (provided)";
     let amountText = document.createTextNode(amount);
     amountTd.appendChild(amountText);
 
+    //create a td element to display cost
     let costTd = document.createElement('td');
-    costTd.style.textAlign = "right";
-    costTd.style.width = "100px";
-    if (status == 'completed') {
+    costTd.style.textAlign = "right"; costTd.style.width = "100px"; //style element
+    if (status == 'completed') { //show cost if request was completed
         role == "requester" ? cost = '-' + cost : cost = '+' + cost;
-        let costText = document.createTextNode(cost + " AED");
+        let costText = document.createTextNode(cost);
         costTd.appendChild(costText);
     }
 
+    //create a td element to display request status (col span = 2)
+    let statusTd = document.createElement('td'); statusTd.colSpan = "2";
+    let statusText = document.createTextNode(status);
+    statusTd.appendChild(statusText);
+    status == 'completed' ? statusTd.classList.add('statCompleted') : statusTd.classList.add('statCanceled');
+
+    //create empty tds to add space
+    let emptyTdTr2 = document.createElement('td'); emptyTdTr2.style.width = "10px";
+    let emptyTdTr3 = document.createElement('td');
+
+
+    //tr elements
+    //create row and append request date and an arrow
+    let tr1 = document.createElement('tr');
+    tr1.appendChild(dateTd); tr1.appendChild(arrowTd);
+
+    //create row and append charge amount and cost
     let tr2 = document.createElement('tr');
     tr2.appendChild(emptyTdTr2); tr2.appendChild(amountTd); tr2.appendChild(costTd);
 
-    let emptyTdTr3 = document.createElement('td');
-
-    let statusTd = document.createElement('td');
-    statusTd.colSpan = "2";
-
-    let statusText = document.createTextNode(status);
-    statusTd.appendChild(statusText);
-
-    if (status == 'completed') statusTd.classList.add('statCompleted');
-    else statusTd.classList.add('statCanceled');
+    //create row and append request status
     let tr3 = document.createElement('tr');
     tr3.appendChild(emptyTdTr3); tr3.appendChild(statusTd);
 
-    request.appendChild(tr1);
-    request.appendChild(tr2);
-    request.appendChild(tr3);
 
+    //append rows to tha table
+    requestTable.appendChild(tr1);
+    requestTable.appendChild(tr2);
+    requestTable.appendChild(tr3);
+
+    //create link to take user to the request's detailed page
     let reqLink = document.createElement('a');
     reqLink.href = '../requestInfo?reqId=' + k;
-    reqLink.appendChild(request);
+    reqLink.appendChild(requestTable); //append table to link
 
+    //append request to page
     document.getElementById("allDiv").appendChild(reqLink);
 }

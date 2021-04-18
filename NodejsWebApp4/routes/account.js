@@ -1,12 +1,8 @@
 // JavaScript source code
 const path = require('path');
-
 const express = require('express');
-
 const router = express.Router();
-
 const { admin } = require('./firebaseConfig.js');
-
 
 // Get a database reference to our posts
 var db = admin.database();
@@ -17,66 +13,53 @@ router.get('/account', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'account.html'));
 });
 
-router.post('/getUserInfo', async (request, response) => { //add to recieve that post(endpoint)
-    const data = request.body;
-    var snapshotUP = await db.ref('users/' + data.userId + "/unitPrice").once('value');
-    var unitPrice = snapshotUP.val();
-    if (unitPrice == null) {
-        db.ref('users/' + data.userId).update({ unitPrice: 0.5 });
-        unitPrice = 0.5;
-    }
+//get user information from the db and send it to the client
+router.post('/getUser', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
 
-    var snapshotCS = await db.ref('users/' + data.userId + "/creditScore").once('value');
-    var creditScore = snapshotCS.val();
-    if (creditScore == null) {
-        db.ref('users/' + data.userId).update({ creditScore: 100 });
-        creditScore = 100;
-    }
+    //get user info from the database
+    var snapshot = await db.ref('users/' + userId).once('value');
+    var user = snapshot.val();
 
+    //send user information to client
     response.json({
         status: "success",
-        unitPrice: unitPrice,
-        creditScore: creditScore,
+        user: user
     });
 });
 
+//get user status and send it to the client
+router.post('/getStat', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
 
-router.post('/getStat', async (request, response) => { //add to recieve that post(endpoint)
-    console.log('GOT A STAT!');
+    //get user information from the database
+    var snapshot = await db.ref('users/' + userId).once('value');
+    var user = snapshot.val();
 
-    const data = request.body;
-
-    var snapshot = await db.ref('users/' + data.userId).once('value');
-    var info = snapshot.val();
-    var userStatus = info.status;
-    var creditScore = info.creditScore;
-    var unitPrice = info.unitPrice;
-    if (userStatus == null) {
-        userStatus = "Available";
-        db.ref('users/' + data.userId).update({ status: userStatus });
-    }
-
-    if (creditScore == null) db.ref('users/' + data.userId).update({ creditScore: 100 });
-    if (unitPrice == null) db.ref('users/' + data.userId).update({ unitPrice: 0.5 });
-
-    console.log(userStatus);
-
+    //send user status to client
     response.json({
         status: "success",
-        stat: userStatus
+        stat: user.status
     });
-
 });
 
-router.post('/setStat', (request, response) => { //add to recieve that post(endpoint)
-    console.log(request.body);
-    const data = request.body;
+//update user status
+router.post('/setStat', (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const stat = request.body.status; //new status
 
-    db.ref('users/' + data.userId).update({ status: data.stat });
+    //save changes to database
+    db.ref('users/' + userId).update({ status: stat });
+
+    // send response to client
     response.json({
         status: "success",
     });
 });
+
 
 router.post('/updateUnitPrice', async (request, response) => { //add to recieve that post(endpoint)
     const data = request.body;
@@ -85,7 +68,6 @@ router.post('/updateUnitPrice', async (request, response) => { //add to recieve 
     response.json({
         status: "success"
     });
-
 });
 
 

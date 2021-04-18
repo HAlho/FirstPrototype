@@ -61,8 +61,8 @@ setInterval(async () => { //retrieve tokens except the user's token
         k = keys[i];
         // console.log("key: " + keys[i]);
         id = t[k].uid;
-        //console.log(id);
-        if (u[id].status != "Available") continue;//user must be available
+        // console.log(id);
+        if (u[id].status != "Available") continue;
         if (u[id].activeRequest != null) continue//check if the user has a request
         // console.log(Date.now() - u[id].location.timestamp);
         if ((Date.now() - u[id].location.timestamp) < 900000) continue; //check if the location had passed 15 mins
@@ -89,7 +89,7 @@ setInterval(async () => { //retrieve tokens except the user's token
                 console.log("Error sending message:", error);
             });
     }
-}, 60000);//900000
+}, 900000);
 
 setInterval(async () => {
     console.log("manager: starting periodic matched check");

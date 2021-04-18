@@ -50,11 +50,11 @@ firebase.auth().onAuthStateChanged(async function (user) {
             body: JSON.stringify(sdata)
         };
 
-        const response = await fetch('/getUserInfo', options);
+        const response = await fetch('/getUser', options);
         const json = await response.json();
         console.log(json);
-        unitPrice = json.unitPrice;
-        creditScore = json.creditScore;
+        unitPrice = json.user.unitPrice;
+        creditScore = json.user.creditScore;
 
         document.getElementById("unitPrice").innerHTML = unitPrice;
         document.getElementById("creditScore").innerHTML = creditScore;
@@ -63,7 +63,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
         if (document.getElementById("unitPriceVal").value == 0.74) document.getElementById("increment").style.color = "#aaa";
         else if (document.getElementById("unitPriceVal").value == 0.37) document.getElementById("decrement").style.color = "#aaa";
         
-
+        showStatus(userId); //show user status in main menu (function is found in status.js)
 
     } else window.location.assign('../');
 });

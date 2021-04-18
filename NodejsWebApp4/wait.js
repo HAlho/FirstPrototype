@@ -69,8 +69,8 @@ parentPort.on('message', message => {
                 });
                 console.log("Thread: A child process will be created");
                 const compute = fork('helper.js');
-
-                compute.send({ n: 17, uid: workerData.uid, pid: compute.pid });//send to the child process
+         
+                compute.send({ n: 17, uid: workerData.uid, pid: compute.pid }); //send to the child process
                 compute.on('message', sum => {//get the value from the child process
                     console.log("Thread: result is: " + sum);
                     compute.kill();

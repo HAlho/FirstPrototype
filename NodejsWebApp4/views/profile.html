@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Profile</title>
+    <title>Home</title>
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 
     <link rel="stylesheet" href="./style/profile.css">
@@ -16,16 +16,16 @@
 </head>
 <body>
     <section>
-
+        <div class="pageName">HOME</div>
         <div class="currentCar" id="currentCar">
             <label><b id="currentCarInfo"></b></label>
             <i class="fa fa-pencil-square-o" style="font-size:20px;color:#2196f3; display:none;" id="edit"></i>
-            <br />
-            <hr />
+            <p id="noCar" style="display:none;">You don't have any registered cars</p>
+            <br /><hr />
         </div>
 
         <div id="buttons">
-            <button class="rectangle" id="requestFormToggle"><b>Request Charge</b></button>
+            <button class="rectangle" id="showRequestForm"><b>Request Charge</b></button>
             <button class="rectangle disabled" id="avaReq">No Available Requests</button>
         </div>
 
@@ -55,7 +55,7 @@
             <br /><br /><br />
             <table style="width: 100%">
                 <tr>
-                    <td><button class="rectangle1" id="cancelRequest" style="display:none;"><b>Cancel</b></button></td>
+                    <td><button class="rectangle1" id="cancelRequest"><b>Cancel</b></button></td>
                     <td><button class="rectangle1" id="SRequest"><b>Send Request</b></button></td>
                 </tr>
             </table>
@@ -81,13 +81,14 @@
 
     <div id="windowPromptAvaReq" class="windowPrompt" style="display:none;">
         <br />
-        <button id="closeAvaReq" class="close">X</button>
+
         <p id="avaReqText"></p><br />
         <div id="avaReqDiv"></div>
 
         <input type="text" id="paypalAvaReq" value="">
 
-        <button class="cancel" id="avaReqCancel">Decline</button>
+        <button id="closeAvaReq" class="cancel" >Ignore</button>
+        <button id="avaReqDecline" class="close">Decline</button>
         <button id="avaReqAccept">Accept</button>
 
     </div>

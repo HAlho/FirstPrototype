@@ -321,7 +321,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                     console.log("Error sending message:", error);
                                 });
 
-                          
+
 
                         }
                         if (!isUndefined(sum))//that the algorithm is done

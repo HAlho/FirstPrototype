@@ -72,16 +72,16 @@
 
     <div id="windowPromptPassword" class="windowPrompt">
         <p>Current password</p>
-        <input type="password" id="passwordInput">
+        <input type="password" id="currentPasswordInput">
         <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="changePassword()">ok</button>
+        <button onclick="authenticateUser()">ok</button>
     </div>
 
-    <div id="windowPromptPasswordConfirm" class="windowPrompt">
+    <div id="windowPromptNewPassword" class="windowPrompt">
         <p>New password</p>
-        <input type="password" id="passwordConfirmInput">
+        <input type="password" id="newPasswordInput">
         <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="changePasswordConfirm()">ok</button>
+        <button onclick="updatePassword()">ok</button>
     </div>
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
@@ -117,110 +117,143 @@
     </script>
 
     <script>
-        // JavaScript source code
-        firebase.auth().onAuthStateChanged(async function (user) {
-            if (user) {
-                user = firebase.auth().currentUser;
-                name = user.displayName;
-                email = user.email;
 
+        // JavaScript source code
+        var name, email;
+
+        firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) { //if user is authenticated
+                var user = firebase.auth().currentUser; //current user
+                name = user.displayName; //user's name
+                email = user.email; //user's email address
+
+                //display user information
                 document.getElementById("name").innerHTML = name;
                 document.getElementById("email").innerHTML = email;
 
-            } else window.location.assign('../');
+            } else window.location.assign('../mainpage'); //forward user to the welcome page
         });
 
+        //when any window prompt's cancel button is clicked
         function cancel() {
-            document.getElementById("dimContent").classList.remove("dimVisible");
-            var prompts = document.getElementsByClassName("windowPrompt");
-            for (var i = 0; i < prompts.length; i++) {
-                prompts[i].style.display = 'none';
-            }
+            var prompts = document.getElementsByClassName("windowPrompt"); //gete all window prompts
+            for (var i = 0; i < prompts.length; i++) prompts[i].style.display = 'none'; //hide all window prompts
+            document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
         }
 
-        //edit name
-        document.getElementById("editName").addEventListener("click", function () {
-            document.getElementById("nameInput").value = name;
 
+
+        ////edit name
+
+        //name section is clicked, user wants to edit their name
+        document.getElementById("editName").addEventListener("click", function () {
+            document.getElementById("nameInput").value = name; //autofill name field
+
+            //dim screen and show window prompt (id='windowPromptName')
             document.getElementById("dimContent").classList.add("dimVisible");
             setTimeout(function () { document.getElementById("windowPromptName").style.display = "block"; }, 250);
         });
 
+        //user clicked 'ok' after editing name. save name changes
         function editName() {
-            let newName = document.getElementById("nameInput").value;
-            if (newName != null && newName != '' && newName != name) {
+            let newName = document.getElementById("nameInput").value; //get edited name
+            if (newName != null && newName != '') { //name field is not empty, save changes
                 firebase.auth().currentUser.updateProfile({
                     displayName: newName
                 }).then(function () {
-                    location.reload();
+                    name = newName;
+                    document.getElementById("name").innerHTML = newName; //update info shown on page
+                    cancel(); //hide window prompt
                 });
-            } else cancel();
-            
+            } else if (newName == name) cancel(); //user didn't make any changes. hide window prompt
         }
 
-        //edit email
-        document.getElementById("editEmail").addEventListener("click", function () {
-            document.getElementById("emailInput").value = email;
 
+
+        //// edit email address
+
+        //email section is clicked, user wants to edit their email address
+        document.getElementById("editEmail").addEventListener("click", function () {
+            document.getElementById("emailInput").value = email; //autofill email field
+
+            //dim screen and show window prompt with id='windowPromptEmail'
             document.getElementById("dimContent").classList.add("dimVisible");
             setTimeout(function () { document.getElementById("windowPromptEmail").style.display = "block"; }, 250);
         });
 
+        //user clicked 'ok' after editing their email
         function editEmail() {
-            let newEmail = document.getElementById("emailInput").value;
-            if (newEmail != null && newEmail != '' && newEmail != email) {
-                document.getElementById("windowPromptEmail").style.display = "none";
+            let newEmail = document.getElementById("emailInput").value; //get new email address
+            if (newEmail != null && newEmail != '') { //field is not empty, authenticate user
+                //hide email window prompt
+                document.getElementById("windowPromptEmail").style.display = "none"; 
+
+                //show password window prompt with id='windowPromptEmailConfirm'
                 document.getElementById("emailConfirmInput").value = '';
                 document.getElementById("windowPromptEmailConfirm").style.display = "block";
 
-            } else cancel();
+            } else if (newEmail == email) cancel(); //user didn't make any changes. hide window prompt
         }
 
+        //user clicked 'ok' after inputting their password. authenticate the user then save email changes
         function editEmailConfirm() {
-            let password = document.getElementById("emailConfirmInput").value;
-            let newEmail = document.getElementById("emailInput").value;
+            let password = document.getElementById("emailConfirmInput").value; //get password
+            let newEmail = document.getElementById("emailInput").value; //get new email address
 
-            firebase.auth().signInWithEmailAndPassword(email, password).then(() => {
-                firebase.auth().currentUser.updateEmail(newEmail).then(function () {
-                    location.reload();
+            //authenticate user and save changes
+            firebase.auth().signInWithEmailAndPassword(email, password).then(() => { //user is authenticated (password is correct)
+                firebase.auth().currentUser.updateEmail(newEmail).then(function () { //update email address
+                    email = newEmail;
+                    document.getElementById("email").innerHTML = newEmail; //update info shown on page
+                    cancel(); //hide window prompt
                 });
-            }).catch(error => {
-                cancel();
+            }).catch(error => { //error authenticating the user
+                cancel(); //hide window prompt
                 console.error(error);
             })
         }
 
-        //change password
-        document.getElementById("changePassword").addEventListener("click", function () {
-            document.getElementById("passwordInput").value = '';
 
+
+
+
+        //change password
+
+        //password section is clicked, user wants to change their password
+        document.getElementById("changePassword").addEventListener("click", function () {
+            document.getElementById("currentPasswordInput").value = ''; //clear password input field
+
+            //dim screen and show window prompt with id='windowPromptPassword'
             document.getElementById("dimContent").classList.add("dimVisible");
             setTimeout(function () { document.getElementById("windowPromptPassword").style.display = "block"; }, 250);
         });
 
-        function changePassword() {
-            let password = document.getElementById("passwordInput").value;
-            if (password != null && password != '') {
-                firebase.auth().signInWithEmailAndPassword(email, password).then(() => {
-                    document.getElementById("windowPromptPassword").style.display = "none";
-                    document.getElementById("passwordConfirmInput").value = '';
+        //user clicked 'ok' after inputting their current password
+        function authenticateUser() {
+            let password = document.getElementById("currentPasswordInput").value;
+            if (password != null && password != '') { //password field is not empty
+                //authenticate user then ask for new password
+                firebase.auth().signInWithEmailAndPassword(email, password).then(() => { //user is authenticated (password is correct)
+                    document.getElementById("windowPromptPassword").style.display = "none"; //hide window prompt
 
-                    document.getElementById("dimContent").classList.add("dimVisible");
-                    setTimeout(function () { document.getElementById("windowPromptPasswordConfirm").style.display = "block"; }, 250);
-                }).catch(error => {
+                    //show new password's window prompt with id='windowPromptNewPassword'
+                    document.getElementById("newPasswordInput").value = ''; //clear password field
+                    document.getElementById("windowPromptNewPassword").style.display = "block"; //show window prompt
+                }).catch(error => { //error authenticating the user
                     console.error(error);
                 })
-            } else cancel();
+            }
         }
 
-        function changePasswordConfirm() {
-            let newPassword = document.getElementById("passwordConfirmInput").value;
+        //user clicked 'ok' after inputting a new password
+        function updatePassword() {
+            let newPassword = document.getElementById("newPasswordInput").value; //get new password
 
-            if (newPassword != null && newPassword != '') {
+            if (newPassword != null && newPassword != '') { //field is not empty, save changes
                 firebase.auth().currentUser.updatePassword(newPassword).then(function () {
-                    location.reload();
+                    location.reload(); //reload page
                 });
-            } else cancel();
+            }
         }
 
     </script>

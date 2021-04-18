@@ -2,7 +2,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request History</title>
+    <title>History</title>
     <link rel="stylesheet" href="./style/requestHistory.css">
     <link rel="stylesheet" href="./style/mainmenu.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
@@ -14,12 +14,11 @@
     </a>
     <div class="pageName">HISTORY</div>
         <fieldset class="switch" id="switch">
-                        <input id="all" name="view" type="radio">
+            <input id="all" name="view" type="radio">
             <label for="all" id="allLabel" class="labelSelected" style="width: 20%;">All</label>
+
             <input id="requested" name="view" type="radio">
             <label for="requested" id="requestedLabel">Requested</label>
-
-
 
             <input id="accepted" name="view" type="radio">
             <label for="accepted" id="acceptedLabel">Accepted</label>
@@ -66,48 +65,7 @@
         firebase.initializeApp(firebaseConfig);
         firebase.analytics();
     </script>
-    <script>
-        document.getElementById("all").checked = true;
 
-        document.getElementById("all").addEventListener('click', () => {
-            //signOut() is a built in firebase function responsible for signing a user out
-            document.getElementById("allDiv").style.display = "block";
-
-            document.getElementById("requestedDiv").style.display = "none";
-            document.getElementById("acceptedDiv").style.display = "none";
-
-            document.getElementById("allLabel").classList.add("labelSelected");
-            document.getElementById("requestedLabel").classList.remove("labelSelected");
-            document.getElementById("acceptedLabel").classList.remove("labelSelected");
-
-        });
-
-        document.getElementById("requested").addEventListener('click', () => {
-            //signOut() is a built in firebase function responsible for signing a user out
-            document.getElementById("requestedDiv").style.display = "block";
-
-            document.getElementById("allDiv").style.display = "none";
-            document.getElementById("acceptedDiv").style.display = "none";
-
-            document.getElementById("requestedLabel").classList.add("labelSelected");
-            document.getElementById("allLabel").classList.remove("labelSelected");
-            document.getElementById("acceptedLabel").classList.remove("labelSelected");
-
-        });
-
-        document.getElementById("accepted").addEventListener('click', () => {
-            //signOut() is a built in firebase function responsible for signing a user out
-            document.getElementById("acceptedDiv").style.display = "block";
-
-            document.getElementById("allDiv").style.display = "none";
-            document.getElementById("requestedDiv").style.display = "none";
-
-            document.getElementById("acceptedLabel").classList.add("labelSelected");
-            document.getElementById("allLabel").classList.remove("labelSelected");
-            document.getElementById("requestedLabel").classList.remove("labelSelected");
-        });
-
-    </script>
     <script src="./js/requestHistory.js"></script>
 
 </body>

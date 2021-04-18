@@ -1,65 +1,59 @@
 // JavaScript source code
-firebase.auth().onAuthStateChanged(async function (user) {
-    if (user) {
-        var user = firebase.auth().currentUser;
-        var userId = user.uid; //current user
-        showStatus(userId);
-    } else window.location.assign('../');
-});
+statusButton = document.getElementById("status"); //status button in main menu
+statusMenu = document.getElementById("statusMenu"); //status menu
 
+//display status menu when status button is clicked
 function openStatusMenu() {
-    document.getElementById("dimContent").classList.add("dimVisible");
-    setTimeout(function () { document.getElementById("statusMenu").style.display = "block"; }, 250);
+    document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+    setTimeout(function () { statusMenu.style.display = "block"; }, 250); //show menu
 }
 
+//hide status menu when screen is clicked
 function closeStatusMenu() {
-    if (document.getElementById("statusMenu").style.display == "block") {
-        document.getElementById("statusMenu").style.display = "none";
-        document.getElementById("dimContent").classList.remove("dimVisible");
+    if (statusMenu.style.display == "block") {
+        statusMenu.style.display = "none"; //hide menu
+        document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
     }
 }
 
 //show and set user status
-async function showStatus(userId) {
-    statusButton = document.getElementById("status");
+async function showStatus(userId, status) {
+    if (status == null) {
+        //get status from the server
+        const sdata = { userId };
+        const options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sdata)
+        };
+        const response = await fetch('/getStat', options);
+        const json = await response.json();
 
-    const sdata = { userId };
-    console.log(sdata);
-
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(sdata)
-    };
-    const response = await fetch('/getStat', options);
-    const json = await response.json();
-    console.log(json);
-    stat = json.stat;
-
-    if (stat == "Available") {
-        statusButton.style.background = "#afe3e2";
-        statusButton.innerHTML = '<img src="./img/status-available.png" height="22">';
-    }
-    else if (stat == "Do Not Disturb") {
-        statusButton.style.background = "#e74e4e";
-
-        statusButton.innerHTML = '<img src="./img/status-busy.png" height="20">';
-    }
-    else {
-        statusButton.style.background = "lightgray";
-        statusButton.innerHTML = '<img src="./img/status-unavailable.png" height="30">';
+        status = json.stat; //user status
     }
 
+    //update status icon depending on status
+    switch (status) {
+        case 'Available': //user is available
+            statusButton.style.background = "#afe3e2";
+            statusButton.innerHTML = '<img src="./img/status-available.png" height="22">';
+            break;
+        case 'Do Not Disturb': //user is not available
+            statusButton.style.background = "#e74e4e";
+            statusButton.innerHTML = '<img src="./img/status-busy.png" height="20">';
+            break;
+        default: //user has a request in progress
+            statusButton.style.background = "lightgray";
+            statusButton.innerHTML = '<img src="./img/status-unavailable.png" height="30">';
+    }
 }
 
-async function setStatus(stat) {
-    var userId = firebase.auth().currentUser.uid; //current user
+//change user changed status
+async function setStatus(status) {
+    const userId = firebase.auth().currentUser.uid; //current user ID
 
-    const data = { userId, stat };
-    console.log(data);
-
+    //send user ID and status to the server to update it
+    const data = { userId, status };
     const options = {
         method: 'POST',
         headers: {
@@ -69,10 +63,7 @@ async function setStatus(stat) {
     };
     const response = await fetch('/setStat', options);
     const json = await response.json();
-    console.log(json);
 
-
-    showStatus(userId, stat);
-
-    closeStatusMenu();
+    showStatus(userId, status); //show the updated status on the main menu
+    closeStatusMenu(); //close status menu
 }
