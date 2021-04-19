@@ -161,7 +161,7 @@ router.post('/getCurrentCar', async (request, response) => {
         //get technical car info
         var snapshot = await db.ref('carList/' + car.brand + '/' + car.model).once('value'); 
         batteryCapacity = snapshot.val().batteryCapacity;
-        consumption = snapshot.val().consumption;
+        consumption = snapshot.val().avgConsumption;
     }
 
     //send car to client

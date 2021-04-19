@@ -63,7 +63,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
         if (document.getElementById("unitPriceVal").value == 0.74) document.getElementById("increment").style.color = "#aaa";
         else if (document.getElementById("unitPriceVal").value == 0.37) document.getElementById("decrement").style.color = "#aaa";
         
-        showStatus(userId); //show user status in main menu (function is found in status.js)
+        showStatus(); //show user status in main menu (function is found in status.js)
 
     } else window.location.assign('../');
 });

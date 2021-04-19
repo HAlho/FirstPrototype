@@ -37,6 +37,10 @@ let myPromise = new Promise(function (myResolve, myReject) {
         //get the requesters information from the database
         var snapshot = await db.ref('activeRequests/issued/').once('value');
         var req = snapshot.val();
+
+        //if (req == null)
+        //    myReject();
+
         var keys = Object.keys(req);
         var contents = "";
         //for each consumer
@@ -324,6 +328,12 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
 
                         }
+                        //delete files
+                        fs.unlinkSync('./IOs/p' + pid + '.txt');
+                        fs.unlinkSync('./IOs/c' + pid + '.txt');
+                        fs.unlinkSync('./IOs/FinalFile' + pid + '.txt');
+                        fs.unlinkSync('./IOs/MP' + pid + '.txt');
+
                         if (!isUndefined(sum))//that the algorithm is done
                             myResolve(); // when successful
 

@@ -2,10 +2,42 @@
 statusButton = document.getElementById("status"); //status button in main menu
 statusMenu = document.getElementById("statusMenu"); //status menu
 
+//get status from the server
+async function getStatus() {
+    const userId = firebase.auth().currentUser.uid; //current user ID
+
+    //get status from the server
+    const sdata = { userId };
+    const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sdata)
+    };
+    const response = await fetch('/getStat', options);
+    const json = await response.json();
+
+    status = json.stat; //user status
+
+    return status;
+}
+
 //display status menu when status button is clicked
 function openStatusMenu() {
-    document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
-    setTimeout(function () { statusMenu.style.display = "block"; }, 250); //show menu
+    getStatus().then(status => {//once async function is done excute
+
+        if (status == 'Busy') {
+            //pop up
+            alert('Your account is connected to a request. Your status is set to Busy by default. Cancel or reject request to change your status.');
+        }
+        else {
+            document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+            setTimeout(function () { statusMenu.style.display = "block"; }, 250); //show menu
+        }
+
+    });
+
+
+
 }
 
 //hide status menu when screen is clicked
@@ -17,19 +49,13 @@ function closeStatusMenu() {
 }
 
 //show and set user status
-async function showStatus(userId, status) {
+async function showStatus(status) {
     if (status == null) {
-        //get status from the server
-        const sdata = { userId };
-        const options = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(sdata)
-        };
-        const response = await fetch('/getStat', options);
-        const json = await response.json();
 
-        status = json.stat; //user status
+        //get status from the server
+        await getStatus().then(value => {//once the value is retrieved 
+            status = value;
+        });
     }
 
     //update status icon depending on status
@@ -46,6 +72,8 @@ async function showStatus(userId, status) {
             statusButton.style.background = "lightgray";
             statusButton.innerHTML = '<img src="./img/status-unavailable.png" height="30">';
     }
+
+   
 }
 
 //change user changed status

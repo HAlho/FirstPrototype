@@ -91,7 +91,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
         const response = await fetch('/debugAccount', options);
         const json = await response.json();
 
-        showStatus(userId); //show user status in main menu (function is found in status.js)
+        showStatus(); //show user status in main menu (function is found in status.js)
 
         notificationPermission(); //check if notifications permission is allowed and stored
         locationPermission(); //check if location access is allowed and stored
@@ -247,7 +247,7 @@ async function profilePage(userId) {
 
         if (status != previousStatus) { //status was changed, update page
             previousStatus = status;
-            showStatus(userId, status); //update status icon in the main menu
+            showStatus(status); //update status icon in the main menu
 
             let request, requestId; //store request informationa and request ID (if exists)
             //if there's an active/matched request, get request information
