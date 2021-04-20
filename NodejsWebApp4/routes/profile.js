@@ -480,7 +480,7 @@ router.post('/matchAccept', async (request, response) => {
     var payload = {
         notification: {
             title: 'Your request has been accepted',
-            body: 'Provider: ' + data.userId
+            body: 'Provider: ' + request.body.userId
         }
     };
 
@@ -549,8 +549,8 @@ router.post('/requestComplete', async (request, response) => {
         moveFirebaseObject(oldRef, newRef2); //copy request to user 2 previousRequests  then remove it from activeRequests
 
         //update users' information
-        db.ref('users/' + data.userId + '/activeRequest').remove();//delete from the current user
-        db.ref('users/' + data.user2Id + '/activeRequest').remove();//delete from the other user
+        db.ref('users/' + userId + '/activeRequest').remove();//delete from the current user
+        db.ref('users/' + user2Id + '/activeRequest').remove();//delete from the other user
         db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
         db.ref('users/' + user2Id).update({ status: 'Available' }); //set status to available
 
