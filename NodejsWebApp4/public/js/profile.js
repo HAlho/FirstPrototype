@@ -507,6 +507,10 @@ function hideAllElements() {
     var oldPay = pay;
     pay = oldPay.cloneNode(true);
     oldPay.parentNode.replaceChild(pay, oldPay);
+
+    //if there's an available request and it got canceled, hide the prompt
+    document.getElementById("windowPromptAvaReq").style.display = "none"; //hide window prompt
+    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
 }
 
 //function to set innerHTML of requestText element depending on the status of the request

@@ -2,6 +2,8 @@
 statusButton = document.getElementById("status"); //status button in main menu
 statusMenu = document.getElementById("statusMenu"); //status menu
 
+var userStatus; //store user's status
+
 //get status from the server
 async function getStatus() {
     const userId = firebase.auth().currentUser.uid; //current user ID
@@ -58,6 +60,8 @@ async function showStatus(status) {
         });
     }
 
+    userStatus = status; //store status
+
     //update status icon depending on status
     switch (status) {
         case 'Available': //user is available
@@ -73,25 +77,28 @@ async function showStatus(status) {
             statusButton.innerHTML = '<img src="./img/status-unavailable.png" height="30">';
     }
 
-   
+
 }
 
 //change user changed status
 async function setStatus(status) {
-    const userId = firebase.auth().currentUser.uid; //current user ID
+    if (userStatus != status) { //if user changed status
+        const userId = firebase.auth().currentUser.uid; //current user ID
 
-    //send user ID and status to the server to update it
-    const data = { userId, status };
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    };
-    const response = await fetch('/setStat', options);
-    const json = await response.json();
+        //send user ID and status to the server to update it
+        const data = { userId, status };
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+        const response = await fetch('/setStat', options);
+        const json = await response.json();
 
-    showStatus(userId, status); //show the updated status on the main menu
+        showStatus(userId, status); //show the updated status on the main menu
+    }
+
     closeStatusMenu(); //close status menu
 }

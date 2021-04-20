@@ -251,38 +251,20 @@ router.post('/submitRequest', async (request, response) => {
         status: "success"
     });
 
-    //send notification                                                                                            ///////////////////////////////////////////////////////??????? maybe make this a function?
-    //retrieve tokens except the user's token
-    var snapshot = await db.ref('tokens').once('value');
-    const t = snapshot.val();
-    snapshot = await db.ref('users').once('value');
-    const u = snapshot.val();
-    var keys = Object.keys(t); //ids of the tokens
-    var tokens = [];
-    var k;
-    var id;
-    for (i = 0; i < keys.length; i++) {//also check the user status
-        k = keys[i];
-        id = t[k].uid;
-        if (id == data.userId) continue;
-        else if (u[id].status != "Available") continue;
-        tokens.push(t[k].token);
-    }
-
-
-    if (numProc < maxProc) {//was 30                                                                                            ///////////////////////////////////////////////////////???????
+ 
+    fs.readFile('procInfo.txt', "utf8", (err, data) => {
+        var lines = data.split('\n');
+        //check the number of processes running then excute code
+        if (lines.length < maxProc) {
         const compute = fork('helper.js'); //create child process that runs helper.js
-        numProc++;
         //top stack
         fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
             if (err) return console.log(err);
-            console.log('proc now:' + numProc);
         });
-        compute.send({ n: 17, uid: data.userId, pid: compute.pid });//send to the child process
+        compute.send({ pid: compute.pid });//send to the child process
         compute.on('message', sum => {//get the value from the child process
             console.log("result is: " + sum);
             compute.kill();
-            numProc--;
             //pop stack
             var newData;
             fs.readFile('procInfo.txt', "utf8", (err, data) => {
@@ -295,7 +277,6 @@ router.post('/submitRequest', async (request, response) => {
                 newData = lines.join('\n');
                 fs.writeFile('procInfo.txt', newData, function (err) {
                     if (err) return console.log(err);
-                    console.log('proc now:' + numProc);
                 });
             });
 
@@ -311,7 +292,9 @@ router.post('/submitRequest', async (request, response) => {
 
         worker.postMessage(worker.threadId);
         worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
-    }
+        }
+    });
+
 });
 
 
@@ -332,6 +315,7 @@ router.post('/cancelRequest', async (request, response) => {
         userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
         newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
     }
+
 
     //clear request information from the user's account
     db.ref('users/' + userId + '/activeRequest').remove();
@@ -685,7 +669,7 @@ function copyFirebaseObject(oldRef, newRef) {
     });
 }
 
-
+//create a thread that runs manager.js
 const periodic = new Worker("./manager.js");                                                                    ///////////////////////////////////////////////////////???????       variable is not used/ delete?                                                    
 
 module.exports = router;

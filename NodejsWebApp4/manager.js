@@ -1,7 +1,5 @@
-const { Worker, parentPort, workerData } = require("worker_threads");
 const { fork } = require('child_process');
 const fs = require('fs');
-
 
 const { admin } = require('./routes/firebaseConfig.js');
 
@@ -20,7 +18,7 @@ setInterval(() => {
         fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
             if (err) return console.log(err);
         });
-        compute.send({ n: 17, pid: compute.pid });//send to the child process
+        compute.send({ pid: compute.pid });//send to the child process
         compute.on('message', sum => {//get the value from the child process
             console.log("result is: " + sum);
             compute.kill();
@@ -34,7 +32,7 @@ setInterval(() => {
                 lines.splice(0, 1);
                 // join the array back into a single string
                 newData = lines.join('\n');
-                console.log("new data is :" + newData);
+                //console.log("new data is :" + newData);
                 fs.writeFile('procInfo.txt', newData, function (err) {
                     if (err) return console.log(err);
                 });
@@ -43,7 +41,7 @@ setInterval(() => {
 
         });
     }
-}, 180000); //was 180000
+}, 180000); // 180000
 
 
 setInterval(async () => { //retrieve tokens except the user's token
@@ -56,24 +54,18 @@ setInterval(async () => { //retrieve tokens except the user's token
     var tokens = [];
     var k;
     var id;
-    //console.log("keys: " + keys);
     for (i = 0; i < keys.length; i++) {//also check the user status
         k = keys[i];
-        // console.log("key: " + keys[i]);
         id = t[k].uid;
-        // console.log(id);
         if (u[id].status != "Available") continue;
         if (u[id].activeRequest != null) continue//check if the user has a request
-        // console.log(Date.now() - u[id].location.timestamp);
         if ((Date.now() - u[id].location.timestamp) < 900000) continue; //check if the location had passed 15 mins
         console.log("manager: tokens: " + id);
 
-        //console.log("token pushed is: " + t[k].token);
         tokens.push(t[k].token);
     }
 
     for (let i of tokens) {//do this for each token in the array
-        //console.log("to be sent: " + i);
         var registrationToken = i;
         var payload = {
             notification: {
@@ -89,7 +81,7 @@ setInterval(async () => { //retrieve tokens except the user's token
                 console.log("Error sending message:", error);
             });
     }
-}, 900000);
+}, 900000);//15min
 
 setInterval(async () => {
     console.log("manager: starting periodic matched check");
