@@ -122,9 +122,7 @@
 
         //function to display settings by setting the elements
         function displaySettings() {
-            //show user status
-            showStatus()
-
+            showStatus();
             //display notifications permission
             localStorage.getItem('notificationsPermission') == 'granted' ? document.getElementById("notifications").checked = true : document.getElementById("notifications").checked = false;
 

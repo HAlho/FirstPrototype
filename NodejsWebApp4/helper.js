@@ -323,7 +323,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                         fs.unlinkSync('./IOs/p' + msg.pid + '.txt');
                         fs.unlinkSync('./IOs/c' + msg.pid + '.txt');
                         fs.unlinkSync('./IOs/FinalFile' + msg.pid + '.txt');
-                        fs.unlinkSync('./IOs/MP' + msg. pid + '.txt');
+                        fs.unlinkSync('./IOs/MP' + msg.pid + '.txt');
 
                         myResolve(); // when successful
 
@@ -346,9 +346,9 @@ let myPromise = new Promise(function (myResolve, myReject) {
 });
 
 // "Consuming Code" (Must wait for a fulfilled Promise)
-myPromise.then(()=> {
-        process.send(result); //send done instead
-    }
+myPromise.then(() => {
+    process.send(result); //send done instead
+}
 );
 
 

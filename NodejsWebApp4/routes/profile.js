@@ -26,6 +26,7 @@ let client = new paypal.core.PayPalHttpClient(environment);
 
 router.use(express.json({ limit: '1mb' }));
 
+// Function to direct the client to profile.html
 router.get('/profile', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
 });
@@ -162,6 +163,7 @@ router.post('/getCurrentCar', async (request, response) => {
         var snapshot = await db.ref('carList/' + car.brand + '/' + car.model).once('value'); 
         batteryCapacity = snapshot.val().batteryCapacity;
         consumption = snapshot.val().avgConsumption;
+
     }
 
     //send car to client
@@ -251,50 +253,49 @@ router.post('/submitRequest', async (request, response) => {
         status: "success"
     });
 
- 
     fs.readFile('procInfo.txt', "utf8", (err, data) => {
         var lines = data.split('\n');
         //check the number of processes running then excute code
         if (lines.length < maxProc) {
-        const compute = fork('helper.js'); //create child process that runs helper.js
-        //top stack
-        fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
-            if (err) return console.log(err);
-        });
-        compute.send({ pid: compute.pid });//send to the child process
-        compute.on('message', sum => {//get the value from the child process
-            console.log("result is: " + sum);
-            compute.kill();
-            //pop stack
-            var newData;
-            fs.readFile('procInfo.txt', "utf8", (err, data) => {
-                if (err) throw err;
-                // break the textblock into an array of lines
-                var lines = data.split('\n');
-                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
-                lines.splice(0, 1);
-                // join the array back into a single string
-                newData = lines.join('\n');
-                fs.writeFile('procInfo.txt', newData, function (err) {
-                    if (err) return console.log(err);
+            const compute = fork('helper.js'); //create child process that runs helper.js
+            //top stack
+            fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
+                if (err) return console.log(err);
+            });
+            compute.send({ pid: compute.pid });//send to the child process
+            compute.on('message', sum => {//get the value from the child process
+                console.log("result is: " + sum);
+                compute.kill();
+                //pop stack
+                var newData;
+                fs.readFile('procInfo.txt', "utf8", (err, data) => {
+                    if (err) throw err;
+                    // break the textblock into an array of lines
+                    var lines = data.split('\n');
+                    // remove one line, starting at the first position. Unlike slice, splice return the removed Items
+                    lines.splice(0, 1);
+                    // join the array back into a single string
+                    newData = lines.join('\n');
+                    fs.writeFile('procInfo.txt', newData, function (err) {
+                        if (err) return console.log(err);
+                    });
                 });
+
+
+            });
+        } else {//create a thread and let it check for available slots
+            const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
+                workerData: { //pass the variables here
+                    n: 15,
+                    uid: data.userId
+                }
             });
 
-
-        });
-    } else {//create a thread and let it check for available slots
-        const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
-            workerData: { //pass the variables here
-                n: 15,
-                uid: data.userId
-            }
-        });
-
-        worker.postMessage(worker.threadId);
-        worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
+            worker.postMessage(worker.threadId);
+            worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
         }
     });
-
+    
 });
 
 
@@ -311,11 +312,10 @@ router.post('/cancelRequest', async (request, response) => {
 
     var newRef = db.ref('previousRequests/' + userId + '/' + requestId); //path to move the request to the user's history
     var newRef2, user2Id; //get user ID and the request's path for the second user
-    if (requestStatus != 'issued' && requestStatus != 'matched') { //get second user's info
+    if (requestStatus != 'issued') { //get second user's info
         userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
         newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
     }
-
 
     //clear request information from the user's account
     db.ref('users/' + userId + '/activeRequest').remove();
@@ -669,7 +669,7 @@ function copyFirebaseObject(oldRef, newRef) {
     });
 }
 
-//create a thread that runs manager.js
+
 const periodic = new Worker("./manager.js");                                                                    ///////////////////////////////////////////////////////???????       variable is not used/ delete?                                                    
 
 module.exports = router;

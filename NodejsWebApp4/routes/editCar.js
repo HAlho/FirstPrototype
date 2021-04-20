@@ -1,12 +1,7 @@
 // JavaScript source code route
-
-
 const path = require('path');
-
 const express = require('express');
-
 const router = express.Router();
-
 const { admin } = require('./firebaseConfig.js');
 
 
@@ -15,6 +10,7 @@ var db = admin.database();
 
 router.use(express.json({ limit: '1mb' }));
 
+//function to direct the client to editCar.html
 router.get('/editCar', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'editCar.html'));
 });

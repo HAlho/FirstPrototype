@@ -9,6 +9,7 @@ var db = admin.database();
 
 router.use(express.json({ limit: '1mb' }));
 
+//function to direct the client to carSelect.html
 router.get('/carSelect', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'carSelect.html'));
 });

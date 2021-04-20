@@ -12,6 +12,7 @@ var db = admin.database();
 
 router.use(express.json({ limit: '1mb' }));
 
+//function to direct the client to avaReq.html
 router.get('/avaReq', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'avaReq.html'));
 });
