@@ -57,5 +57,8 @@ fs.writeFile('queue.txt', '', function (err) {//clear queue
 fs.writeFile('procInfo.txt', '', function (err) {//clear procInfo
     if (err) return console.log(err);
 });
+fs.writeFile('cancelQueue.txt', '', function (err) {//clear queue
+    if (err) return console.log(err);
+});
 
 https.createServer({ key: privateKey, cert: certificate }, app).listen(3000);

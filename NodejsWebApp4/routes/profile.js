@@ -306,86 +306,147 @@ router.post('/cancelRequest', async (request, response) => {
     //get client request info
     const userId = request.body.userId; //user ID
     const userIsRequester = request.body.userIsRequester; //true if user is requester
-    const requestStatus = request.body.requestRef.dbref; //request status (also dbref)
+    var requestStatus = request.body.requestRef.dbref; //request status (also dbref)
+    console.log("GOT THE REQUEST STATUS: " + requestStatus);
     const requestId = request.body.requestRef.id; //request ID
-    const req = request.body.req; //request information
+    var req = request.body.req; //request information
 
-    var newRef = db.ref('previousRequests/' + userId + '/' + requestId); //path to move the request to the user's history
-    var newRef2, user2Id; //get user ID and the request's path for the second user
-    if (requestStatus != 'issued') { //get second user's info
-        userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
-        newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
-    }
+    var snapshot = await db.ref('users/' + userId + '/activeRequest').once('value');
+    var reqStatus = snapshot.val();
+    requestStatus = reqStatus.dbref;
+    var snapshot = await db.ref('activeRequests/' + requestStatus + '/' + requestId).once('value');
+    req = snapshot.val();
+    console.log("GOT THE REQUEST STATUS: " + requestStatus);
 
-    //clear request information from the user's account
-    db.ref('users/' + userId + '/activeRequest').remove();
-    db.ref('users/' + userId).update({ status: "Available" });
+    
 
-    //get the request's path for the user
-    var oldRef;
-    switch (requestStatus) { //get the request's path (activeRequests/dbref/requestID) and clear second user's account if needed
-        case 'issued':
-            oldRef = db.ref('activeRequests/issued/' + requestId); //get the request's path
-            break;
-        case 'matched':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/matchedReq').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
+    var wait = false;
+    var check = false;
+    var allowed = false;
+    var interval = setInterval(async () => {
+       
+        if (!allowed) {
+            //check if the user data is changed in helper.js
+            fs.readFile('cancelQueue.txt', "utf8", (err, data) => {
+
+                if (err) throw err;
+                // break the textblock into an array of lines
+                var lines = data.split('\n');
+                for (i = 0; i < lines.length; i++) {
+                    //if user is not there
+                    if (lines[i] != userId) {
+                        check = false;
+                    }
+                    else {//if user is there
+                        wait = true;
+                        check = true;
+                        break;
+                    }
+                }
+                allowed = !(check);
+                console.log("allowed is " + allowed);
+            });
+        }
+        if (allowed) {
+            console.log("clearing interval");
+            clearInterval(interval);//does this stop the excution works?
+
+            fs.writeFileSync('./cancelQueue.txt', userId);        
+
+            console.log("I am here");
+            if (wait) {
+                //check request status again
+                var snapshot = await db.ref('users/' + userId + '/activeRequest').once('value');
+                var reqStatus = snapshot.val();
+                requestStatus = reqStatus.dbref;
+                var snapshot = await db.ref('activeRequests/' + requestStatus + '/' + requestId).once('value');
+                req = snapshot.val();
+
             }
-            oldRef = db.ref('activeRequests/matched/' + requestId); //get the request's path
-            break;
-        case 'pending':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/activeRequest').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
+
+            var newRef = db.ref('previousRequests/' + userId + '/' + requestId); //path to move the request to the user's history
+            var newRef2, user2Id; //get user ID and the request's path for the second user
+            if (requestStatus != 'issued') { //get second user's info
+                userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
+                newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
             }
-            oldRef = db.ref('activeRequests/pending/' + requestId); //get the request's path
-            break;
-        case 'accepted':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/activeRequest').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
-            } 
-            oldRef = db.ref('activeRequests/accepted/' + requestId); //get the request's path
-            break;
-        case 'completed':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/activeRequest').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
+
+            //clear request information from the user's account
+            db.ref('users/' + userId + '/activeRequest').remove();
+            db.ref('users/' + userId).update({ status: "Available" });
+
+            //get the request's path for the user
+            var oldRef;
+            switch (requestStatus) { //get the request's path (activeRequests/dbref/requestID) and clear second user's account if needed
+                case 'issued':
+                    oldRef = db.ref('activeRequests/issued/' + requestId); //get the request's path
+                    break;
+                case 'matched':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        console.log("UPDATING USER2 BACK TO AVAILABLE");
+                        db.ref('users/' + user2Id + '/matchedReq').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/matched/' + requestId); //get the request's path
+                    break;
+                case 'pending':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        db.ref('users/' + user2Id + '/activeRequest').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/pending/' + requestId); //get the request's path
+                    break;
+                case 'accepted':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        db.ref('users/' + user2Id + '/activeRequest').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/accepted/' + requestId); //get the request's path
+                    break;
+                case 'completed':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        db.ref('users/' + user2Id + '/activeRequest').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/completed/' + requestId); //get the request's path
+                    break;
             }
-            oldRef = db.ref('activeRequests/completed/' + requestId); //get the request's path
-            break;
-    }
 
 
-    //move request to the user(s) history 
-    if (userIsRequester) { //user is the requester
-        oldRef.update({ 'status': "canceled" }); //change status to canceled
+            //move request to the user(s) history 
+            if (userIsRequester) { //user is the requester
+                oldRef.update({ 'status': "canceled" }); //change status to canceled
+                console.log("MOVE/COPY REQUEST");
+                //copy request to provider's history
+                if (requestStatus != 'issued' && requestStatus != 'matched')
+                    copyFirebaseObject(oldRef, newRef2);
 
-        //copy request to provider's history
-        if (requestStatus != 'issued' && requestStatus != 'matched')
-            copyFirebaseObject(oldRef, newRef2);
+                //copy request to consumer's history then delete if from active requests
+                moveFirebaseObject(oldRef, newRef);
+            } else { //user is the provider
+                //copy request information to the provider's history
+                copyFirebaseObject(oldRef, newRef);
+                newRef.update({ 'status': "canceled" });
 
-        //copy request to consumer's history then delete if from active requests
-        moveFirebaseObject(oldRef, newRef);
-    } else { //user is the provider
-        //copy request information to the provider's history
-        copyFirebaseObject(oldRef, newRef);
-        newRef.update({ 'status': "canceled" });
+                //remove the provider from the request then  move the request back to activeRequests/issued
+                oldRef.child('match').remove();
+                issuedRef = db.ref('activeRequests/issued/' + requestId);
+                moveFirebaseObject(oldRef, issuedRef);
 
-        //remove the provider from the request then  move the request back to activeRequests/issued
-        oldRef.child('match').remove();
-        issuedRef = db.ref('activeRequests/issued/' + requestId);
-        moveFirebaseObject(oldRef, issuedRef);
+                //update active request info of the consumer
+                db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "issued" });
+            }
 
-        //update active request info of the consumer
-        db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "issued" });
-    }
+            fs.writeFileSync('./cancelQueue.txt', '');
 
-    //send response to client
-    response.json({
-        status: "success",
-    });
+
+            //send response to client
+            response.json({
+                status: "success",
+            });
+        }
+
+    }, 2000);
 });
 
 

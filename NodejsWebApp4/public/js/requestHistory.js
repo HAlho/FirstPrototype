@@ -56,6 +56,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
                 //get request information
                 let k = keys[i]; //request ID
                 let timestamp = data[k].timestamp; //request timestamp
+                console.log(timestamp);
                 let date = timestamp.substr(4, 11); //get date from the timestamp
                 let amount = data[k].amount + " kWh"; //requested charge amount
                 let cost = data[k].cost + " AED"; //amount of money charged/payed
