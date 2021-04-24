@@ -10,13 +10,11 @@ var threadId;
 const n = workerData.n; //take the variables from workerData in profile.js
 
 
-console.log("Thread: n is : " + n);
 
 
 parentPort.on('message', message => {
-    //console.log(typeof message);
     threadId = message;
-    console.log("thread: threadid:" + threadId);
+   // console.log("thread: threadid:" + threadId);
 
     const dataToAppend = threadId + "\n";
 
@@ -84,7 +82,7 @@ parentPort.on('message', message => {
                         lines.splice(0, 1);
                         // join the array back into a single string
                         newData = lines.join('\n');
-                        console.log("new data is :" + newData);
+                       // console.log("new data is :" + newData);
                         fs.writeFile('procInfo.txt', newData, function (err) {
                             if (err) return console.log(err);
                             console.log('proc now:' + numProc);
@@ -100,7 +98,7 @@ parentPort.on('message', message => {
                     // remove one line, starting at the first position
                     lines.splice(0, 1);
                     // join the array back into a single string
-                    newData = lines.join('\n');
+                   // newData = lines.join('\n');
                     console.log("new data is :" + newData);
                     fs.writeFile('queue.txt', newData, function (err) {
                         if (err) return console.log(err);

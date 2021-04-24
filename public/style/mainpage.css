@@ -1,31 +1,70 @@
 ﻿* {
-    font-family: "Lucida Console";
+    font-family: 'Segoe UI';
 }
 
-.pasted-image {
-    height: 269px;
-    width: 415.91px;
+body {
+    overflow: hidden;
+    background-image: url("../img/clouds.png");
+}
+
+.logo {
+    height: 330px;
+    width: 355px;
+    margin-top: 520px;
 }
 
 
-.your-vehicle-to-vehicle-chargi {
-    height: 270px;
+
+.title {
     width: 334px;
-    margin: 40px;
-    color: #000;
+    margin: 40px 0px 0px 40px;
     font-size: 40px;
     font-weight: 900;
     line-height: 45px;
     text-align: center;
 }
 
+.titleCon {
+    width: 334px;
+    margin: 0px 40px 40px 40px;
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 45px;
+    text-align: center;
+}
+
+.vehicle-to-vehicle-charging {
+    color: #DBC267;
+    width: 334px;
+    margin: 30px 10px 40px 40px;
+    font-size: 50px;
+    font-weight: bold;
+    line-height: 45px;
+    text-align: center;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+}
+
+.container {
+    position: absolute;
+    left: 10%;
+    width: 80%;
+    height: 60%;
+   
+}
 
 
-.rectangle-1 {
+.button {
     box-sizing: border-box;
     height: 70px;
     width: 300px;
-    margin: 50px 30px 0px 50px;
+    margin: 0px 0px 0px 30px;
     border-radius: 18px;
     background-color: #6dbec3;
     border: 1px solid #6dbec3;
@@ -39,11 +78,11 @@
 
 .already-have-an-account-log-in {
     height: 23px;
-    color: #000;
-    font-family: "Lucida Console";
     font-weight: 700;
     line-height: 23px;
     text-align: center;
+    margin: 490px 0px 0px 55px;
+    position: fixed;
 }
 
 
@@ -52,4 +91,7 @@ a {
     text-decoration: none;
     color: #6dbec3;
     font-size: 1.2rem;
+    position: fixed;
+    margin: 488px 0px 0px 255px;
 }
+

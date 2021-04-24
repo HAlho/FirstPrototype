@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{141E1EED-78EE-A629-D98C-78048FF285B1}</ProjectGuid>
+    <ProjectGuid>{9D67E74B-C504-0C51-2572-664FE2493DA6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>indexc</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>

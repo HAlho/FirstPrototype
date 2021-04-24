@@ -170,7 +170,11 @@ async function submitRequest() {
     await sleep(2000); //2 seconds delay. just in case the server was busy
 
     //get request information
-    neededSoC -= currentSoC; //needed charge
+    neededSoC = document.getElementById("sliderCurrent").value;
+    currentSoC = document.getElementById("sliderDesired").value;
+    neededSoC = currentSoC - neededSoC; //needed charge
+    if (neededSoC < 0) { alert('There was an error issuing the request.'); window.location.reload(); }
+
     let currentEnergy = Math.floor(((currentSoC / 100) * batteryCapacity) * 2) / 2; //current energy percent to kWh (set by user in the slider range)
     let neededEnergy = Math.ceil(((neededSoC / 100) * batteryCapacity) * 2) / 2; // needed energy percent to kWh (set by user in the slider range)
     let maxDistance = Math.floor((currentEnergy / consumption) * 100) / 100; //calculate max distance (km) user can take

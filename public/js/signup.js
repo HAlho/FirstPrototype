@@ -24,6 +24,12 @@ document.getElementById('signup').addEventListener('click', () => { //user wants
     if (!validateEmail(email)) return; //check if email is valid
     if (!checkPassword(password)) return; //check if password is strong
 
+        document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+        //display confirmation message
+        setTimeout(function () {
+            document.getElementById("PopUp").style.display = "block"; //show window
+        }, 300);
+
     //all inputs are valid, sign up user..
     //built in firebase function responsible for signing up a user
     firebase.auth().createUserWithEmailAndPassword(email, password) //attempt to create an account

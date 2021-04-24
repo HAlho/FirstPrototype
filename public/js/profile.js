@@ -354,7 +354,7 @@ async function profilePage() {
                 text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
                 text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
                 text += "<b>Meet-up location: </b><br />";
-                text += '<img src="./img/location-' + request.match.location + '.png" width="100%"><br />';
+                text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
 
                 document.getElementById("avaReqText").innerHTML = text;
 
@@ -484,7 +484,7 @@ async function profilePage() {
 
                     acceptButton.style.display = "block"; //show accept button
 
-                } else if (status == 'accepted' || status == 'completed') {
+                } else if (status == 'accepted') {
                     //get time                                                                                         ///////////////////////////////////////////////////////??????? delete? when user refreshes page this resets
                     if (userIsRequester) {
                         inProgress = Date.now();
@@ -608,7 +608,7 @@ function setText(status, userIsRequester, request) {
             text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
             text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
             text += "<b>Meet-up location: </b><br />";
-            text += '<img src="./img/location-' + request.match.location + '.png" width="100%"><br />';
+            text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
             break;
         case 'accepted':
             if (userIsRequester) {
@@ -622,7 +622,7 @@ function setText(status, userIsRequester, request) {
             text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
             //text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
             text += "<b>Meet-up location: </b><br />";
-            text += '<img src="./img/location-' + request.match.location + '.png" width="100%"><br />';
+            text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
             break;
         case 'completed':
             text = "Finalizing Request..";

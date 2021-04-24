@@ -22,7 +22,10 @@
 </head>
 <body class="background">
     <!-- HTML elements -->
+
     <section class="container">
+        <h2>Welcome to V2V Charging!</h2>
+        <h6 class="welcome"> Please fill all the required details</h6>
         <small id="alert"></small>
         <input type="text" id="displayName" name="name" placeholder="Name" />
         <input type="email" id="emailaddress" name="mail" placeholder="Email Address" required />
@@ -31,12 +34,14 @@
         <button class="rectangle-1" id="signup">Signup</button>
         <h6> Already have an account? <a href="./signin"> sign in </a></h6>
     </section>
+    <div id="PopUp" class="windowPrompt">
+        <p>Signed Up successfully</p>
+        <div>
+            <small>You will be directed to register your car</small>
+        </div>
+    </div>
+    <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -52,11 +57,6 @@
 
     <!-- Firebase configuration -->
     <script src="./js/firebase-config.js"></script>
-
-
-
-
-
     <script src="./js/signup.js"></script>
 </body>
 </html>
