@@ -1,12 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
 
-* {
-    padding: 0;
-    margin: 0;
-    font-family: "Lucida Console";
-    background: #A0D8DC;
-}
-
 main {
     width: 100vw
 }

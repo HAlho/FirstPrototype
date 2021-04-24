@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="./style/mainpage.css">
-
-
     <title></title>
 </head>
 <body>
+    <!-- HTML elements -->
     <img class="pasted-image" src="./img/businessman-using-ride-hailing-app-to-order-businessman-using-ride-hailing-app-to-order-car-his-mobile-phone-showing-166785191.jpg">
 
     <p class="your-vehicle-to-vehicle-chargi">
@@ -23,15 +22,8 @@
 
     <table>
         <tr>
-            <td>
-                <p class="already-have-an-account-log-in">
-                    Already Have an Account?
-                </p>
-            </td>
-            <td>
-                <a href="../signin" id="signin"> Sign In</a>
-            </td>
-
+            <td><p class="already-have-an-account-log-in">Already Have an Account?</p></td>
+            <td><a id="signin"> Sign In</a></td>
         </tr>
     </table>
 
@@ -41,11 +33,17 @@
             window.location.replace('../signup');
         });
 
+        document.getElementById("signin").addEventListener("click", function () {
+            window.location.replace('../signin');
+        });
 
-
+        //check if user is already signed in
+        firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) window.location.assign('./carSelect'); //if user is already signed in
+        });
 
     </script>
-
+    <!-- Page ends here -->
 
 </body>
 </html>

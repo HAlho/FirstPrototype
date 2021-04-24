@@ -1,16 +1,26 @@
 // JavaScript source code
+
+//check if the user came back from the car select page (reload page to show new car information)
+window.addEventListener("pageshow", function (event) {
+    var historyTraversal = event.persisted ||
+        (typeof window.performance != "undefined" &&
+            window.performance.navigation.type === 2); // window.performance.navigation.type = 2 when user 
+    if (historyTraversal) window.location.reload(); //reload page to show changes
+});
+
+document.getElementById("registerCar").addEventListener('click', () => {
+    window.location.assign('../registerCar');
+});
+
 firebase.auth().onAuthStateChanged(async function (user) {
     if (user) {
         var userId = firebase.auth().currentUser.uid; //current user
         displayCars(userId);
-
-    } else window.location.assign('../');
+    } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
 
 //display registered cars as buttons
 async function displayCars(userId) {
-    //var carsElement = document.getElementById("cars");
-    //while (carsElement.firstChild) carsElement.removeChild(carsElement.firstChild); //clear cars div
 
     const sdata = { userId };
     const options = {

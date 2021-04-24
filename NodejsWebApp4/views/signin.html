@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Sign In</title>
+    <link rel="stylesheet" href="./style/common.css">
+    <link rel="stylesheet" href="./style/signin.css">
+</head>
+<body class="background">
+    <!-- HTML elements -->
+    <section class="container">
+        <h2>Welcome Back!</h2>
+        <h6> Please enter your credentials to sign in</h6>
+        <small id="alert"></small>
+        <input type="email" id="mail" name="mail" placeholder="Email Address" required />
+        <input type="password" id="password" name="password" placeholder="Password" required />
+        <button class="rectangle-1" id="signin">Sign in</button>
+
+        <p style="padding-top: 15px; font-size: 13px;"> Don't have an account? <a href="./signup" style="float:none;"> sign up </a></p>
+
+        <a href="./reset"> forgot my password </a>
+        <div class="clearfix"></div>
+    </section>
+    <!-- Page ends here -->
+
+
+
+
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
+
+
+
+
+
+    <script>
+        const emailField = document.getElementById('mail'); //email's input field
+        const passwordField = document.getElementById('password'); //password's input field
+        const alert = document.getElementById("alert"); //show any errors with signing in
+
+        //check if the user came back from the car select page
+        window.addEventListener("pageshow", function (event) {
+            var historyTraversal = event.persisted ||
+                (typeof window.performance != "undefined" &&
+                    window.performance.navigation.type === 2); // window.performance.navigation.type = 2 when user
+            if (historyTraversal) window.location.assign('./profile'); //forward user to main page
+        });
+
+        //check if user is already signed in
+        firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) window.location.assign('./carSelect'); //if user is already signed in
+        });
+
+        //sign in button event listener. take user information and authenticate them
+        document.getElementById('signin').addEventListener('click', () => {
+            alert.innerHTML = '';
+            const email = emailField.value; //get the user's input email
+            const password = passwordField.value; //get the user's input password
+
+            //check if the user left the email field empty
+            if (email == '' || email == null) { //user did not input an email
+                emailField.style.border = "1px solid red"; //make input field's borders red to alert user
+                return;
+            } else emailField.style.border = "none";
+
+            //check if the user left the email field empty
+            if (password == '' || password == null) { //user did not input a password
+                passwordField.style.border = "1px solid red"; //make input field's borders red to alert user
+                return;
+            } else passwordField.style.border = "none";
+
+
+            //built in firebase function responsible for authentication
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(() => { //signed in successfully
+                    window.location.assign('./carSelect'); //forward user to carselect page
+                })
+                .catch(error => { //error signing in
+                    console.error("error");
+                    alert.innerHTML = "Incorrect email or password"; //display message
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,15 +1,4 @@
-﻿* {
-    padding: 0;
-    margin: 0;
-    font-family: 'Segoe UI';
-    overflow: hidden;
-}
-
-body {
-    background: #A0D8DC;
-}
-
-hr {
+﻿hr {
     border: 0;
     border-top: 1px solid #ddd;
 }
@@ -32,12 +21,6 @@ button {
     text-align: center;
     background-color: transparent;
     border: none;
-}
-
-.deleteAccount {
-    color: red;
-    font-weight: bold;
-    margin: 20px 0 0 35px;
 }
 
 .settingsMenu { /*div for */
@@ -95,11 +78,11 @@ button {
     }
 
 input:checked + .slider {
-    background-color: #6dbec3;
+    background-color: #5bbfc5;
 }
 
 input:focus + .slider {
-    box-shadow: 0 0 1px #6dbec3;
+    box-shadow: 0 0 1px #5bbfc5;
 }
 
 input:checked + .slider:before {

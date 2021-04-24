@@ -2,20 +2,21 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account</title>
+    <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/account.css">
-    <link rel="stylesheet" href="./style/mainmenu.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
-<body>
+<body class="background">
+    <!-- HTML elements -->
     <div class="pageName">ACCOUNT</div>
     <div class="userInfo">
         <img src="./img/account-black.png" width="30%" style="float:left;">
         <b><h3 id="name"></h3></b>
         <p id="email" style="font-weight:normal; display:inline;"></p>
-        <br /><p><a href="../editAccount" class="edit">edit account <i class="fa fa-caret-right" style="color:black;"></i></a></p>
+        <br /><p><a href="../editAccount" class="edit">edit account <i class="fa fa-caret-right" style="color:black; display:inline;"></i></a></p>
 
     </div>
-    <section class="container profile-container">
+    <section class="container">
         <div>
             <div class="buttonsSection">
                 <button id="cars"><i class="fas fa-car" style="color:black; font-size:3.2em; padding:5px 5px 0 5px;"></i><br /><p>Your Cars</p></button>
@@ -31,7 +32,7 @@
                             <td id="creditScore" class="accountMenuText" style="width:50px;"></td>
                         </tr>
                     </table>
-                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
                 </a><hr />
                 <a id="reqHistory">
                     <table>
@@ -39,7 +40,7 @@
                             <td>History</td>
                         </tr>
                     </table>
-                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
                 </a><hr />
                 <a id="editUnitPrice">
                     <table>
@@ -48,17 +49,19 @@
                             <td id="unitPrice" class="accountMenuText"></td>
                         </tr>
                     </table>
-                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
                 </a><hr />
             </div>
 
             <br />
             <button id="logout" class="logout">Logout</button>
-
         </div>
+
+
     </section>
     <div id="creditScorePopUp" class="windowPrompt">
         <p>Credit Score</p>
+        <p class="info" style="color:#f23c3c;">This feature is still unavailable.</p>
         <p id="creditScoreVal"></p>
         <div>
             <svg class='creditScore' style="display:block; margin:auto;" x="0px" y="0px"
@@ -66,27 +69,29 @@
                  xml:space="preserve">    
             <path fill="none" class="background" stroke="#000000" stroke-width="15" stroke-miterlimit="0" d="M71.462,13.129 c32.217,0,58.334,26.116,58.334,58.333s-26.117,58.334-58.334,58.334s-58.333-26.117-58.333-58.334S39.245,13.129,71.462,13.129" />
 
+
+
             <path id='creditScorePercent' fill="none" class="target" stroke="#000000" stroke-width="15" stroke-miterlimit="0" d="M71.462,13.129 c32.217,0,58.334,26.116,58.334,58.333s-26.117,58.334-58.334,58.334s-58.333-26.117-58.333-58.334S39.245,13.129,71.462,13.129" />
+
+
 
         </svg>
         </div>
         <button class="cancel" onclick="cancel()">close</button>
-
     </div>
 
     <div id="windowPromptUnitPrice" class="windowPrompt">
         <p>Unit Price</p>
+        <p class="info">When providing energy, you can set up your own preferable unit price.</p>
 
         <div class="unitPriceContainer">
             <h1 ontouchstart="decrement()" ontouchend="stop()" id="decrement">–</h1>
             <input type="number" min="0.37" max="0.74" step="0.01" id="unitPriceVal" class="unitPriceInput" />
             <h1 ontouchstart="increment()" ontouchend="stop()" id="increment">+</h1>
         </div>
-
         <button class="cancel" onclick="cancel()">cancel</button>
         <button onclick="updateUnitPrice()">ok</button>
     </div>
-
 
     <div class="mainMenu">
         <table>
@@ -109,8 +114,11 @@
         <a onclick="setStatus('Do Not Disturb'); showStatus()"><button class="statusCircle" style="background-color:#DD5F56;"><img src="./img/status-busy.png" height="15px"></button>Busy</a>
     </div>
 
-
     <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
+
+    <!-- Page ends here -->
+
+
 
 
 
@@ -128,28 +136,16 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
 
-    <script>
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        var firebaseConfig = {
-            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
-            authDomain: "auth-c0cb3.firebaseapp.com",
-            databaseURL: "https://auth-c0cb3.firebaseio.com",
-            projectId: "auth-c0cb3",
-            storageBucket: "auth-c0cb3.appspot.com",
-            messagingSenderId: "1034981325790",
-            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
-            measurementId: "G-1GCV52KFRG"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
+
+
+
+
 
     <script src="./js/status.js"></script>
     <script src="./js/account.js"></script>
-
 
 </body>
 </html>

@@ -1,10 +1,9 @@
 // JavaScript source code
+const PROMPT_HEIGHT = "77%";
 //html elements global variables
 var buttonsDiv = document.getElementById("buttons"); //buttonsDiv that contains 'request charge' and 'available request' buttons
-var requestForm = document.getElementById("requestForm"); //requestForm div for users to make requests
 //active request elements
 var requestDiv = document.getElementById("request"); //if the user has an active request, it will be shown here
-var div = document.getElementById("req"); //has active request info
 var cancelButton = document.getElementById('cancel'); //cancel button to cancel active request
 var acceptButton = document.getElementById('accept'); //accept button for requester to accept active request once his/her match accepts
 var paymentDiv = document.getElementById("payment"); //payment section to input payment info after request is done
@@ -17,12 +16,21 @@ var avaReqAccept = document.getElementById('avaReqAccept'); //button to accept a
 let inProgress; //?????????????????????????????? this takes the request time  but it resets when we refresh                                  ///////////////////////////////////////////////////////??????? delete?
 //store current car's information
 var carBrand = null; //store current car's brand
-var carModel, carColor, carNum, consumption, batteryCapacity; //store current car's info
-var sliderOutput = 0; //store car's current state of charge
+var car, carModel, carColor, carNum, consumption, batteryCapacity; //store current car's info
+var cardsFlag = false; //set true if user has saved payment info
 //For when theres an active request
 var userIsRequester = false;
+var userId;
 
-
+//check if the user came back from the car select page (reload page to show new car information)
+window.addEventListener("pageshow", async function (event) {
+    var historyTraversal = event.persisted ||
+        (typeof window.performance != "undefined" &&
+            window.performance.navigation.type === 2); // window.performance.navigation.type = 2 when user 
+    if (historyTraversal) { //user came back from the car select page
+        window.location.reload(); //reload page to show changes
+    }
+});
 
 //html elements event listeners
 //main menu account button event listeners
@@ -32,52 +40,48 @@ document.getElementById('account').addEventListener('click', () => {
 
 //main menu account button event listener
 document.getElementById("edit").addEventListener("click", function () {
-    window.location.replace('../carSelect'); //button to change current car
+    if (userStatus == 'Available' || userStatus == 'Do Not Disturb')
+        window.location.assign('../carSelect'); //button to change current car
+    else alert('Current car cannot be changed when there is a request in progress');
 }); 
 
 //request form buttons
 //when 'request charge' button is clicked, show the request form 
-document.getElementById("showRequestForm").addEventListener('click', () => {
+document.getElementById("newRequest").addEventListener('click', () => {
     if (carBrand == null) { //if user doesn't have any registered cars
-        if (confirm("You can't request charge until you add your car information. Would you like to do that now?"))
-            window.location.replace("../registerCar"); //forward user to registerCar page
+        if (confirm("You must add your car information first. Would you like to do that now?"))
+            window.location.assign("../registerCar"); //forward user to registerCar page
     } else {
-        buttonsDiv.style.display = "none"; //hide buttonsDiv
-        requestForm.style.display = "block"; //show the request form
+        navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+            if (result.state === 'granted' && localStorage.getItem('locationPermission') == 'granted') //location permission is granted
+                window.location.assign("../newRequest"); //forward user to newRequest page
+            else alert('Location access must be turned on');
+        });
     }
 });
-
-//when 'cancel' button is clicked, hide the request form 
-document.getElementById("cancelRequest").addEventListener('click', () => {
-    requestForm.style.display = "none"; //hide request form
-    buttonsDiv.style.display = "block"; //show buttonsDiv
-});
-
-//when 'send request' button is clicked, call function submitRequest()
-document.getElementById('SRequest').addEventListener('click', submitRequest); 
 
 //available request buttons
 //button to show available request window prompt
 document.getElementById('avaReq').addEventListener('click', () => {
     if (!document.getElementById('avaReq').classList.contains('disabled')) { //buttton is disabled if there is no available request
         document.getElementById("dimContent").classList.add("dimVisible"); //dim the screen behind the window prompt
-        setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "block"; }, 250); //show available request
+        document.getElementById("windowPromptAvaReq").style.display = "block";
+        document.getElementById("windowPromptAvaReq").style.height = PROMPT_HEIGHT; //show available request
     }
 });
 
 //button to hide available request window prompt
 document.getElementById('closeAvaReq').addEventListener('click', () => {
-    document.getElementById("windowPromptAvaReq").style.display = "none"; //hide window prompt
+    document.getElementById("windowPromptAvaReq").style.height = "0";
     document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+  //  setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
 });
-
-
 
 
 //function that check if user is authenticated then calls other functions
 firebase.auth().onAuthStateChanged(async function (user) {
     if (user) { //if user is authenticated
-        var userId = firebase.auth().currentUser.uid; //current user ID
+        userId = firebase.auth().currentUser.uid; //current user ID
 
         //send user ID to the server to clear any bugs from the user's account
         const sdata = { userId };
@@ -93,12 +97,13 @@ firebase.auth().onAuthStateChanged(async function (user) {
 
         showStatus(); //show user status in main menu (function is found in status.js)
 
-        notificationPermission(); //check if notifications permission is allowed and stored
+        notificationPermission(userId); //check if notifications permission is allowed and stored
         locationPermission(); //check if location access is allowed and stored
 
-        displayCurrentCar(userId); //get and display the user's current car
+        displayCurrentCar(); //get and display the user's current car
+        getCards();//get the user's payment information
 
-        profilePage(userId); //check if the user has active requests
+        profilePage(); //check if the user has active requests
     } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
 
@@ -106,7 +111,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
 function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 //function to check if notifications permission is granted and stored
-function notificationPermission() {
+function notificationPermission(userId) {
     if (Notification.permission === 'default') { //notifications permission is set as default in the browser, ask user for permission
         Notification.requestPermission().then(function (result) {
             localStorage.setItem('notificationsPermission', result); //save user's decision to allow or block permission
@@ -158,8 +163,39 @@ function locationPermission() {
 }
 
 
+async function getCards() {
+    //get payment information from the server
+    const sdata = { userId };
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sdata)
+    };
+    const response = await fetch('/getCards', options);
+    const json = await response.json();
+    cards = json.cards;
+
+    //No info found
+    if (cards == null) {
+        document.getElementById("noPayment").style.display = "block";
+    } else {
+        cardsFlag = true;
+        var keys = Object.keys(cards); //get car ids
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            let option = document.createElement("option");
+            option.text = cards[k].email;
+            option.value = cards[k].email;
+            document.getElementById("paymentSelect").appendChild(option);
+            document.getElementById("paymentSelect").style.display = "block";
+        }
+    }
+}
+
 //get and display the user's current car
-async function displayCurrentCar(userId) {
+async function displayCurrentCar() {
     //get car information from the server
     const sdata = { userId };
     const options = {
@@ -169,59 +205,40 @@ async function displayCurrentCar(userId) {
     };
     const response = await fetch('/getCurrentCar', options);
     const json = await response.json(); //server response
+    car = json.car;
 
     //display car information
     if (!json.carsFlag) { //user does not have any registered cars
         carBrand = null;
         document.getElementById('noCar').style.display = 'block';
+        document.getElementById('newRequest').classList.add('disabled'); //reset avaReq button display
+
+
     } else if (!json.currentCarFlag) //user has registered cars but no selected car
-        window.location.replace('../carSelect');
+        window.location.assign('../carSelect');
     else { //user has a current car
         //get car information
-        carBrand = json.car.brand;
-        carModel = json.car.model;
-        carColor = json.car.color;
-        carNum = json.car.licenseNumber;
+        carBrand = car.brand;
+        carModel = car.model;
+        carColor = car.color;
+        carNum = car.licenseNumber;
         consumption = json.consumption;
         batteryCapacity = json.batteryCapacity;
         //display car on page
         let carInfo = "<b>CURRENT CAR </b> <br></br>" + carBrand + ' ' + carModel + " (Plate No.: " + carNum + ')';
         document.getElementById("currentCarInfo").innerHTML = carInfo;
         document.getElementById("edit").style.display = "block";
-        setSlider(); //set charge request slider 
-    }
-}
-
-//set range slider with limits 0 to batteryCapacity (kWh) for user to set current car state of charge
-async function setSlider() {
-    var sliderDiv = document.getElementById("slider"); //get sliderDiv
-    while (sliderDiv.firstChild) sliderDiv.removeChild(sliderDiv.firstChild); //clear sliderDiv
-
-    //create a range slider and append it to sliderDiv
-    var slider = document.createElement("input"); 
-    slider.type = 'range';
-    slider.max = batteryCapacity;
-    slider.value = 0;
-    sliderDiv.prepend(slider);
-
-    document.getElementById("max").innerHTML = batteryCapacity + " kWh"; //display the max range of the slider
-    var value = document.getElementById("value"); //element to display slider value
-    value.innerHTML = slider.value; //display slider value (initial value is set to 0)
-
-    //if slider.value was changed, display slider value
-    slider.oninput = function () { 
-        value.innerHTML = this.value + " kWh";
-        sliderOutput = this.value;
     }
 }
 
 
 //check if user has any active requests
-async function profilePage(userId) {
+async function profilePage() {
     var status, previousStatus = null; //if there's an active request, store the status of the request, otherwise store the status of the user
     var userIsRequester = false; //set true if user has an active request and is the requester
 
-    while (1) {
+    var timer = setInterval(async function () { //get the user's status and update page every 2 seconds
+
         //get user information from the server
         const d = { userId };
         const options = {
@@ -248,14 +265,16 @@ async function profilePage(userId) {
         if (status != previousStatus) { //status was changed, update page
             previousStatus = status;
             showStatus(status); //update status icon in the main menu
-
+            if (status == 'matched') await sleep(2000);
             let request, requestId; //store request informationa and request ID (if exists)
             //if there's an active/matched request, get request information
             if (status != 'Available' && status != 'Do Not Disturb') { //there's an active request
-                user.status == 'Busy' ? requestId = user.activeRequest.id : requestId = user.matchedReq; //get request id
+                let dbref;
+                user.status == 'matched' ? dbref = user.status : dbref = user.activeRequest.dbref; //get request reference
+                user.status == 'matched' ? requestId = user.matchedReq : requestId = user.activeRequest.id; //get request id
 
                 //send request ID to the server and get back the request's information
-                const d = { dbref: status, requestId };
+                const d = { dbref, requestId };
                 const options = {
                     method: 'POST',
                     headers: {
@@ -269,23 +288,74 @@ async function profilePage(userId) {
 
                 console.log(request);
                 if (request == null) {
-                    await sleep(5000);
+                    await sleep(2000);
                     location.reload(); //reload page to avoid errors
                 }
             }
 
             //update html page depending on the user / request status
             if (status == 'Available' || status == 'Do Not Disturb') { //user does not have any active requests
-                var userIsRequester = false; //reset userIsRequester variable
+                userIsRequester = false; //reset userIsRequester variable
                 document.getElementById('avaReq').classList.add('disabled'); //reset avaReq button display
 
                 //hide all elements and show buttonsDiv only
                 hideAllElements();
                 buttonsDiv.style.display = "block";
+
+            } else if (status == 'Pay') { //consumer should pay
+                //hide all elements and show the payment to the consumer
+                hideAllElements();
+                paymentDiv.style.display = "block";
+
+                let text = "<h2>Your request has been completed!</h2>" + "<br />";
+                text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
+                text += "<b>Cost: </b>" + request.match.estAmount + " AED" + "<br /><br /><br />";
+
+                document.getElementById("paymentText").innerHTML = text;
+
+                //add event listener to 'pay' button
+                pay.addEventListener("click", async function () {
+                    alert('Payment completed successfully!');
+
+                    const p1 = { userId, requestId: user.activeRequest.id, match: request.match };
+                    const poptions1 = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(p1)
+                    };
+                    const presponse1 = await fetch('/tempPay', poptions1);
+                    const pj1 = await presponse1.json();
+
+                    //const p1 = { userId, requestId: user.activeRequest.id, match: request.match };
+                    //const poptions1 = {
+                    //    method: 'POST',
+                    //    headers: {
+                    //        'Content-Type': 'application/json'
+                    //    },
+                    //    body: JSON.stringify(p1)
+                    //};
+                    //const presponse1 = await fetch('/pay', poptions1);
+                    //const pj1 = await presponse1.json();
+                    //console.log(pj1.req);
+                    //window.location = pj1.forwardLink;
+                });
+
             } else if (status == 'matched' && !userIsRequester) { //user is a possible provider and got matched to an active request
+                //hide all elements and show buttonsDiv only
+                hideAllElements();
+                buttonsDiv.style.display = "block";
+                document.getElementById("windowPromptAvaReq").style.display = "block";
+
                 //set and display matched request information
                 //show request information
-                text = "User: " + request.requester.uid + "<br> location: " + request.match.location;
+                text = "<h2>A nearby user is in need of charge!</h2>" + "<br />";
+                text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
+                text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
+                text += "<b>Meet-up location: </b><br />";
+                text += '<img src="./img/location-' + request.match.location + '.png" width="100%"><br />';
+
                 document.getElementById("avaReqText").innerHTML = text;
 
                 //set decline button
@@ -304,18 +374,46 @@ async function profilePage(userId) {
                     console.log(j5);
 
                     //hide available request window prompt
-                    document.getElementById("dimContent").classList.remove("dimVisible");
-                    document.getElementById("windowPromptAvaReq").style.display = "none";
+                    document.getElementById("windowPromptAvaReq").style.height = "0";
+                    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+                //    setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
                 });
 
                 //set accept button
                 avaReqAccept.addEventListener("click", async function () {
+                    let paypal = null;
+                    //if user has cards, check if a card was selected
+                    if (cardsFlag) {
+                        if (document.getElementById("paymentSelect").value != "Select a Payment Method") {
+                            paypal = document.getElementById("paymentSelect").value;
+                        } else {
+                            document.getElementById('emailAlert').innerHTML = "Pick a card"; //to display error messages
+                            return;
+                        }
+                    } else if (!cardsFlag) {//user does not have cards, user should input paypal information
+                        paypal = document.getElementById('paymentInput').value;
+                        if (validateEmail(paypal)) { // paypal info is valid
+                            //check if user checked the 'save card' box. if so, send paypal info to the server
+                            if (document.getElementById('saveCard').checked) {
+                                //send user and paypal information to the server
+                                const cardd = { userId, paypal };
+                                const options = {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(cardd)
+                                };
+                                const response = await fetch('/saveCard', options);
+                                const jcard = await response.json();
+                            }
+                        } else return; //email is invalid
+                    }
+
+
                     //set request info
-                    var paypal = document.getElementById("paypal").value; //provider's paypal info
                     const reqId = request.requester.uid; //requester ID
 
                     //send user and request info to the server to accept request
-                    const sendData = { userId, requestId, reqId, paypal};
+                    const sendData = { userId, requestId, reqId, paypal, car };
                     const matchedOptions = {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -325,43 +423,25 @@ async function profilePage(userId) {
                     const mjson = await mresponse.json();
 
                     //hide available request window prompt
-                    document.getElementById("dimContent").classList.remove("dimVisible");
-                    document.getElementById("windowPromptAvaReq").style.display = "none";
+                    document.getElementById("windowPromptAvaReq").style.height = "0";
+                    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+       //             setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
+
                 });
 
                 //enable available request button
                 document.getElementById("avaReq").innerHTML = "Available Request";
                 document.getElementById("avaReq").classList.remove("disabled");
 
-                 //show available request window prompt
+                //show available request window prompt
                 document.getElementById("dimContent").classList.add("dimVisible"); //dim the screen behind the window prompt
-                setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "block"; }, 250);
+                document.getElementById("windowPromptAvaReq").style.height = PROMPT_HEIGHT;
 
             } else { //user has an active request
                 //set and display current request information
                 //hide all elements and show request div
                 hideAllElements();
                 requestDiv.style.display = "block";
-
-                //empty div to display/update current request information
-                while (div.firstChild) div.removeChild(div.firstChild);
-
-                //set and display request information
-                if (status != "completed") {
-                    //display requested charge amount
-                    amount = request.amount;
-                    var amt = document.createElement("small");
-                    amt.innerHTML = "<b>Charge Amount:</b> " + amount + " kW \n\n\n";
-                    div.appendChild(amt);
-
-                    //display requester information
-                    if (!userIsRequester) { 
-                        var car = request.requester.car; //get requester's car
-                        var c = document.createElement("small");
-                        c.innerHTML = "\n<b>Requester's car:</b> " + car.color + " " + car.brand + " " + car.model + ". License Number:" + car.licenseNumber + "\n\n"; 
-                        div.appendChild(c); //display requester's car
-                    }
-                }
 
                 //set text message depending on the status of the request
                 setText(status, userIsRequester, request);
@@ -404,7 +484,7 @@ async function profilePage(userId) {
 
                     acceptButton.style.display = "block"; //show accept button
 
-                } else if (status == 'accepted') {
+                } else if (status == 'accepted' || status == 'completed') {
                     //get time                                                                                         ///////////////////////////////////////////////////////??????? delete? when user refreshes page this resets
                     if (userIsRequester) {
                         inProgress = Date.now();
@@ -414,35 +494,11 @@ async function profilePage(userId) {
                         console.log(inProgressPro);
                     }
 
-                     //call function readyForDone(). the function will show the payment and 'done' buttons
+                    //call function readyForDone(). the function will show the payment and 'done' buttons
                     readyForDone(userId, user, userIsRequester, request);
-
-                } else if (status == 'completed' && userIsRequester) {  //consumer should pay
-
-                    //add event listener to 'pay' button
-                    pay.addEventListener("click", async function () {                                                                        ///////////////////////////////////////////////////////??????? not sure what to comment
-                        const p1 = { req: user.activeRequest.id, match: request.match };
-                        const poptions1 = {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(p1)
-                        };
-                        const presponse1 = await fetch('/pay', poptions1);
-                        const pj1 = await presponse1.json();
-                        console.log(pj1.req);
-                        window.location = pj1.forwardLink;
-                    });
-
-                    //show the payment to the consumer
-                    paymentDiv.style.display = "block";
                 }
-
             }
         }
-
-        await sleep(2000);
 
         //get user's location and send it to the server. server will store location in the database
         if ('geolocation' in navigator && localStorage.getItem('locationPermission') == 'granted') { //if location access is allowed
@@ -460,21 +516,40 @@ async function profilePage(userId) {
                     body: JSON.stringify(d1)
                 };
                 const response1 = await fetch('/storeGeolocation', options1);
-                json = await response1.json();
+                const json = await response1.json();
             });
-        } else console.log('geolocation not available'); //location access is not allowed
-    }
+        }
+    }, 2000);
 }
 
 
-
+//function to validate email
+function validateEmail(email) {
+    const alert = document.getElementById('emailAlert'); //to display error messages
+    //check if it's null
+    if (email == null || email == '') { //email is empty
+        alert.innerHTML = "Please input your paypal information."; //display error message
+        return false;
+    }
+    //check email length
+    if (email.length > 320) { //email is too long
+        alert.innerHTML = "Email is too long!"; //display error message
+        return false;
+    }
+    //email format should follow something@something.something... 
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //email regex. source: https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+    if (!re.test(String(email).toLowerCase())) { //if email is not valid
+        alert.innerHTML = 'Invalid email address!'; //display error message
+        return false;
+    }
+    return true; //email is valid
+}
 
 //function to hide all request-related elements on the page 
 //remove all events from buttons by cloning and replacing them
 function hideAllElements() {
     //hide all request-relate elements
     buttonsDiv.style.display = "none";
-    requestForm.style.display = "none";
     requestDiv.style.display = "none";
     cancelButton.style.display = "none";
     acceptButton.style.display = "none";
@@ -509,8 +584,9 @@ function hideAllElements() {
     oldPay.parentNode.replaceChild(pay, oldPay);
 
     //if there's an available request and it got canceled, hide the prompt
-    document.getElementById("windowPromptAvaReq").style.display = "none"; //hide window prompt
+    document.getElementById("windowPromptAvaReq").style.height = "0";
     document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+  //  setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
 }
 
 //function to set innerHTML of requestText element depending on the status of the request
@@ -519,19 +595,34 @@ function setText(status, userIsRequester, request) {
     //set text depending on the request's status
     switch (status) {
         case 'issued':
-            text = "Searching for providers...";
+            text = "Searching for providers..." + "<br /><br />";
+            text += "<b>Requested charge amount: </b>" + request.amount + " kWh";
             break;
         case 'matched':
-            text = "Contacting nearby providers...";
+            text = "Contacting nearby providers..." + "<br /><br />";
+            text += "<b>Requested charge amount: </b>" + request.amount + " kWh";
             break;
         case 'pending':
-            if (userIsRequester) text = "A provider had accepted your charge request. <br> provider: " + request.match.provider + "<br>estimated price: "
-                + request.match.estAmount + "<br> location: " + request.match.location;
-            else text = "Waiting for the confirmation...";
+            if (userIsRequester) text = "A provider had accepted your charge request." + "<br /><br />";
+            else text = "Waiting for the confirmation..." + "<br /><br />";
+            text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
+            text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
+            text += "<b>Meet-up location: </b><br />";
+            text += '<img src="./img/location-' + request.match.location + '.png" width="100%"><br />';
             break;
         case 'accepted':
-            if (userIsRequester) text = "Provider is on their way...";
-            else text = "Go to meet-up location...";
+            if (userIsRequester) {
+                text = "Provider is on their way..." + "<br /><br />";
+                text += "<b>Provider's car: </b>" + request.match.car.color + ' ' + request.match.car.brand + ' ' + request.match.car.model + ". Plate number: " + request.match.car.licenseNumber + "<br />";
+            }
+            else {
+                text = "Go to meet-up location..." + "<br /><br />";
+                text += "<b>Requester's car: </b>" + request.requester.car.color + ' ' + request.requester.car.brand + ' ' + request.requester.car.model + ". Plate number: " + request.requester.car.licenseNumber + "<br />";
+            }
+            text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
+            //text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
+            text += "<b>Meet-up location: </b><br />";
+            text += '<img src="./img/location-' + request.match.location + '.png" width="100%"><br />';
             break;
         case 'completed':
             text = "Finalizing Request..";
@@ -547,13 +638,15 @@ async function readyForDone(userId, user, userIsRequester, request) {
     //pay.addEventListener("click", async function () {
     //    //if consumer had clicked done                                                                             ///////////////////////////////////////////////////////???????    delete?
     //    localStorage.setItem("reqid", user.requestRef.id);
-    //    window.location.replace('../payment');
+    //    window.location.assign('../payment');
     //});
+
+    if (user.activeRequest.completed != null) return; //user already clicked the done button
 
     //create and set a 'done' button
     var done = document.createElement("button");
     done.innerHTML = "<b>Done</b>";
-    div.appendChild(done);//show done button
+    requestDiv.appendChild(done);//show done button
 
     //add event listener to the 'done' button.. user has completed the request, send update to the server
     done.addEventListener("click", async function () {
@@ -563,7 +656,7 @@ async function readyForDone(userId, user, userIsRequester, request) {
         userIsRequester ? user2Id = request.match.provider : user2Id = request.requester.uid;
 
         //send users and request IDs to the server
-        const d = { userId, user2Id, requestId: user.activeRequest.id };
+        const d = { userId, user2Id, userIsRequester, requestId: user.activeRequest.id };
         const options = {
             method: 'POST',
             headers: {
@@ -575,75 +668,9 @@ async function readyForDone(userId, user, userIsRequester, request) {
         const j4 = await response.json();
         console.log(j4);
 
+        done.style.display = "none";
         //const Done = Date.now();//this now calculate only the time until the user clicks done not when the request is complete
         //const time = Done - inProgress;//have to fix this                                                                  ///////////////////////////////////////////////////////???????    what's the point? delete?
         //console.log("Time to complete =" + time);
     });
-}
-
-
-
-
-
-
-
-
-
-//calculate needed charge given distance         
-function calculate() {                                                         //Not sure how to comment because we should add a map first  ......................          ///////////////////////////////////////////////////////???????
-    document.getElementById("amount").value = '';
-    let input = prompt("Travel Distance (km):");
-    let distance = parseInt(input);
-    let currentEnergy = sliderOutput; //from Request
-    let totalNeededEnergy = distance * consumption;
-    let energyNeeded = Math.round((totalNeededEnergy - currentEnergy) * 10) / 10;
-
-    if (energyNeeded <= 0) {
-        alert("You need " + totalNeededEnergy + " kWh to Reach that destination. You already have enough charge!");
-        return;
-    }
-    document.getElementById("amount").value = energyNeeded;
-}
-
-
-//user requested charge, submit button was clicked
-async function submitRequest() {
-    let userId = firebase.auth().currentUser.uid;
-
-    //get request information
-    let currentEnergy = sliderOutput; //current energy set by user in the slider range
-    let neededEnergy = document.getElementById("amount").value; // needed energy amount inputted by user
-
-    //prevent request if an input is invalid
-    if (neededEnergy == '') { //needed energy field is empty
-        alert("Please fill all fields first!"); return;
-    }
-    if (neededEnergy == 0) { //needed energy = 0
-        alert("You can't request 0 kWh"); return;
-    }
-    //if (neededEnergy > (batteryCapacity - currentEnergy)) { //needed energy exceeds battery size
-    //    alert("Amount too big"); return;
-    //}
-
-    //calculate state of charge % and max distance user can take
-    let currentSoC = Math.round(((currentEnergy / batteryCapacity) * 10) * 10) / 10; //current SoC %
-    let maxDistance = Math.round((currentEnergy / consumption) * 100) / 100; //max distance(km) requester can travel
-
-    //confirm request before continuing
-    if (!confirm("You're about to request " + neededEnergy + " kWh. Continue?")) return; 
-
-    //send request information to the server to submit the request
-    reqStart = new Date().toString();
-    const data = { userId, neededEnergy, reqStart, currentEnergy, currentSoC, maxDistance, carBrand, carModel, carColor, carNum };
-    const options = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    };
-    const response = await fetch('/submitRequest', options);
-    const json = await response.json();
-
-    
-    alert("Your Request has Been Made!"); 
-    document.getElementById("amount").value = '';
 }

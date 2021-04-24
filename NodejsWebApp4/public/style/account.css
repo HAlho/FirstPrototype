@@ -1,21 +1,10 @@
-* {
-    padding: 0;
-    margin: 0;
-    font-family: 'Segoe UI';
-    overflow: hidden;
-}
-
-body {
-    background: #A0D8DC;
-}
-
 hr {
     border: 0;
     border-top: 1px solid #ddd;
 }
 
 p {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
 }
 
@@ -33,12 +22,6 @@ button {
     border: none;
 }
 
-.logout {
-    color: red;
-    font-weight: bold;
-    margin: 20px 0 0 35px;
-}
-
 .userInfo { 
     margin-left: 8%;
     margin-top: 5%;
@@ -51,12 +34,13 @@ button {
     font-weight: bold;
     text-decoration: none;
     float: right;
+    font-size:13px;
 }
 
 .container {
     position: absolute;
     bottom: 0;
-    height: 75%;
+    height: 73%;
     width: 100%;
     border-radius: 35px 35px 0px 0px;
     background-color: white;
@@ -80,12 +64,13 @@ button {
         color: black;
         padding: 5px;
         text-decoration: none;
+        line-height:27px;
     }
     .accountMenu table {
         width: 89%;
         margin: 5px;
         display: inline-table;
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 600;
     }
 
@@ -101,7 +86,7 @@ button {
 .creditScore .target {
     stroke-dasharray: 0px 367px;
     stroke-dashoffset: 0%;
-    stroke: #6dbec3;
+    stroke: #5bbfc5;
 }
 
 .creditScore .background {
@@ -117,10 +102,10 @@ svg path {
 #creditScoreVal {
     position: absolute;
     width: 100%;
-    top: 40%;
+    top: 47%;
     left: 0;
     font-size: 25px;
-    color: #6dbec3;
+    color: #5bbfc5;
 }
 
 
@@ -139,7 +124,7 @@ svg path {
 
     .unitPriceContainer h1 {
         display: inline;
-        color: #6dbec3;
+        color: #5bbfc5;
         font-size: 28px;
         line-height: 25px;
         padding: 5px;

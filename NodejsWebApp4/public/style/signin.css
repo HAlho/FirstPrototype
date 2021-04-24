@@ -1,16 +1,6 @@
-* {
-    padding: 0;
-    margin: 0;
-    font-family: "Lucida Console";
-}
-
 small {
     background: white;
     color: red;
-}
-
-body {
-    background: #A0D8DC;
 }
 
 h2 {

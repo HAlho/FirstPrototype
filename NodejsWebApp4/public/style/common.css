@@ -1,12 +1,21 @@
-body {
+/*
+    Colors:
+    - Blue: #5bbfc5       (used for: buttons, etc.)
+    - Light blue: #99d9d8 (used for: inactive buttons, backgrounds, etc.)
+    - Red: #f23c3c        (used for: logout, decline, etc.)
+    - Light red: #f08066  (used for: busy status, etc.)
+    - Yellow: #f2de70
+*/
+
+* {
     padding: 0;
     margin: 0;
     font-family: 'Segoe UI';
-    overflow: hidden; /* No scrolling*/
+    overflow:hidden;
 }
 
-a {
-    text-decoration: none;
+body {
+    overflow: hidden; /* No scrolling*/
 }
 
 i {
@@ -15,12 +24,66 @@ i {
     color: darkgray;
 }
 
+a {
+    text-decoration: none;
+}
+
+h3 {
+    font-size:22px;
+}
+
+.link {
+    font-weight: bold;
+    font-size: 15px;
+    color: #4294a2;
+}
+
+.noInformation {
+    margin: auto;
+    margin-top: 60%;
+    width: max-content;
+    font-size: 14px;
+    color: #777;
+}
+
+.background { /*for pages with a background*/
+    background: #99d9d8;
+}
+
+/*dim background*/
+.dimContent {
+    z-index: -50;
+    position: fixed;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background-color: black;
+    opacity: 0;
+}
+
+.dimVisible { /*make dim background visible*/
+    z-index: 50;
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in;
+}
+
+
+
+/*elements at the top of the page*/
+.pageName { /*page title*/
+    margin: 12px 0 30px 0;
+    width: auto;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
 .back {
     position: absolute;
     left: 0px;
     width: auto;
     margin: 16px 0 0 12px;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
     color: black;
 }
@@ -30,24 +93,27 @@ i {
     right: 0px;
     width: auto;
     margin: 16px 12px 0 0;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
-    color: #6dbec3;
+    color: #5bbfc5;
     text-align: right;
 }
 
-.disabled {
-    color: #bbb;
+.disabled { /*text of disabled buttons*/
+    color: #aaa;
 }
 
-.pageName { /*page title*/
-    margin: 12px 0 30px 0;
-    width: auto;
-    text-align: center;
+
+
+
+
+.logout { /*logout and red-text buttons*/
+    color: #f23c3c;
     font-weight: bold;
     font-size: 15px;
+    margin: 20px 0 0 35px;
+   
 }
-
 
 /*Main menu elements*/
 .mainMenu {
@@ -64,11 +130,8 @@ i {
 
     .mainMenu table {
         text-align: center;
-        font-size:13.5px;
+        font-size: 15px;
     }
-
-
-
 
 .circle {
     height: 55px;
@@ -77,21 +140,22 @@ i {
     margin: 20px 25px 0 25px;
     padding-left: 10px;
     padding-right: 10px;
-    background-color: #afe3e2;
+    background-color: #99d9d8;
     border: none;
     border-radius: 40px;
     cursor: pointer;
 }
 
 .active {
-    background-color: #6dbec3;
+    background-color: #5bbfc5;
 }
 
 
 
-/*status*/
+
+/*status menu*/
 .statusMenu {
-    display:none;
+    display: none;
     z-index: 100;
     width: 180px;
     height: 100px;
@@ -105,7 +169,7 @@ i {
     left: 4%;
     bottom: 23%;
     font-size: 16px;
-    text-align:left;
+    text-align: left;
 }
 
     .statusMenu a {
@@ -125,12 +189,11 @@ i {
     bottom: -25px;
 }
 
-
 .statusCircle {
     height: 30px;
     width: 30px;
     margin: 10px;
-    background-color: #A0D8DC;
+    background-color: #99d9d8;
     border: none;
     border-radius: 40px;
     cursor: pointer;
@@ -142,36 +205,20 @@ i {
 
 
 
-.dimContent {
-    z-index: -50;
-    position: fixed;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    background-color: black;
-    opacity: 0;
-}
 
-.dimVisible {
-    z-index: 50;
-    opacity: 0.5;
-    transition: opacity 0.2s ease-in;
-}
-
-
-
+/*window prompt elements*/
 .windowPrompt {
     display: none;
     z-index: 100;
     position: absolute;
     margin: auto;
-    width: 55%;
+    width: 60%;
     height: auto;
     background-color: #fff;
     left: 50%;
     transform: translate(-50%, 0%);
     top: 30%;
-    padding: 20px 25px 55px 25px;
+    padding: 25px 20px 60px 20px;
     border-radius: 20px;
 }
 
@@ -181,11 +228,19 @@ i {
         text-align: center;
     }
 
-    .windowPrompt input {
+    .windowPrompt select {
+        height: 35px;
+        border: 0px;
+        border-bottom: 1px solid #888;
+        background-color: white;
+        color: #444;
+    }
+
+    .windowPrompt input, select {
         display: block;
         width: 80%;
         line-height: 25px;
-        margin: 15px auto 30px auto;
+        margin: 5px auto 30px auto;
         border: 1px solid #b5b5b5;
         color: #444;
         padding-left: 10px;
@@ -196,9 +251,10 @@ i {
         right: 0;
         width: 70px;
         padding: 3px 10px 3px 10px;
-        color: #6dbec3;
-        font-weight: bold;
         margin: 5px 15px 12px 15px;
+        color: #5bbfc5;
+        font-weight: bold;
+        font-size: 15px;
         text-align: center;
         background-color: transparent;
         border: none;
@@ -211,10 +267,18 @@ i {
     }
 
     .windowPrompt .close {
-        padding: 5px;
         margin: 5px;
-        top: 0;
-        left: 0;
+        right: 27%;
+        color: #f08066;
     }
 
+    .windowPrompt small {
+        color: red;
+        text-align: center;
+        display: block;
+        font-size: 12px;
+    }
 
+    .windowPrompt .info {
+        font-size: 12px;
+    }

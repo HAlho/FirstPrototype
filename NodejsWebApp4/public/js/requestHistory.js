@@ -72,21 +72,23 @@ firebase.auth().onAuthStateChanged(async function (user) {
         if (allDiv.innerHTML == "") { //allDiv is empty
             let text = document.createElement('p');
             text.innerHTML = "No requests to show.";
-            text.classList.add('noRequests');
+            text.classList.add('noInformation');
             allDiv.appendChild(text);
-        }
+        } else allDiv.lastElementChild.style.marginBottom = "200px";
+
         if (requestedDiv.innerHTML == "") { //requestedDiv is empty
             let text = document.createElement('p');
             text.innerHTML = "You have not made any charge requests yet.";
-            text.classList.add('noRequests');
+            text.classList.add('noInformation');
             requestedDiv.appendChild(text);
-        }
+        } else requestedDiv.lastElementChild.style.marginBottom = "200px";
+
         if (acceptedDiv.innerHTML == "") { //acceptedDiv is empty
             let text = document.createElement('p');
             text.innerHTML = "You have not accepted any requests yet.";
-            text.classList.add('noRequests');
+            text.classList.add('noInformation');
             acceptedDiv.appendChild(text);
-        }
+        } else acceptedDiv.lastElementChild.style.marginBottom = "200px";
 
     } else window.location.assign('../mainpage'); //forward user to the welcome page
 });

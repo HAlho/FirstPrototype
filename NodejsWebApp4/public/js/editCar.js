@@ -29,8 +29,9 @@ firebase.auth().onAuthStateChanged(async function (user) {
         console.log(carId + " " + currentCarId);
         if (carId != currentCarId) document.getElementById("makeCurrentCar").style.display = "inline-block";
 
-    } else window.location.assign('../');
+    } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
+
 async function makeCurrentCar() {
     const userId = firebase.auth().currentUser.uid;
 
@@ -47,7 +48,7 @@ async function makeCurrentCar() {
     const response = await fetch('/currentCar', options);
     const json = await response.json();
     console.log(json);
-    window.location.replace('../viewCars');
+    window.location.assign('../viewCars');
 
 }
 
@@ -68,7 +69,7 @@ async function submit() {
     const json = await response.json();
     console.log(json);
 
-    window.location.replace('../viewCars');
+    window.location.assign('../viewCars');
 
 }
 
@@ -89,5 +90,5 @@ async function deleteCar() {
     console.log(json);
 
     if (currentCarId == carId) window.location.replace('../carSelect');
-    else window.location.replace('../viewCars');
+    else window.location.assign('../viewCars');
 }

@@ -1,4 +1,7 @@
 // JavaScript source code
+const UNITPRICE = 0.37;
+const CREDITSCORE = 100;
+
 const path = require('path');
 const express = require('express');
 const router = express.Router();
@@ -6,10 +9,6 @@ const { admin } = require('./firebaseConfig.js');
 
 const fs = require('fs');
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
-const { fork } = require('child_process');
-const maxProc = 2;
-var numProc = 0;//number of running child processes
-//const messaging = require('firebase/messaging');
 
 //database reference
 var db = admin.database();
@@ -26,6 +25,7 @@ let client = new paypal.core.PayPalHttpClient(environment);
 
 router.use(express.json({ limit: '1mb' }));
 
+// Function to direct the client to profile.html
 router.get('/profile', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
 });
@@ -49,9 +49,12 @@ router.post('/debugAccount', async (request, response) => {
         if (snapshot.val() == null) { //if request doesn't exist, remove it from the user's account
             db.ref('users/' + userId + '/activeRequest').remove();
             db.ref('users/' + userId).update({ status: 'Available' });
-        } else if (user.status != 'Busy') //if request exists but user's status is not 'Busy', change it to 'Busy'
-            db.ref('users/' + userId).update({ status: 'Busy' });
-    } else if (user.status == 'Busy')  //if request doesn't exist but user's status is 'Busy', change status to 'Available'
+        } else if (user.status != 'Busy' || user.status != 'Pay') {//if request exists but user's status is not 'Busy' or 'Pay', change it to 'Busy' or 'Pay'
+            if (user.activeRequest.completed == null)
+                db.ref('users/' + userId).update({ status: 'Busy' });
+            else db.ref('users/' + userId).update({ status: 'Pay' });
+        }
+    } else if (user.status == 'Busy' || user.status == 'Pay')  //if request doesn't exist but user's status is 'Busy', change status to 'Available'
         db.ref('users/' + userId).update({ status: 'Available' });
 
     //errors regarding matched requests
@@ -68,7 +71,8 @@ router.post('/debugAccount', async (request, response) => {
 
     //if user's current car doesn't exist
     if (user.currentCar != null) { //user has a current car, check if it exists
-        if (user.cars[user.currentCar] == null) //if car doesn't exist, remove 'currentCar'
+        if (user.cars == null) db.ref('users/' + userId + '/currentCar').remove(); //user doesn't have any registered cars. remove 'currentCar'
+        else if (user.cars[user.currentCar] == null) //if car doesn't exist, remove 'currentCar'
             db.ref('users/' + userId + '/currentCar').remove();
     }
 
@@ -76,16 +80,13 @@ router.post('/debugAccount', async (request, response) => {
     if (user.status == null) db.ref('users/' + userId).update({ status: 'Available' });
 
     //if user credit score is null
-    if (user.creditScore == null) db.ref('users/' + userId).update({ creditScore: 100 });
+    if (user.creditScore == null) db.ref('users/' + userId).update({ creditScore: CREDITSCORE });
 
     //if user unit price is null
-    if (user.unitPrice == null) db.ref('users/' + userId).update({ unitPrice: 0.37 });
-
+    if (user.unitPrice == null) db.ref('users/' + userId).update({ unitPrice: UNITPRICE });
 
     //set and send response
-    response.json({
-        status: "success"
-    });
+    response.json({ status: "success" });
 });
 
 
@@ -169,6 +170,42 @@ router.post('/getCurrentCar', async (request, response) => {
 });
 
 
+//get user cards information from the db and send it to the client
+router.post('/getCards', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId;
+
+    //get user cards info from the database
+    var snapshot = await db.ref('users/' + userId + '/payment').once('value');
+    var cards = snapshot.val();
+
+    // send user cards to client
+    response.json({
+        status: "success",
+        cards: cards
+    });
+});
+
+
+// Function to save the user's card information
+router.post('/saveCard', async (request, response) => {
+    //get information from the client
+    const userId = request.body.userId;
+    const email = request.body.paypal;
+
+    //add the card information to the database
+    await db.ref('users/' + userId + '/payment').push().set({
+        email: email
+    });
+
+    //send response to client
+    response.json({
+        status: "success"
+    });
+});
+
+
+
 router.post('/addToken', async (request, response) => {                                                             ///////////////////////////////////////////////////////???????
     //get client request info
     const userId = request.body.userId; //user ID
@@ -224,79 +261,6 @@ router.post('/getActiveRequest', async (request, response) => {
     });
 });
 
-//submit a new request
-router.post('/submitRequest', async (request, response) => {
-    //get client request info
-    const data = request.body; //data = { userId, neededEnergy, reqStart, currentEnergy, currentSoC, maxDistance, carBrand, carModel, carColor, carNum }
-
-    var newReq = db.ref('activeRequests/issued').push(); //create reference to a new request
-    //set requet information in the database
-    newReq.set({
-        amount: data.neededEnergy,
-        timestamp: data.reqStart,
-        requester: {
-            uid: data.userId,
-            currentEnergy: data.currentEnergy,
-            currentSoC: data.currentSoC,
-            maxDistance: data.maxDistance,
-            car: { brand: data.carBrand, model: data.carModel, color: data.carColor, licenseNumber: data.carNum }
-        }
-    }).then(() => {
-        db.ref('users/' + data.userId).child('activeRequest').set({ id: newReq.key, dbref: 'issued', role: 'requester' }); //save request info under user information
-        db.ref('users/' + data.userId).update({ status: 'Busy' }); //set user status to 'busy'
-    })
-
-    //send response to client
-    response.json({
-        status: "success"
-    });
-
- 
-    fs.readFile('procInfo.txt', "utf8", (err, data) => {
-        var lines = data.split('\n');
-        //check the number of processes running then excute code
-        if (lines.length < maxProc) {
-        const compute = fork('helper.js'); //create child process that runs helper.js
-        //top stack
-        fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
-            if (err) return console.log(err);
-        });
-        compute.send({ pid: compute.pid });//send to the child process
-        compute.on('message', sum => {//get the value from the child process
-            console.log("result is: " + sum);
-            compute.kill();
-            //pop stack
-            var newData;
-            fs.readFile('procInfo.txt', "utf8", (err, data) => {
-                if (err) throw err;
-                // break the textblock into an array of lines
-                var lines = data.split('\n');
-                // remove one line, starting at the first position. Unlike slice, splice return the removed Items
-                lines.splice(0, 1);
-                // join the array back into a single string
-                newData = lines.join('\n');
-                fs.writeFile('procInfo.txt', newData, function (err) {
-                    if (err) return console.log(err);
-                });
-            });
-
-
-        });
-    } else {//create a thread and let it check for available slots
-        const worker = new Worker("./wait.js", { //create a new thread that runs helper.js
-            workerData: { //pass the variables here
-                n: 15,
-                uid: data.userId
-            }
-        });
-
-        worker.postMessage(worker.threadId);
-        worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
-        }
-    });
-
-});
-
 
 //cancel an active request 
     //if the person canceling is the requester, the request will have to be completely removed from activeRequests
@@ -305,87 +269,138 @@ router.post('/cancelRequest', async (request, response) => {
     //get client request info
     const userId = request.body.userId; //user ID
     const userIsRequester = request.body.userIsRequester; //true if user is requester
-    const requestStatus = request.body.requestRef.dbref; //request status (also dbref)
     const requestId = request.body.requestRef.id; //request ID
-    const req = request.body.req; //request information
+    var snapshot = await db.ref('users/' + userId + '/activeRequest').once('value');
+    var reqStatus = snapshot.val();
+    var requestStatus = reqStatus.dbref;//request status (also dbref)
+    var snapshot = await db.ref('activeRequests/' + requestStatus + '/' + requestId).once('value');
+    var req = snapshot.val();//request information
 
-    var newRef = db.ref('previousRequests/' + userId + '/' + requestId); //path to move the request to the user's history
-    var newRef2, user2Id; //get user ID and the request's path for the second user
-    if (requestStatus != 'issued' && requestStatus != 'matched') { //get second user's info
-        userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
-        newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
-    }
+    
+    var wait = false;
+    var check = false;
+    var allowed = false;
+    var interval = setInterval(async () => {
+       
+        if (!allowed) {
+            //check if the user data is changed in helper.js
+            fs.readFile('cancelQueue.txt', "utf8", (err, data) => {
 
+                if (err) throw err;
+                // break the textblock into an array of lines
+                var lines = data.split('\n');
+                for (i = 0; i < lines.length; i++) {
+                    //if user is not there
+                    if (lines[i] != userId) {
+                        check = false;
+                    }
+                    else {//if user is there
+                        wait = true;
+                        check = true;
+                        break;
+                    }
+                }
+                allowed = !(check);
+            });
+        }
+        if (allowed) {
+            //to excute this block once
+            clearInterval(interval);
 
-    //clear request information from the user's account
-    db.ref('users/' + userId + '/activeRequest').remove();
-    db.ref('users/' + userId).update({ status: "Available" });
+            //indicate user data will be changed (for helper.js)
+            fs.writeFileSync('./cancelQueue.txt', userId);        
 
-    //get the request's path for the user
-    var oldRef;
-    switch (requestStatus) { //get the request's path (activeRequests/dbref/requestID) and clear second user's account if needed
-        case 'issued':
-            oldRef = db.ref('activeRequests/issued/' + requestId); //get the request's path
-            break;
-        case 'matched':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/matchedReq').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
+            //if have waited once, must update the requet information
+            if (wait) {
+                //check request again
+                var snapshot = await db.ref('users/' + userId + '/activeRequest').once('value');
+                var reqStatus = snapshot.val();
+                requestStatus = reqStatus.dbref;
+                var snapshot = await db.ref('activeRequests/' + requestStatus + '/' + requestId).once('value');
+                req = snapshot.val();
+
             }
-            oldRef = db.ref('activeRequests/matched/' + requestId); //get the request's path
-            break;
-        case 'pending':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/activeRequest').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
+
+            var newRef = db.ref('previousRequests/' + userId + '/' + requestId); //path to move the request to the user's history
+            var newRef2, user2Id; //get user ID and the request's path for the second user
+            if (requestStatus != 'issued') { //get second user's info
+                userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
+                newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
             }
-            oldRef = db.ref('activeRequests/pending/' + requestId); //get the request's path
-            break;
-        case 'accepted':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/activeRequest').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
-            } 
-            oldRef = db.ref('activeRequests/accepted/' + requestId); //get the request's path
-            break;
-        case 'completed':
-            if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
-                db.ref('users/' + user2Id + '/activeRequest').remove();
-                db.ref('users/' + user2Id).update({ status: "Available" });
+
+            //clear request information from the user's account
+            db.ref('users/' + userId + '/activeRequest').remove();
+            db.ref('users/' + userId).update({ status: "Available" });
+
+            //get the request's path for the user
+            var oldRef;
+            switch (requestStatus) { //get the request's path (activeRequests/dbref/requestID) and clear second user's account if needed
+                case 'issued':
+                    oldRef = db.ref('activeRequests/issued/' + requestId); //get the request's path
+                    break;
+                case 'matched':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        db.ref('users/' + user2Id + '/matchedReq').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/matched/' + requestId); //get the request's path
+                    break;
+                case 'pending':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        db.ref('users/' + user2Id + '/activeRequest').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/pending/' + requestId); //get the request's path
+                    break;
+                case 'accepted':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        db.ref('users/' + user2Id + '/activeRequest').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/accepted/' + requestId); //get the request's path
+                    break;
+                case 'completed':
+                    if (userIsRequester) { //if requester cancelled the request, clear request information from the provider's account
+                        db.ref('users/' + user2Id + '/activeRequest').remove();
+                        db.ref('users/' + user2Id).update({ status: "Available" });
+                    }
+                    oldRef = db.ref('activeRequests/completed/' + requestId); //get the request's path
+                    break;
             }
-            oldRef = db.ref('activeRequests/completed/' + requestId); //get the request's path
-            break;
-    }
 
 
-    //move request to the user(s) history 
-    if (userIsRequester) { //user is the requester
-        oldRef.update({ 'status': "canceled" }); //change status to canceled
+            //move request to the user(s) history 
+            if (userIsRequester) { //user is the requester
+                oldRef.update({ 'status': "canceled" }); //change status to canceled
+                //copy request to provider's history
+                if (requestStatus != 'issued' && requestStatus != 'matched')
+                    copyFirebaseObject(oldRef, newRef2);
 
-        //copy request to provider's history
-        if (requestStatus != 'issued' && requestStatus != 'matched')
-            copyFirebaseObject(oldRef, newRef2);
+                //copy request to consumer's history then delete if from active requests
+                moveFirebaseObject(oldRef, newRef);
+            } else { //user is the provider
+                //copy request information to the provider's history
+                copyFirebaseObject(oldRef, newRef);
+                newRef.update({ 'status': "canceled" });
 
-        //copy request to consumer's history then delete if from active requests
-        moveFirebaseObject(oldRef, newRef);
-    } else { //user is the provider
-        //copy request information to the provider's history
-        copyFirebaseObject(oldRef, newRef);
-        newRef.update({ 'status': "canceled" });
+                //remove the provider from the request then  move the request back to activeRequests/issued
+                oldRef.child('match').remove();
+                issuedRef = db.ref('activeRequests/issued/' + requestId);
+                moveFirebaseObject(oldRef, issuedRef);
 
-        //remove the provider from the request then  move the request back to activeRequests/issued
-        oldRef.child('match').remove();
-        issuedRef = db.ref('activeRequests/issued/' + requestId);
-        moveFirebaseObject(oldRef, issuedRef);
+                //update active request info of the consumer
+                db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "issued" });
+            }
 
-        //update active request info of the consumer
-        db.ref('users/' + user2Id + '/activeRequest').update({ dbref: "issued" });
-    }
+            fs.writeFileSync('./cancelQueue.txt', '');
 
-    //send response to client
-    response.json({
-        status: "success",
-    });
+            //send response to client
+            response.json({
+                status: "success",
+            });
+        }
+
+    }, 2000);
 });
 
 
@@ -428,11 +443,18 @@ router.post('/matchAccept', async (request, response) => {
     const requesterId = request.body.reqId; //other user ID (the consumer)
     const requestId = request.body.requestId; //request ID
     const paypal = request.body.paypal; //user's paypal
+    const car = request.body.car;
 
-    //move request from 'activeRequests/matched' to 'activeRequests/pending'
-    var oldRef = db.ref("activeRequests/matched/" + requestId);
+    var oldRef = db.ref("activeRequests/matched/" + requestId); //the request's current path
+
+    //add the provider's paypal to the request
+    oldRef.child('match').update({ paypal: paypal, car: car });
+
+        //move request from 'activeRequests/matched' to 'activeRequests/pending'
     var newRef = db.ref("activeRequests/pending/" + requestId);
     moveFirebaseObject(oldRef, newRef);
+
+
 
     //set the provider's activeRequest info in the database and update status
     db.ref('users/' + userId).child("activeRequest").set({ id: requestId, dbref: 'pending', role: 'provider', paypal: paypal });
@@ -516,36 +538,41 @@ router.post('/requestComplete', async (request, response) => {
     //get client request info
     const userId = request.body.userId; //user ID
     const user2Id = request.body.user2Id; //second user's ID 
+    const userIsRequester = request.body.userIsRequester; //true if the user is the requester
     const requestId = request.body.requestId; //request ID
+
+    //updated the user's activeRequest to note this change
+    db.ref('users/' + userId).child("activeRequest").update({ completed: "true" });
 
     //check if the second user clicked the 'done' button
     var snapshot = await db.ref('users/' + user2Id + '/activeRequest').once('value'); //get user 2 activeRequest info
 
-    if (snapshot.val().completed != null) { //second user clicked 'done'
-        //both users pressed 'done', remove request from activeRequests directory
+    if (snapshot.val().completed != null) { //both users clicked 'done'
+        //both users pressed 'done', copy request to the provider's history
+        let providerId, requesterId;
+        userIsRequester ? (requesterId = userId, providerId = user2Id) : (requesterId = user2Id, providerId = userId)
+
+        //update request status to 'completed'
         var oldRef = db.ref('activeRequests/completed/' + requestId); //path to request
         oldRef.update({ 'status': "completed" }); //request was completed
 
-        //get paths to both users' previousRequests directory then move request info there
-        var newRef1 = db.ref('previousRequests/' + userId + '/' + requestId);
-        var newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId);
-        copyFirebaseObject(oldRef, newRef1); //copy request to user 1 previousRequests
-        moveFirebaseObject(oldRef, newRef2); //copy request to user 2 previousRequests  then remove it from activeRequests
 
-        //update users' information
-        db.ref('users/' + userId + '/activeRequest').remove();//delete from the current user
-        db.ref('users/' + user2Id + '/activeRequest').remove();//delete from the other user
-        db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
-        db.ref('users/' + user2Id).update({ status: 'Available' }); //set status to available
+        //add request to the provider's history
+        var newRef = db.ref('previousRequests/' + providerId + '/' + requestId);
+        copyFirebaseObject(oldRef, newRef); //copy request to user 1 previousRequests
+
+        //clear request from the provider's account
+        db.ref('users/' + providerId + '/activeRequest').remove();//delete from the other user
+        db.ref('users/' + providerId).update({ status: 'Available' }); //set status to available
+
+        //change consumer's status to pay
+        db.ref('users/' + requesterId).update({ status: 'Pay' }); //set status to available
 
     } else { //second user still didn't click 'done'
         //move request from 'activeRequests/accepted' to 'activeRequests/completed'
         var oldRef = db.ref('activeRequests/accepted/' + requestId); //current path
         var newRef = db.ref('activeRequests/completed/' + requestId); //desired path
         moveFirebaseObject(oldRef, newRef);
-
-        //updated the user's activeRequest to note this change
-        db.ref('users/' + userId).child("activeRequest").update({ completed: "true" });
 
         //change dbref for both users
         db.ref('users/' + userId).child("activeRequest").update({ dbref: "completed" });
@@ -560,20 +587,43 @@ router.post('/requestComplete', async (request, response) => {
 });
 
 
+//temperory payment function (for testing purposes)
+router.post('/tempPay', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId;
+    const requestId = request.body.requestId;
+
+
+    //move request to the consumer's history
+    //update request status to 'completed'
+    var oldRef = db.ref('activeRequests/completed/' + requestId); //path to request
+    var newRef = db.ref('previousRequests/' + userId + '/' + requestId);
+    moveFirebaseObject(oldRef, newRef); //copy request to user 1 previousRequests
+
+    //clear request from the consumer's account
+    db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
+    db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+
+    //user response
+    response.json({
+        status: "success",
+    });
+});
 
 
 router.post('/pay', async (request, response) => {                                                                                      ///////////////////////////////////////////////////////???????
     //get client request info
+    const userId = request.body.userId;
+    const requestId = request.body.requestId;
     const match = request.body.match; //match info
 
     var interval;
 
     var price = (match.estAmount * 0.27).toFixed(2);
-    snapshot = await db.ref('users/' + match.provider + '/activeRequest').once('value');
-    var provider = snapshot.val();
+    var paypalEmail = match.paypal;
 
     console.log("price: " + price);
-    console.log("paypal info: " + provider.paypal);
+    console.log("paypal info: " + paypalEmail);
 
     //paypal checkout sdk
 
@@ -583,8 +633,8 @@ router.post('/pay', async (request, response) => {                              
     paypalrequest.requestBody({
         "intent": "CAPTURE",
         "application_context": {
-            "return_url": "https://192.168.0.123:3000/profile",
-            "cancel_url": "https://192.168.0.123:3000/account"
+            "return_url": "https://192.168.0.191:3000/profile",
+            "cancel_url": "https://192.168.0.191:3000/account"
         },
         "purchase_units": [
             {
@@ -593,7 +643,7 @@ router.post('/pay', async (request, response) => {                              
                     "value": price
                 },
                 "payee": {
-                    "email_address": provider.paypal //email_address   uinfo.paypal   mobile_number phone_number
+                    "email_address": paypalEmail //email_address   uinfo.paypal   mobile_number phone_number
                 }
             }
         ]
@@ -604,8 +654,22 @@ router.post('/pay', async (request, response) => {                              
         request.requestBody({});
         // Call API with your client and get a response for your call
         let response = await client.execute(request);
-        if (response.result.status == "COMPLETED")
+        if (response.result.status == "COMPLETED") {
+            //move request to the consumer's history
+            var oldRef = db.ref('activeRequests/completed/' + requestId); //path to request
+            var newRef = db.ref('previousRequests/' + userId + '/' + requestId);
+            moveFirebaseObject(oldRef, newRef); //copy request to user 1 previousRequests
+
+            //clear request from the consumer's account
+            db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
+            db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+
             clearInterval(interval);//exit the interval
+
+            response.json({
+                status: "success",
+            });
+        }
         console.log(`Response: ${JSON.stringify(response)}`);
         // If call returns body in response, you can get the deserialized version from the result attribute of the response.
         console.log(`Capture: ${JSON.stringify(response.result)}`);
@@ -625,7 +689,7 @@ router.post('/pay', async (request, response) => {                              
                 interval = setInterval(() => {
                     try {
                         captureOrder(paypalresponse.result.id); //'REPLACE-WITH-APPROVED-ORDER-ID'
-
+                        console.log(paypalresponse.result.id);
                     } catch (e) {
                         console.log(e)
                     }
@@ -669,7 +733,13 @@ function copyFirebaseObject(oldRef, newRef) {
     });
 }
 
-//create a thread that runs manager.js
-const periodic = new Worker("./manager.js");                                                                    ///////////////////////////////////////////////////////???????       variable is not used/ delete?                                                    
+
+
+
+
+
+
+
+const periodic = new Worker("./manager.js");
 
 module.exports = router;

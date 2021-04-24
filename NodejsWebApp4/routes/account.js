@@ -9,6 +9,7 @@ var db = admin.database();
 
 router.use(express.json({ limit: '1mb' }));
 
+// Function to direct the client to account.html
 router.get('/account', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'account.html'));
 });
@@ -60,16 +61,41 @@ router.post('/setStat', (request, response) => {
     });
 });
 
-
+//update user unit price
 router.post('/updateUnitPrice', async (request, response) => { //add to recieve that post(endpoint)
-    const data = request.body;
-    db.ref('users/' + data.userId).update({ unitPrice: data.newUnitPrice });
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const newUnitPrice = request.body.newUnitPrice; //new status
 
+    //save changes to database
+    db.ref('users/' + userId).update({ unitPrice: newUnitPrice });
+
+    // send response to client
     response.json({
         status: "success"
     });
 });
 
 
+//update user's location
+router.post('/storeGeolocation', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const lat = request.body.lat; //user latitude
+    const lon = request.body.lon; //user longitude
+    const tim = request.body.tim; //time
+
+    //update user's location in the database
+    db.ref('users/' + userId + "/location/").set({
+        latitude: lat,
+        longitude: lon,
+        timestamp: tim
+    });
+
+    //send response to client
+    response.json({
+        status: "success"
+    });
+});
 
 module.exports = router;

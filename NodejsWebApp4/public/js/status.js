@@ -26,7 +26,6 @@ async function getStatus() {
 //display status menu when status button is clicked
 function openStatusMenu() {
     getStatus().then(status => {//once async function is done excute
-
         if (status == 'Busy') {
             //pop up
             alert('Your account is connected to a request. Your status is set to Busy by default. Cancel or reject request to change your status.');
@@ -35,11 +34,7 @@ function openStatusMenu() {
             document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
             setTimeout(function () { statusMenu.style.display = "block"; }, 250); //show menu
         }
-
     });
-
-
-
 }
 
 //hide status menu when screen is clicked
@@ -65,11 +60,11 @@ async function showStatus(status) {
     //update status icon depending on status
     switch (status) {
         case 'Available': //user is available
-            statusButton.style.background = "#afe3e2";
+            statusButton.style.background = "#99d9d8";
             statusButton.innerHTML = '<img src="./img/status-available.png" height="22">';
             break;
         case 'Do Not Disturb': //user is not available
-            statusButton.style.background = "#e74e4e";
+            statusButton.style.background = "#f08066";
             statusButton.innerHTML = '<img src="./img/status-busy.png" height="20">';
             break;
         default: //user has a request in progress

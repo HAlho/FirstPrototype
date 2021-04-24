@@ -6,25 +6,36 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Signup</title>
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/signup.css">
+    <style>
+        small {
+            background: white;
+            color: red;
+            text-align: center;
+        }
+
+        h6, a {
+            background: white;
+        }
+    </style>
 </head>
-<body>
-
+<body class="background">
+    <!-- HTML elements -->
     <section class="container">
-
+        <small id="alert"></small>
         <input type="text" id="displayName" name="name" placeholder="Name" />
-
         <input type="email" id="emailaddress" name="mail" placeholder="Email Address" required />
-
         <input type="password" id="password" name="password" placeholder="Password" required /><br>
 
         <button class="rectangle-1" id="signup">Signup</button>
-
+        <h6> Already have an account? <a href="./signin"> sign in </a></h6>
     </section>
-    <div class="feedbackContainer failure">
-        <div class="feedbackIcon"></div>
-        <p class="feedbackMessage">Signing up failed</p>
-    </div>
+    <!-- Page ends here -->
+
+
+
+
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
@@ -39,23 +50,12 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
 
-    <script>
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        var firebaseConfig = {
-            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
-            authDomain: "auth-c0cb3.firebaseapp.com",
-            databaseURL: "https://auth-c0cb3.firebaseio.com",
-            projectId: "auth-c0cb3",
-            storageBucket: "auth-c0cb3.appspot.com",
-            messagingSenderId: "1034981325790",
-            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
-            measurementId: "G-1GCV52KFRG"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
+
+
+
+
 
     <script src="./js/signup.js"></script>
 </body>

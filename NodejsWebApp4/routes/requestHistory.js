@@ -9,6 +9,7 @@ var db = admin.database();
 
 router.use(express.json({ limit: '1mb' }));
 
+// Function to direct the client to requestHistory.html
 router.get('/requestHistory', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'requestHistory.html'));
 });

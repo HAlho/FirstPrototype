@@ -2,17 +2,17 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Account</title>
+    <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/account.css">
-    <link rel="stylesheet" href="./style/mainmenu.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body style="background-color:white;">
+    <!-- HTML elements -->
     <a href="../account" class="back">
         <i class="fa fa-angle-left" style="color:black;"></i>
         <small style="vertical-align:top; padding-top:5px;"> Back</small>
     </a>
     <div class="pageName">EDIT ACCOUNT</div>
-    <div style="width:30%; margin:auto;"><img src="./img/edit.svg" ></div>
 
     <div class="accountMenu">
         <a id="editName">
@@ -22,7 +22,7 @@
                     <td id="name" class="accountMenuText"></td>
                 </tr>
             </table>
-            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 5px;"></i>
         </a><hr />
         <a id="editEmail">
             <table>
@@ -31,7 +31,7 @@
                     <td id="email" class="accountMenuText"></td>
                 </tr>
             </table>
-            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em;padding-bottom: 5px;"></i>
         </a><hr />
         <a id="changePassword">
             <table>
@@ -39,7 +39,7 @@
                     <td style="width:80px;">Password</td>
                 </tr>
             </table>
-            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; position: absolute;padding-top: 11px;"></i>
+            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 5px;"></i>
         </a><hr />
     </div>
 
@@ -47,15 +47,15 @@
 
     <div id="windowPromptName" class="windowPrompt">
         <p>Name</p>
+        <small id="nameAlert"></small>
         <input type="text" id="nameInput">
         <button class="cancel" onclick="cancel()">cancel</button>
         <button onclick="editName()">ok</button>
     </div>
 
-
-
     <div id="windowPromptEmail" class="windowPrompt">
         <p>Email</p>
+        <small id="emailAlert"></small>
         <input type="text" id="emailInput">
         <button class="cancel" onclick="cancel()">cancel</button>
         <button onclick="editEmail()">ok</button>
@@ -63,15 +63,15 @@
 
     <div id="windowPromptEmailConfirm" class="windowPrompt">
         <p>Input your password to continue</p>
+        <small id="emailPasswordAlert"></small>
         <input type="password" id="emailConfirmInput">
         <button class="cancel" onclick="cancel()">cancel</button>
         <button onclick="editEmailConfirm()">ok</button>
     </div>
 
-
-
     <div id="windowPromptPassword" class="windowPrompt">
         <p>Current password</p>
+        <small id="currentPasswordAlert"></small>
         <input type="password" id="currentPasswordInput">
         <button class="cancel" onclick="cancel()">cancel</button>
         <button onclick="authenticateUser()">ok</button>
@@ -79,10 +79,17 @@
 
     <div id="windowPromptNewPassword" class="windowPrompt">
         <p>New password</p>
+        <small id="newPasswordAlert"></small>
         <input type="password" id="newPasswordInput">
         <button class="cancel" onclick="cancel()">cancel</button>
         <button onclick="updatePassword()">ok</button>
     </div>
+    <!-- Page ends here -->
+
+
+
+
+
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -97,27 +104,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
+
+
+
+
 
     <script>
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        var firebaseConfig = {
-            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
-            authDomain: "auth-c0cb3.firebaseapp.com",
-            databaseURL: "https://auth-c0cb3.firebaseio.com",
-            projectId: "auth-c0cb3",
-            storageBucket: "auth-c0cb3.appspot.com",
-            messagingSenderId: "1034981325790",
-            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
-            measurementId: "G-1GCV52KFRG"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
-
-    <script>
-
         // JavaScript source code
         var name, email;
 
@@ -139,6 +133,12 @@
             var prompts = document.getElementsByClassName("windowPrompt"); //gete all window prompts
             for (var i = 0; i < prompts.length; i++) prompts[i].style.display = 'none'; //hide all window prompts
             document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+            //clear any alerts
+            document.getElementById('nameAlert').innerHTML = '';
+            document.getElementById('emailAlert').innerHTML = '';
+            document.getElementById('emailPasswordAlert').innerHTML = '';
+            document.getElementById('currentPasswordAlert').innerHTML = '';
+            document.getElementById('newPasswordAlert').innerHTML = '';
         }
 
 
@@ -157,7 +157,7 @@
         //user clicked 'ok' after editing name. save name changes
         function editName() {
             let newName = document.getElementById("nameInput").value; //get edited name
-            if (newName != null && newName != '') { //name field is not empty, save changes
+            if (newName != null && newName != '' && validateName(newName)) { //name is valid, save changes
                 firebase.auth().currentUser.updateProfile({
                     displayName: newName
                 }).then(function () {
@@ -184,9 +184,9 @@
         //user clicked 'ok' after editing their email
         function editEmail() {
             let newEmail = document.getElementById("emailInput").value; //get new email address
-            if (newEmail != null && newEmail != '') { //field is not empty, authenticate user
+            if (newEmail != null && newEmail != '' && validateEmail(newEmail)) { //new email is valid, authenticate user
                 //hide email window prompt
-                document.getElementById("windowPromptEmail").style.display = "none"; 
+                document.getElementById("windowPromptEmail").style.display = "none";
 
                 //show password window prompt with id='windowPromptEmailConfirm'
                 document.getElementById("emailConfirmInput").value = '';
@@ -210,6 +210,7 @@
             }).catch(error => { //error authenticating the user
                 cancel(); //hide window prompt
                 console.error(error);
+                document.getElementById("emailPasswordAlert").innerHTML = 'Password is incorrect'; //show alert message if password is invalid
             })
         }
 
@@ -241,6 +242,7 @@
                     document.getElementById("windowPromptNewPassword").style.display = "block"; //show window prompt
                 }).catch(error => { //error authenticating the user
                     console.error(error);
+                    document.getElementById("currentPasswordAlert").innerHTML = 'Password is incorrect'; //show alert message if password is invalid
                 })
             }
         }
@@ -249,12 +251,85 @@
         function updatePassword() {
             let newPassword = document.getElementById("newPasswordInput").value; //get new password
 
-            if (newPassword != null && newPassword != '') { //field is not empty, save changes
+            if (newPassword != null && newPassword != '' && checkPassword(newPassword)) { //field is not empty, save changes
                 firebase.auth().currentUser.updatePassword(newPassword).then(function () {
                     location.reload(); //reload page
                 });
             }
         }
+
+
+
+
+        //function to validate email
+        function validateEmail(email) {
+            const alert = document.getElementById('emailAlert'); //to display error messages
+
+            //check email length
+            if (email.length > 320) { //email is too long
+                alert.innerHTML = "Email is too long!"; //display error message
+                return false;
+            }
+
+            //email format should follow something@something.something...
+            const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //email regex. source: https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+            if (!re.test(String(email).toLowerCase())) { //if email is not valid
+                alert.innerHTML = 'Invalid email address!'; //display error message
+                return false;
+            }
+
+            return true; //email is valid
+        }
+
+        //function to validate name
+        function validateName(name) {
+            const alert = document.getElementById('nameAlert');// to display error messages
+
+            //check name length
+            if (name.length < 3) { //if inputted name is too short
+                alert.innerHTML = "Name is too short!"; //display error message
+                return false;
+            }
+
+            if (name.length > 50) { //if inputted name is too long
+                alert.innerHTML = "Name is too long!"; //display error message
+                return false;
+            }
+
+            //check for invalid characters (valid name includes whitespaces and letters)
+            const re = /^[A-Za-z\s]+$/;
+            if (!re.test(name)) { //if name contains invalid characters
+                alert.innerHTML = 'Name contains invalid characters!'; //display error message
+                return false;
+            }
+
+            return true; //name is valid
+        }
+
+        //function to check password strength
+        function checkPassword(password) {
+            const alert = document.getElementById('newPasswordAlert'); //to display error messages
+
+            //check password length
+            if (password.length < 8) { //password is short
+                alert.innerHTML = "Password should have at least 8 characters!"; //display error message
+                return false;
+            }
+
+            if (password.length > 128) { //password is long
+                alert.innerHTML = "Password is too long!"; //display error message
+                return false;
+            }
+
+            //check if password is strong
+            if (!password.match(/[a-z]+/) || !password.match(/[A-Z]+/) || !password.match(/[0-9]+/) || !password.match(/[$@#&!]+/)) {
+                alert.innerHTML = "Password must contain at least one number, special character, uppercase and lowercase letter"; //display error message
+                return false;
+            }
+
+            return true; //password is strong
+        }
+
 
     </script>
 

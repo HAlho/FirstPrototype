@@ -1,46 +1,91 @@
 var carBrand, carModel, carColor, licenseNum;
 
-//Brands dropmenu
-firebase.database().ref('carList').once('value', function (snapshot) {
-    let data = snapshot.val(); //get all car info
-    let brandsDB = Object.keys(data); //get all brands
-    for (var i = 0; i < brandsDB.length; i++) {
-        let option = document.createElement("option");
-        option.text = brandsDB[i];
-        option.value = brandsDB[i];
-        document.getElementById("brands").appendChild(option);
+document.getElementById('skip').addEventListener('click', () => {
+    window.location.replace('../profile');
+});
+
+//function that check if user is authenticated then calls other functions
+firebase.auth().onAuthStateChanged(async function (user) {
+    if (user) { //if user is authenticated
+        const userId = firebase.auth().currentUser.uid; //current user ID
+
+        if (document.referrer.includes('signup')) {
+            document.getElementById('skip').style.display = "block"; //user just signed up and can skip this page
+            document.getElementById('back').style.display = "none"; //user just signed up and can skip this page
+        }
+
+        //get brands from the server
+        const sdata = { userId };
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(sdata)
+        };
+        const response = await fetch('/getBrands', options);
+        const json = await response.json(); //server response
+        console.log(json);
+        brands = Object.keys(json.brands);
+        console.log(brands);
+
+        //Brands dropmenu
+        for (var i = 0; i < brands.length; i++) {
+            let option = document.createElement("option");
+            option.text = brands[i];
+            option.value = brands[i];
+            document.getElementById("brands").appendChild(option);
+        }
+
     }
+    else window.location.assign('../mainpage'); //user is not authenticated. forward user to the welcome page
 });
 
-//Models dropmenu
-document.getElementById("brands").addEventListener('change', (event) => {
-    clearDropmenu(document.getElementById("models"));
-    let carBrand = event.target.value;
-    if (carBrand != "Select a Brand") {
-        firebase.database().ref('carList/' + carBrand).once('value', function (snapshot) {
-            let modelsData = snapshot.val(); //get selected brand info
-            let modelsDB = Object.keys(modelsData); //get all of selected brand's models
-            for (var i = 0; i < modelsDB.length; i++) {
-                let option = document.createElement("option");
-                option.text = modelsDB[i];
-                option.value = modelsDB[i];
-                document.getElementById("models").appendChild(option);
-            }
-        });
-        document.getElementById("models").disabled = false;
-    } else document.getElementById("models").disabled = true;
+//check selected brand
+document.getElementById("brands").addEventListener('change', async (event) => {
+    clearDropmenu(document.getElementById("models")); //clear models
+    let carBrand = event.target.value; //check if there is a selected brand
+    if (carBrand != "Select a Brand") { //if there is a selected brand
+
+        //get the brand models from the server
+        const sdata = { carBrand };
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(sdata)
+        };
+        const response = await fetch('/getModels', options);
+        const json = await response.json(); //server response
+        console.log(json);
+        models = Object.keys(json.models);
+        console.log(models);
+
+        //models dropmenu
+        for (var i = 0; i < models.length; i++) {
+            let option = document.createElement("option");
+            option.text = models[i];
+            option.value = models[i];
+            document.getElementById("models").appendChild(option);
+        }
+        document.getElementById("models").disabled = false; //enable models
+    } else //if no selected brand
+        document.getElementById("models").disabled = true; //disable models
 });
 
+//check models
 document.getElementById("models").addEventListener('change', (event) => {
-    if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '')
-        document.getElementById("submit").classList.remove('disabled');
-    else document.getElementById("submit").classList.add('disabled');
+    if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '') //check if user entered all info
+        document.getElementById("submit").classList.remove('disabled'); //enable submit
+    else document.getElementById("submit").classList.add('disabled'); //disable submit
 });
 
+//check license
 document.getElementById("license").addEventListener('change', (event) => {
-    if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '')
-        document.getElementById("submit").classList.remove('disabled');
-    else document.getElementById("submit").classList.add('disabled');
+    if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '') //check if user entered all info
+        document.getElementById("submit").classList.remove('disabled'); //enable submit
+    else document.getElementById("submit").classList.add('disabled'); //disable submit
 
 });
 
@@ -56,15 +101,16 @@ function clearDropmenu(selectElement) {
 }
 
 async function submit() {
-    carBrand = document.getElementById("brands").value;
-    carModel = document.getElementById("models").value;
-    licenseNum = document.getElementById("license").value;
-    carColor = document.getElementById("colors").value;
+    carBrand = document.getElementById("brands").value; //get selected brand
+    carModel = document.getElementById("models").value; //get selected model
+    licenseNum = document.getElementById("license").value; //get entered license
+    carColor = document.getElementById("colors").value; //get selected color
 
-    if (carBrand == "Select a Brand" || carModel == "Select a Model" || licenseNum == '') return;
-    
-    const userId = firebase.auth().currentUser.uid;
+    if (carBrand == "Select a Brand" || carModel == "Select a Model" || licenseNum == '') return; //if no info entered
 
+    const userId = firebase.auth().currentUser.uid; //current user id
+
+    //send new car info to server to save it into the db
     const sdata = { carBrand, carModel, licenseNum, carColor, userId };
     console.log(sdata);
 
@@ -75,10 +121,10 @@ async function submit() {
         },
         body: JSON.stringify(sdata)
     };
-    const response = await fetch('/getCars', options);
+    const response = await fetch('/saveCar', options);
     const json = await response.json();
     console.log(json);
-    
+    //successfully registered
     alert('Your Car was Registered Successfully!');
     window.location.replace('../carSelect');
 }

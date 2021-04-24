@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request History</title>
-    <link rel="stylesheet" href="./style/mainmenu.css">
+    <link rel="stylesheet" href="./style/common.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
     <style>
         * {
@@ -41,6 +41,7 @@
     </style>
 </head>
 <body>
+    <!-- HTML elements -->
     <a href="../requestHistory" class="back">
         <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
         <small style="vertical-align:top; padding-top:5px;"> Back</small>
@@ -68,6 +69,11 @@
             <p id="location"></p>
         </div>
     </div>
+    <!-- Page ends here -->
+
+
+
+
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
@@ -83,26 +89,15 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <script>
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        var firebaseConfig = {
-            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
-            authDomain: "auth-c0cb3.firebaseapp.com",
-            databaseURL: "https://auth-c0cb3.firebaseio.com",
-            projectId: "auth-c0cb3",
-            storageBucket: "auth-c0cb3.appspot.com",
-            messagingSenderId: "1034981325790",
-            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
-            measurementId: "G-1GCV52KFRG"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
-    <script>
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
 
 
+
+
+
+
+    <script>
         requestId = document.location.search.replace(/^.*?\=/, '');
 
         firebase.auth().onAuthStateChanged(async function (user) {
@@ -123,14 +118,14 @@
                 const json = await response.json();
                 console.log(json);
                 let request = json.request;
-                let timestamp = request.timestamp.substr(4,17);
+                let timestamp = request.timestamp.substr(4, 17);
                 let amount = request.amount;
                 let status = request.status;
                 let time = "50";
 
                 let car;
                 if (request.requester.uid == userId) car = request.requester.car;
-                else car = request.supplier.car;
+                else car = request.match.car;
 
                 let carModel = car.brand + car.model;
                 let carNumber = car.licenseNumber;
@@ -152,7 +147,7 @@
                     document.getElementById("locationDiv").style.display = "block";
                 }
 
-            } else window.location.assign('../');
+            } else window.location.assign('../mainpage'); //forward user to the welcome page
         });
     </script>
 

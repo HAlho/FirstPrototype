@@ -2,11 +2,12 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
-    <link rel="stylesheet" href="./style/mainmenu.css">
+    <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/settings.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
-<body style="background-color:white;">
+<body>
+    <!-- HTML elements -->
     <a href="../account" class="back">
         <i class="fa fa-angle-left" style="color:black;"></i>
         <small style="vertical-align:top; padding-top:5px;"> Back</small>
@@ -28,9 +29,9 @@
             </tr>
         </table>
         <hr />
-        <button id="deleteAccount" class="deleteAccount">Delete Account</button>
+        <br /><br /><br />
+        <button id="deleteAccount" class="logout">Delete Account</button>
     </div>
-
 
     <div class="mainMenu">
         <table>
@@ -54,6 +55,11 @@
     </div>
 
     <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
+    <!-- Page ends here -->
+
+
+
+
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
@@ -69,24 +75,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
 
-    <script>
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        var firebaseConfig = {
-            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
-            authDomain: "auth-c0cb3.firebaseapp.com",
-            databaseURL: "https://auth-c0cb3.firebaseio.com",
-            projectId: "auth-c0cb3",
-            storageBucket: "auth-c0cb3.appspot.com",
-            messagingSenderId: "1034981325790",
-            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
-            measurementId: "G-1GCV52KFRG"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
+
+
+
+
 
     <script src="./js/status.js"></script>
 
@@ -122,9 +117,7 @@
 
         //function to display settings by setting the elements
         function displaySettings() {
-            //show user status
-            showStatus()
-
+            showStatus();
             //display notifications permission
             localStorage.getItem('notificationsPermission') == 'granted' ? document.getElementById("notifications").checked = true : document.getElementById("notifications").checked = false;
 

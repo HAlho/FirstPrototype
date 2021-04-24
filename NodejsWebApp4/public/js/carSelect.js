@@ -1,5 +1,6 @@
 // JavaScript source code
 var selectedCarFlag = false; //set true when user selects a car
+var currentCarId;
 
 firebase.auth().onAuthStateChanged(async function (user) {
     if (user) { //if user is authenticated
@@ -31,7 +32,7 @@ async function getCars(userId) {
     var keys = Object.keys(data); //get cars ids
     if (keys.length == 1) { //if there's only one car, set is as 'currentCar' then forward user to main page
         var carId = keys[0];
-        saveCurrentCar(userId, carId, 1, 0); //function to save the car as currentCar in the database
+        saveCurrentCar( carId, 1, 0); //function to save the car as currentCar in the database
     } else { //if there are multiple cars, display each car
         for (var i = 0; i < keys.length; i++) {
             var k = keys[i]; //get car Id
@@ -41,29 +42,18 @@ async function getCars(userId) {
     }
 }
 
-function submit() { //when user clicks the 'continue' button
-    if (selectedCarFlag) window.location.replace('../profile'); //forward user to main page if a car is selected
-}
+document.getElementById('next').addEventListener('click', async () => { //when user clicks the 'continue' button
+    if (selectedCarFlag) submit();
+});
 
-async function saveCurrentCar(userId, carId, onlyCarFlag, carPosition) { //function to save current car to database
+async function saveCurrentCar(carId, onlyCarFlag, carPosition) { //function to save current car to database
     selectedCarFlag = true; //a car was selected
 
-    //send current car ID to the server to save it
-    const data = { userId, carId };
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    };
-    const response = await fetch('/saveCurrentCar', options);
-    const json = await response.json();
+    currentCarId = carId;
 
-
-    if (onlyCarFlag == 1) //forward user to main page if the user has 1 car only
-        window.location.assign('../profile');
-    else { //if user has multiple cars
+    if (onlyCarFlag == 1) { //forward user to main page if the user has 1 car only
+        submit();
+    } else { //if user has multiple cars
         //remove 'selectedCar' class from all displayed cars
         for (let pos = document.getElementById("carDiv").childElementCount - 1; pos >= 0; pos--)
             document.getElementById("carDiv").children.item(pos).classList.remove('selectedCar');
@@ -77,6 +67,25 @@ async function saveCurrentCar(userId, carId, onlyCarFlag, carPosition) { //funct
     }
 }
 
+async function submit() {
+    var userId = firebase.auth().currentUser.uid; //current user ID
+
+    //send current car ID to the server to save it
+    const data = { userId, carId: currentCarId };
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    };
+    const response = await fetch('/saveCurrentCar', options);
+    const json = await response.json();
+
+    const ref = document.referrer; 
+    if (ref.includes('signin') || ref.includes('signup') || ref.includes('mainpage')) window.location.replace('../profile');
+    else window.history.back(); //go back to previous page
+}
 
 function displayCar(userId, carInfo, carId, carPosition) {
     //get car info
@@ -132,7 +141,7 @@ function displayCar(userId, carInfo, carId, carPosition) {
     carTable.appendChild(tr2);
     carTable.appendChild(tr3);
 
-    carTable.setAttribute("onclick", "saveCurrentCar('" + userId + "', '" + carId + "', 0, '" + carPosition + "');"); //onclick event listener that calls saveCurrentCar() function
+    carTable.setAttribute("onclick", "saveCurrentCar('"  + carId + "', 0, '" + carPosition + "');"); //onclick event listener that calls saveCurrentCar() function
     document.getElementById("carDiv").appendChild(carTable); //append car to page
 }
 

@@ -1,99 +1,166 @@
-const mailField = document.getElementById('emailaddress');
-const passwordField = document.getElementById('password');
-const displayNameField = document.getElementById('displayName');
-//const phonenumber = document.getElementById("phonenumber");
-const photoField = document.getElementById('photo');
-const labels = document.getElementsByTagName('label');
-const signUp = document.getElementById('signup');
-const failureModal = document.querySelector('.failure');
-const feedbackMessage = document.querySelector('.feedbackMessage');
+const displayNameField = document.getElementById('displayName'); //name's input field
+const emailField = document.getElementById('emailaddress'); //email's input field 
+const passwordField = document.getElementById('password'); //password's input field
+const alert = document.getElementById("alert"); //show any errors with signing in
 
-const auth = firebase.auth();
-//auth.languageCode = 'fr_FR'; //Sending verification emails only in french
+//firebase.auth().useDeviceLanguage(); //sends verification emails in the same language as the language used in the user's device
 
-//Sends verification emails in the same language as the language used in the
-//user's device
-auth.useDeviceLanguage();
+//sign up button event listener
+document.getElementById('signup').addEventListener('click', () => { //user wants to sign up
+    //get user inputs
+    const email = emailField.value; //get email
+    const password = passwordField.value; //get password
+    const name = displayNameField.value; //get name
 
-//Function wrapping all the signup parts including the email verification email
-//triggered once the user clicks on the signup button
-const signUpFunction = () => {
-    const email = mailField.value;
+    //clear any previous errors
+    displayNameField.style.border = "none";
+    emailField.style.border = "none";
+    passwordField.style.border = "none";
+    alert.innerHTML = '';
+
+    //check for any errors
+    if (checkEmptyFields()) return; //check if any field is empty
+    if (!validateName(name)) return; //check if name is valid
+    if (!validateEmail(email)) return; //check if email is valid
+    if (!checkPassword(password)) return; //check if password is strong
+
+    //all inputs are valid, sign up user..
+    //built in firebase function responsible for signing up a user
+    firebase.auth().createUserWithEmailAndPassword(email, password) //attempt to create an account
+        .then(() => { //account was created successfully
+            var user = firebase.auth().currentUser; //get current user
+            user.updateProfile({ //save the user's name
+                displayName: name
+            }).then(function () { 
+                sendVerificationEmail(); //send verification email to the user
+            }).catch(function (error) { //error saving the user's name
+                console.error(error);
+            });
+        }).catch(error => { //error creating account
+            alert.innerHTML = error.message; //display error message
+        })
+});
+
+//function called right after the signUpWithEmailAndPassword to send verification emails
+const sendVerificationEmail = () => {
+    //built in firebase function responsible for sending the verification email
+    firebase.auth().currentUser.sendEmailVerification() //send verification email with firebase
+        .then(() => { //email was sent successfully
+            saveUser();
+        }).catch(error => { //error sending verification email
+            console.error(error);
+        })
+}
+
+//save new user
+async function saveUser() {
+    var userId = firebase.auth().currentUser.uid; //get current user ID
+
+    //send user ID to the server
+    const sdata = { userId };
+    const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sdata)
+    };
+    const response = await fetch('/saveUser', options);
+    const json = await response.json();
+
+    window.location.replace('../registerCar'); //forward user to the main page
+}
+
+//check for any empty fields
+function checkEmptyFields() {
+    //get user's inputs
+    const email = emailField.value;
     const password = passwordField.value;
-    //const pnumber = phonenumber.value;
     const name = displayNameField.value;
 
+    var empty = false; //set true if there's at least one empty field
 
-    //Built in firebase function responsible for signing up a user
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(() => {
-            console.log('Signed Up Successfully !');
-            var user = firebase.auth().currentUser; // Get current user
-            user.updateProfile({
-                displayName: name,
-                //phoneNumber: pnumber
-            }).then(function () {
-                sendVerificationEmail();
-            }).catch(function (error) {
-                // An error happened.
-            });
+    //check if the user left the name field empty
+    if (name == '' || name == null) { //user did not input an name
+        displayNameField.style.border = "1px solid red"; //make input field's borders red to alert user
+        empty = true;
+    }
 
-        })
-        .catch(error => {
-            console.error(error);
-        })
+    //check if the user left the email field empty
+    if (email == '' || email == null) { //user did not input an email
+        emailField.style.border = "1px solid red"; //make input field's borders red to alert user
+        empty = true;
+    }
+    //check if the user left the email field empty
+    if (password == '' || password == null) { //user did not input a password
+        passwordField.style.border = "1px solid red"; //make input field's borders red to alert user
+        empty = true;
+    }
+
+    return empty; //true if there's at least one empty field
 }
 
-//Function called right after the signUpWithEmailAndPassword to send verification emails
-const sendVerificationEmail = () => {
-    //Built in firebase function responsible for sending the verification email
-    auth.currentUser.sendEmailVerification()
-        .then(() => {
-            console.log('Verification Email Sent Successfully !');
-            window.location.assign('../profile');
-        })
-        .catch(error => {
-            console.error(error);
-        })
+//function to validate email
+function validateEmail(email) {
+    //check email length
+    if (email.length > 320) { //email is too long
+        displayNameField.style.border = "1px solid red"; //make input field's borders red to alert user
+        alert.innerHTML = "Email is too long!"; //display error message
+        return false;
+    }
+
+    //email format should follow something@something.something... 
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //email regex. source: https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+    if (!re.test(String(email).toLowerCase())){ //if email is not valid
+        emailField.style.border = "1px solid red"; //make input field's borders red to alert user
+        alert.innerHTML = 'Invalid email address!'; //display error message
+        return false;
+    }
+
+    return true; //email is valid
 }
 
-signUp.addEventListener('click', signUpFunction);
+function validateName(name) {
+    //check name length
+    if (name.length < 3) { //if inputted name is too short
+        displayNameField.style.border = "1px solid red"; //make input field's borders red to alert user
+        alert.innerHTML = "Name is too short!"; //display error message
+        return false;
+    }
 
-//Animations
+    if (name.length > 50) { //if inputted name is too long
+        displayNameField.style.border = "1px solid red"; //make input field's borders red to alert user
+        alert.innerHTML = "Name is too long!"; //display error message
+        return false;
+    }
+     
+    //check for invalid characters (valid name includes whitespaces and letters)
+    const re = /^[A-Za-z\s]+$/;
+    if (!re.test(name)) { //if name contains invalid characters
+        displayNameField.style.border = "1px solid red"; //make input field's borders red to alert user
+        alert.innerHTML = 'Name contains invalid characters!'; //display error message
+        return false;
+    }
+
+    return true; //name is valid
+}
 
 
-displayNameField.addEventListener('focus', () => {
-    labels.item(0).className = "focused-field";
-});
+function checkPassword(password) {
+    //check password length
+    if (password.length < 8) { //password is short
+        alert.innerHTML = "Password should have at least 8 characters!"; //display error message
+        return false;
+    }
 
-displayNameField.addEventListener('blur', () => {
-    if (!displayNameField.value)
-        labels.item(0).className = "unfocused-field";
-});
+    if (password.length > 128) { //password is long
+        alert.innerHTML = "Password is too long!"; //display error message
+        return false;
+    }
 
-mailField.addEventListener('focus', () => {
-    labels.item(1).className = "focused-field";
-});
+    //check if password is strong
+    if (!password.match(/[a-z]+/) || !password.match(/[A-Z]+/) || !password.match(/[0-9]+/) || !password.match(/[$@#&!]+/)) {
+        alert.innerHTML = "Password must contain at least one number, special character, uppercase and lowercase letter"; //display error message
+        return false;
+    }
 
-mailField.addEventListener('blur', () => {
-    if (!mailField.value)
-        labels.item(1).className = "unfocused-field";
-});
-/*
-phoneNumberField.addEventListener('focus', () => {
-    labels.item(2).className = "focused-field";
-});
-
-phoneNumberField.addEventListener('blur', () => {
-    if (!mailField.value)
-        labels.item(2).className = "unfocused-field";
-});*/
-
-passwordField.addEventListener('focus', () => {
-    labels.item(2).className = "focused-field";
-});
-
-passwordField.addEventListener('blur', () => {
-    if (!passwordField.value)
-        labels.item(2).className = "unfocused-field";
-});
+    return true; //password is strong
+}

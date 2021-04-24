@@ -1,33 +1,30 @@
-﻿* {
-    padding: 0;
-    margin: 0;
-    font-family: "Lucida Console";
-}
-
-body {
-    overflow: hidden;
+﻿body {
     text-align: center;
 }
 
+h2 {
+    font-size:18px;
+    font-weight:600;
+}
 
 .currentCar {
-    background: #0000001f;
-    margin-top: 90px;
+    background: #eee;
+    margin: 10px 0 30px 0;
     width: 90%;
     text-align: left;
 }
 
 .rectangle {
     box-sizing: border-box;
-    height: 70px;
+    height: 75px;
     width: 300px;
     position: relative;
-    margin: 50px auto;
-    border-radius: 20px;
-    background-color: #6dbec3;
+    margin: 16px auto;
+    border-radius: 25px;
+    background-color: #5bbfc5;
     border: none;
-    font-size: 30px;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: bold;
     line-height: 30px;
     text-align: center;
     color: #FFF;
@@ -35,6 +32,8 @@ body {
 
 .disabled {
     background: #0000001f;
+    color: #999;
+    font-weight: 600;
 }
 
 .rectangle1 {
@@ -52,3 +51,78 @@ body {
     text-align: center;
     color: #FFF;
 }
+
+
+
+
+
+
+.request {
+    z-index: 100;
+    position: fixed;
+    margin: auto;
+    width: 100%;
+    height: 0;
+    background-color: #fff;
+    border-radius: 40px 40px 0 0;
+    bottom: 0;
+    transition: height 0.5s ease;
+    display: none;
+}
+
+    .request p {
+        padding-bottom: 10px;
+        font-size: 15px;
+        text-align: center;
+    }
+
+    .request select {
+        height: 35px;
+        border: 0px;
+        border-bottom: 1px solid #888;
+        background-color: white;
+        color: #444;
+    }
+
+    .request input, select {
+        display: block;
+        width: 80%;
+        line-height: 25px;
+        margin: 5px auto 30px auto;
+        border: 1px solid #b5b5b5;
+        color: #444;
+        padding-left: 10px;
+    }
+
+    .request button {
+        position: absolute;
+        right: 0;
+        width: 70px;
+        padding: 3px 10px 3px 10px;
+        margin: 5px 15px 12px 15px;
+        color: #5bbfc5;
+        font-weight: bold;
+        font-size: 15px;
+        text-align: center;
+        background-color: transparent;
+        border: none;
+    }
+
+    .request .cancel {
+        left: 0;
+        font-weight: normal;
+        color: #888;
+    }
+
+    .request .close {
+        margin: 5px;
+        right: 27%;
+        color: #f08066;
+    }
+
+    .request small {
+        color: red;
+        text-align: center;
+        display: block;
+        font-size: 12px;
+    }

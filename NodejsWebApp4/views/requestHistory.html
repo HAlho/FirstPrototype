@@ -3,36 +3,42 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History</title>
+    <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/requestHistory.css">
-    <link rel="stylesheet" href="./style/mainmenu.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- HTML elements -->
     <a href="../account" class="back">
         <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
         <small style="vertical-align:top; padding-top:5px;"> Back</small>
     </a>
     <div class="pageName">HISTORY</div>
-        <fieldset class="switch" id="switch">
-            <input id="all" name="view" type="radio">
-            <label for="all" id="allLabel" class="labelSelected" style="width: 20%;">All</label>
+    <fieldset class="switch" id="switch">
+        <input id="all" name="view" type="radio">
+        <label for="all" id="allLabel" class="labelSelected" style="width: 20%;">All</label>
 
-            <input id="requested" name="view" type="radio">
-            <label for="requested" id="requestedLabel">Requested</label>
+        <input id="requested" name="view" type="radio">
+        <label for="requested" id="requestedLabel">Requested</label>
 
-            <input id="accepted" name="view" type="radio">
-            <label for="accepted" id="acceptedLabel">Accepted</label>
+        <input id="accepted" name="view" type="radio">
+        <label for="accepted" id="acceptedLabel">Accepted</label>
 
-            <span class="switch-button"></span>
-        </fieldset>
+        <span class="switch-button"></span>
+    </fieldset>
 
     <section>
-        <div>
+        <div class="requestsContainer">
             <div id="requestedDiv" style="display:none;"></div>
             <div id="allDiv"></div>
             <div id="acceptedDiv" style="display:none;"></div>
         </div>
     </section>
+    <!-- Page ends here -->
+
+
+
+
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
@@ -48,23 +54,12 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <script>
-        // Your web app's Firebase configuration
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-        var firebaseConfig = {
-            apiKey: "AIzaSyCsxp_cLGjtePSDKH95MtD5XKg-iLXE8j4",
-            authDomain: "auth-c0cb3.firebaseapp.com",
-            databaseURL: "https://auth-c0cb3.firebaseio.com",
-            projectId: "auth-c0cb3",
-            storageBucket: "auth-c0cb3.appspot.com",
-            messagingSenderId: "1034981325790",
-            appId: "1:1034981325790:web:d5b3913ec1bd9c0137fb4f",
-            measurementId: "G-1GCV52KFRG"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
+
+
+
+
 
     <script src="./js/requestHistory.js"></script>
 

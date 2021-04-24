@@ -1,11 +1,4 @@
-﻿* {
-    padding: 0;
-    margin: 0;
-    font-family: 'Segoe UI';
-    overflow: hidden;
-}
-
-a {
+﻿a {
     color: #444;
 }
 
@@ -21,17 +14,18 @@ button {
 
 .buttonMakeCurrentCar {
     font-size: 13px;
-    font-weight: bold;
-    color: #6dbec3;
+    font-weight: 600;
+    color: #5bbfc5;
     padding-left: 4px;
     background-color: transparent;
     border: none;
-    margin:0;
+    margin: 0;
 }
 
 h3 {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
+    padding-top: 15px;
 }
 
 select, input {
@@ -77,31 +71,10 @@ select, input {
         display: none;
     }
 
-    /*
-.plus {
-    z-index: 10;
-    position: absolute;
-    width: max-content;
-    left: 50%;
-    transform: translate(-50%, 0%);
-    bottom: 40px;
-    padding: 0;
-    margin: 0;
+.skip {
+    font-size: 15px;
+    font-weight: 600;
+    display: block;
+    color: #5bbfc5;
+    border-radius: 50px;
 }
-
-.plusBackground {
-    z-index: 5;
-    height: 50px;
-    width: 50px;
-    border-radius: 100px;
-    border:none;
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 0%);
-    bottom: 47px;
-    padding: 0;
-    margin: 0;
-    background-color:white;
-}
-        */
-

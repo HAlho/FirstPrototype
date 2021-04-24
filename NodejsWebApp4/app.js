@@ -15,9 +15,10 @@ const signUpRoute = require('./routes/signup');
 const signInRoute = require('./routes/signin');
 const carSelectRoute = require('./routes/carSelect');
 const profileRoute = require('./routes/profile');
+const newRequestRoute = require('./routes/newRequest');
 const accountRoute = require('./routes/account');
-const settingsRoute = require('./routes/settings'); ///new
-const avaReqRoute = require('./routes/avaReq');
+const settingsRoute = require('./routes/settings');
+const paymentRoute = require('./routes/payment');
 const editAccountRoute = require('./routes/editAccount');
 const viewCarsRoute = require('./routes/viewCars');
 const editCarRoute = require('./routes/editCar'); 
@@ -36,9 +37,10 @@ app.use(signUpRoute);
 app.use(signInRoute);
 app.use(carSelectRoute);
 app.use(profileRoute);
+app.use(newRequestRoute);
 app.use(accountRoute);
 app.use(settingsRoute);
-app.use(avaReqRoute);
+app.use(paymentRoute);
 app.use(editAccountRoute);
 app.use(viewCarsRoute);
 app.use(editCarRoute);
@@ -55,6 +57,9 @@ fs.writeFile('queue.txt', '', function (err) {//clear queue
     if (err) return console.log(err);
 });
 fs.writeFile('procInfo.txt', '', function (err) {//clear procInfo
+    if (err) return console.log(err);
+});
+fs.writeFile('cancelQueue.txt', '', function (err) {//clear queue
     if (err) return console.log(err);
 });
 

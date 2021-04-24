@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>New Request</title>
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="./style/common.css">
+    <link rel="stylesheet" href="./style/newRequest.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
+    <style>
+        .parent {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+            .parent div {
+                margin:auto;
+                grid-row-start: 1;
+                grid-column-start: 1;
+            }
+        .battery {
+            font-size: 200px;
+            -webkit-text-stroke-width: 13px;
+            -webkit-text-stroke-color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- HTML elements -->
+    <a href="../profile" class="back">
+        <small style="vertical-align:top; padding-top:5px; padding-left:5px; color: gray">Cancel</small>
+    </a>
+    <div class="pageName">New Request</div>
+
+    <div style="width:80%; margin:30px auto;">
+        <div class="parent">
+            <div class="child1">
+                <i class="fas fa-battery-empty battery" style="color:black;"></i>
+            </div>
+            <div class="child2">
+                <div class="slidecontainer" id="slider1" style="padding-right: 15px; display: flex; justify-content: flex-end;">
+                    <input id="sliderCurrent" type="range" max="100" value="0">
+                    <input id="sliderDesired" class="slider" type="range" max="100" disabled style="display:none;">
+                </div>
+            </div>
+
+        </div>
+        <div id="batteryDiv"></div>
+
+
+        <div id="currentEnergy">
+            <h3>What's your current charge percent?</h3><br />
+            <div style="text-align:center">
+                <i class="fas fa-angle-left" style="margin:0 43px 0 auto; color: #aaa; font-size:30px;" ontouchstart="decrement()" ontouchend="stop()" id="decrement"></i>
+                <h1 id="current" style="display:inline;"></h1>
+                <p style=" display: inline; position: absolute; margin: 23px 0 0 5px;">%</p>
+                <i class="fas fa-angle-right" style="margin:0 auto 0 50px;color: #6dbec3; font-size:30px;" ontouchstart="increment()" ontouchend="stop()" id="increment"></i>
+            </div>
+            <br />
+        </div>
+        <div id="neededCharge" style="display:none;">
+            <h3>What's your desired charge amount?</h3><br />
+            <div style="text-align:center">
+                <i class="fas fa-angle-left" style="margin:0 43px 0 auto; color: #aaa; font-size:30px;" ontouchstart="decrement()" ontouchend="stop()" id="decrementDesired"></i>
+                <h1 id="desired" style="display:inline;"></h1>
+                <p style=" display: inline; position: absolute; margin: 23px 0 0 5px;">%</p>
+                <i class="fas fa-angle-right" style="margin:0 auto 0 50px;color: #6dbec3; font-size:30px;" ontouchstart="increment()" ontouchend="stop()" id="incrementDesired"></i>
+            </div>
+            <br />
+        </div>
+
+        <div id="requestMethod" style="display: none;">
+            <h2>Select a request method</h2>
+            <br />
+
+            <button id="requestByAmount" class="requestMethod">
+                <table>
+                    <tr style="height: 50%;">
+                        <td rowspan="2" style="width: 70px; text-align: left;"><i class="fas fa-bolt" style="font-size: 29px; position: absolute; margin: 8px 0 0 20px; color: black;"></i><br /><i class="fas fa-hand-holding" style="font-size: 47px; color: black;"></i></td>
+                        <td style="vertical-align: bottom;"><p>Input Amount</p></td>
+                    </tr>
+                    <tr style="vertical-align:top;">
+                        <td><small>What's your desired charge amount?</small></td>
+                    </tr>
+                </table>
+            </button>
+            <button id="requestByDestination" class="requestMethod">
+                <table>
+                    <tr>
+                        <td rowspan="2" style="width:70px; text-align:left;"><i class="fas fa-map-marked-alt" style="font-size: 43px; color: black;"></i></td>
+                        <td style="vertical-align: bottom;"><p>Pick a destination</p></td>
+                    </tr>
+                    <tr style="vertical-align:top;">
+                        <td><small>Not sure how much charge you need? Select a destination and we will calculate it for you!</small></td>
+                    </tr>
+                </table>
+            </button>
+        </div>
+
+
+    </div>
+
+    <div style=" position: absolute; bottom: 80px; height: 80px; width: 100vw;">
+        <div class="buttonContainer" style="left: 30%;"><button class="nextButton disabled" id="continue">Continue</button></div>
+        <div class="buttonContainer" style="right: 35px;"><button class="nextButton disabled" id="done" style="display:none; width: 115px;">Request</button></div>
+        <div class="buttonContainer" style="left: 35px;"><button class="backButton" style="display:none;" id="back">Back</button></div>
+    </div>
+
+
+    <div id="confirmRequest">
+
+    </div>
+    <!-- Page ends here -->
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
+
+    <!-- Firebase configuration -->
+    <script src="./js/firebase-config.js"></script>
+
+
+
+
+
+
+    <script src="./js/newRequest.js"></script>
+
+</body>
+</html>
+
+
+
