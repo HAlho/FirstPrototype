@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "NodejsWebApp4",
   "main": "app.js",
+  "scripts": {
+  "start": "node index.js"
+},
   "author": {
     "name": ""
   },
