@@ -2,7 +2,7 @@
   "name": "nodejs-web-app4",
   "version": "0.0.0",
   "description": "NodejsWebApp4",
-  "main": "server.js",
+  "main": "app.js",
   "author": {
     "name": ""
   },
