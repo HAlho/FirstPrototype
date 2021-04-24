@@ -4,7 +4,7 @@
   "description": "NodejsWebApp4",
   "main": "app.js",
   "scripts": {
-  "start": "node index.js"
+  "start": "node app.js"
 },
   "author": {
     "name": ""
