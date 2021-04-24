@@ -8,7 +8,7 @@ var db = admin.database();
 
 console.log("I am in manager");
 
-setInterval(() => {
+/*setInterval(() => {
     //check if the algorithm had been started by a user request
     let procInfo = fs.readFileSync('procInfo.txt', "utf8");
     var lines = procInfo.split('\n');
@@ -41,7 +41,7 @@ setInterval(() => {
 
         });
     }
-}, 180000); // 180000
+}, 180000); // 180000*/
 
 
 setInterval(async () => { //retrieve tokens except the user's token
@@ -111,3 +111,35 @@ setInterval(async () => {
         }
     }
 }, 60000)//1min
+
+
+/*setInterval(async () => {
+	console.log("manager: starting periodic issued check");
+	var isnapshot = await db.ref('activeRequests/issued/').once('value');
+	var issued = isnapshot.val();
+	 if (issued != null) {
+        var mkeys = Object.keys(issued); //ids of the tokens
+        for (a of mkeys) {
+            if (Date.now() - matched[a].match.matchMadeAt < 300000) continue; //if 5min had not passed
+
+            await db.ref('activeRequests/matched/' + a + '/match').remove();
+
+            //move request from matched to issued
+            let oldRef = db.ref('activeRequests/matched/' + a);
+            let newRef = db.ref('activeRequests/issued/' + a);
+            snapshot = await oldRef.once('value');
+            await newRef.set(snapshot.val());
+            await oldRef.remove();
+
+            //change requester's request reference to issued
+            await db.ref('users/' + matched[a].requester.uid).child('activeRequest').update({ dbref: "issued" });
+
+            //change provider status to Available and delete matched request from user
+            await db.ref('users/' + matched[a].match.provider).update({ status: "Available" });
+            await db.ref('users/' + matched[a].match.provider + '/matchedReq').remove();
+
+        }
+    }
+	
+	
+},1260000)//21min*/
