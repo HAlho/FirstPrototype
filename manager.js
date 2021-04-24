@@ -6,7 +6,7 @@ const { admin } = require('./routes/firebaseConfig.js');
 // Get a database reference to our posts
 var db = admin.database();
 
-
+/*
 setInterval(() => {
     //check if the algorithm had been started by a user request
     let procInfo = fs.readFileSync('procInfo.txt', "utf8");
@@ -40,7 +40,7 @@ setInterval(() => {
 
         });
     }
-}, 180000); // 180000
+}, 180000); // 180000*/
 
 
 setInterval(async () => { //retrieve tokens except the user's token
