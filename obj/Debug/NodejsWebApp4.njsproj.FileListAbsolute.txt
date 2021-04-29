@@ -10,3 +10,6 @@ C:\Users\ALMAA\OneDrive\Desktop\SDP\NodejsWebApp4\NodejsWebApp4\bin\Microsoft.No
 C:\Users\fmsal\Dropbox\My PC (LAPTOP-AV4B6LCN)\Desktop\NodejsWebApp4\obj\Debug\NodejsWebApp4.njsprojAssemblyReference.cache
 C:\Users\fmsal\Dropbox\My PC (LAPTOP-AV4B6LCN)\Desktop\NodejsWebApp4\obj\Debug\NodejsWebApp4.njsproj.CoreCompileInputs.cache
 C:\Users\fmsal\Dropbox\My PC (LAPTOP-AV4B6LCN)\Desktop\NodejsWebApp4\bin\Microsoft.NodejsTools.WebRole.dll
+C:\Users\fmsal\Dropbox\My PC (LAPTOP-AV4B6LCN)\Desktop\v2vTestProject\obj\Debug\NodejsWebApp4.njsprojAssemblyReference.cache
+C:\Users\fmsal\Dropbox\My PC (LAPTOP-AV4B6LCN)\Desktop\v2vTestProject\obj\Debug\NodejsWebApp4.njsproj.CoreCompileInputs.cache
+C:\Users\fmsal\Dropbox\My PC (LAPTOP-AV4B6LCN)\Desktop\v2vTestProject\bin\Microsoft.NodejsTools.WebRole.dll

@@ -55,9 +55,8 @@
     }
 
 .requestsContainer {
-    padding-bottom: 100px;
-    overflow-y: scroll;
-    height: 100vh;
+    overflow-y: auto;
+    height: 100%;
 }
 
 table {

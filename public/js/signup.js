@@ -1,9 +1,31 @@
 const displayNameField = document.getElementById('displayName'); //name's input field
 const emailField = document.getElementById('emailaddress'); //email's input field 
 const passwordField = document.getElementById('password'); //password's input field
-const alert = document.getElementById("alert"); //show any errors with signing in
+const eye = document.getElementById("eye");
+const eyeSlash = document.getElementById("eyeSlash");
+const alert = document.getElementById("alert"); //show any errors with signing up
 
 //firebase.auth().useDeviceLanguage(); //sends verification emails in the same language as the language used in the user's device
+passwordField.addEventListener('input', () => {
+    if (passwordField.value == '' || passwordField.value == null) {
+        eye.style.display = "none";
+        eyeSlash.style.display = "none";
+    } else if (passwordField.type == 'password')
+        eye.style.display = "inline-block";
+    else eyeSlash.style.display = "inline-block";
+});
+
+eye.addEventListener('click', () => {
+    passwordField.type = "text";
+    eye.style.display = "none";
+    eyeSlash.style.display = "inline-block";
+});
+
+eyeSlash.addEventListener('click', () => {
+    passwordField.type = "password";
+    eyeSlash.style.display = "none";
+    eye.style.display = "inline-block";
+});
 
 //sign up button event listener
 document.getElementById('signup').addEventListener('click', () => { //user wants to sign up

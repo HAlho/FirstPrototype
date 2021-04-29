@@ -2,94 +2,98 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Account</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/account.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
-<body style="background-color:white;">
+<body>
     <!-- HTML elements -->
-    <a href="../account" class="back">
-        <i class="fa fa-angle-left" style="color:black;"></i>
-        <small style="vertical-align:top; padding-top:5px;"> Back</small>
-    </a>
-    <div class="pageName">EDIT ACCOUNT</div>
-
-    <div class="accountMenu">
-        <a id="editName">
-            <table>
-                <tr>
-                    <td style="width:80px;">Name</td>
-                    <td id="name" class="accountMenuText"></td>
-                </tr>
-            </table>
-            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 5px;"></i>
-        </a><hr />
-        <a id="editEmail">
-            <table>
-                <tr>
-                    <td style="width:80px;">Email</td>
-                    <td id="email" class="accountMenuText"></td>
-                </tr>
-            </table>
-            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em;padding-bottom: 5px;"></i>
-        </a><hr />
-        <a id="changePassword">
-            <table>
-                <tr>
-                    <td style="width:80px;">Password</td>
-                </tr>
-            </table>
-            <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 5px;"></i>
-        </a><hr />
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
     </div>
 
-    <div id="dimContent" class="dimContent"></div>
+    <div id="content" class="hidden">
+        <a href="../account" class="back">
+            <i class="fa fa-angle-left" style="color:black;"></i>
+            <small style="vertical-align:top; padding-top:5px;"> Back</small>
+        </a>
+        <div class="pageName">Edit Account</div>
 
-    <div id="windowPromptName" class="windowPrompt">
-        <p>Name</p>
-        <small id="nameAlert"></small>
-        <input type="text" id="nameInput">
-        <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="editName()">ok</button>
+        <div class="accountMenu">
+            <a id="editName">
+                <table>
+                    <tr>
+                        <td style="width:80px;">Name</td>
+                        <td id="name" class="accountMenuText"></td>
+                    </tr>
+                </table>
+                <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 5px;"></i>
+            </a><hr />
+            <a id="editEmail">
+                <table>
+                    <tr>
+                        <td style="width:80px;">Email</td>
+                        <td id="email" class="accountMenuText"></td>
+                    </tr>
+                </table>
+                <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em;padding-bottom: 5px;"></i>
+            </a><hr />
+            <a id="changePassword">
+                <table>
+                    <tr>
+                        <td style="width:80px;">Password</td>
+                    </tr>
+                </table>
+                <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 5px;"></i>
+            </a><hr />
+        </div>
+
+        <div id="dimScreen" class="dimContent"></div>
+
+        <div id="windowPromptName" class="windowPrompt">
+            <p>Name</p>
+            <small id="nameAlert"></small>
+            <input type="text" id="nameInput">
+            <button class="cancel" onclick="cancel()">cancel</button>
+            <button onclick="editName()">ok</button>
+        </div>
+
+        <div id="windowPromptEmail" class="windowPrompt">
+            <p>Email</p>
+            <small id="emailAlert"></small>
+            <input type="text" id="emailInput">
+            <button class="cancel" onclick="cancel()">cancel</button>
+            <button onclick="editEmail()">ok</button>
+        </div>
+
+        <div id="windowPromptEmailConfirm" class="windowPrompt">
+            <p>Input your password to continue</p>
+            <small id="emailPasswordAlert"></small>
+            <input type="password" id="emailConfirmInput">
+            <button class="cancel" onclick="cancel()">cancel</button>
+            <button onclick="editEmailConfirm()">ok</button>
+        </div>
+
+        <div id="windowPromptPassword" class="windowPrompt">
+            <p>Current password</p>
+            <small id="currentPasswordAlert"></small>
+            <input type="password" id="currentPasswordInput">
+            <button class="cancel" onclick="cancel()">cancel</button>
+            <button onclick="authenticateUser()">ok</button>
+        </div>
+
+        <div id="windowPromptNewPassword" class="windowPrompt">
+            <p>New password</p>
+            <small id="newPasswordAlert"></small>
+            <input type="password" id="newPasswordInput">
+            <button class="cancel" onclick="cancel()">cancel</button>
+            <button onclick="updatePassword()">ok</button>
+        </div>
     </div>
 
-    <div id="windowPromptEmail" class="windowPrompt">
-        <p>Email</p>
-        <small id="emailAlert"></small>
-        <input type="text" id="emailInput">
-        <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="editEmail()">ok</button>
-    </div>
 
-    <div id="windowPromptEmailConfirm" class="windowPrompt">
-        <p>Input your password to continue</p>
-        <small id="emailPasswordAlert"></small>
-        <input type="password" id="emailConfirmInput">
-        <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="editEmailConfirm()">ok</button>
-    </div>
-
-    <div id="windowPromptPassword" class="windowPrompt">
-        <p>Current password</p>
-        <small id="currentPasswordAlert"></small>
-        <input type="password" id="currentPasswordInput">
-        <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="authenticateUser()">ok</button>
-    </div>
-
-    <div id="windowPromptNewPassword" class="windowPrompt">
-        <p>New password</p>
-        <small id="newPasswordAlert"></small>
-        <input type="password" id="newPasswordInput">
-        <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="updatePassword()">ok</button>
-    </div>
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -104,12 +108,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <!-- Firebase configuration -->
-    <script src="./js/firebase-config.js"></script>
-
-
-
-
+    <script src="./js/firebase-config.js"></script> <!-- Firebase configuration -->
+    <script src="./js/mainmenu.js"></script> <!-- Append the mainmenu and deals with status changes -->
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
 
     <script>
         // JavaScript source code
@@ -125,6 +126,7 @@
                 document.getElementById("name").innerHTML = name;
                 document.getElementById("email").innerHTML = email;
 
+                showPage(); //page is set, display page
             } else window.location.assign('../mainpage'); //forward user to the welcome page
         });
 
@@ -132,7 +134,7 @@
         function cancel() {
             var prompts = document.getElementsByClassName("windowPrompt"); //gete all window prompts
             for (var i = 0; i < prompts.length; i++) prompts[i].style.display = 'none'; //hide all window prompts
-            document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+            document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
             //clear any alerts
             document.getElementById('nameAlert').innerHTML = '';
             document.getElementById('emailAlert').innerHTML = '';
@@ -150,7 +152,7 @@
             document.getElementById("nameInput").value = name; //autofill name field
 
             //dim screen and show window prompt (id='windowPromptName')
-            document.getElementById("dimContent").classList.add("dimVisible");
+            document.getElementById("dimScreen").classList.add("dimVisible");
             setTimeout(function () { document.getElementById("windowPromptName").style.display = "block"; }, 250);
         });
 
@@ -177,7 +179,7 @@
             document.getElementById("emailInput").value = email; //autofill email field
 
             //dim screen and show window prompt with id='windowPromptEmail'
-            document.getElementById("dimContent").classList.add("dimVisible");
+            document.getElementById("dimScreen").classList.add("dimVisible");
             setTimeout(function () { document.getElementById("windowPromptEmail").style.display = "block"; }, 250);
         });
 
@@ -225,7 +227,7 @@
             document.getElementById("currentPasswordInput").value = ''; //clear password input field
 
             //dim screen and show window prompt with id='windowPromptPassword'
-            document.getElementById("dimContent").classList.add("dimVisible");
+            document.getElementById("dimScreen").classList.add("dimVisible");
             setTimeout(function () { document.getElementById("windowPromptPassword").style.display = "block"; }, 250);
         });
 
@@ -330,8 +332,6 @@
             return true; //password is strong
         }
 
-
     </script>
-
 </body>
 </html>

@@ -52,7 +52,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
 
         if (data != null) { //if there are previous requests
             var keys = Object.keys(data); //get request ids
-            for (var i = 0; i < keys.length; i++) {
+            for (var i = keys.length-1; i > 0; i--) {
                 //get request information
                 let k = keys[i]; //request ID
                 let timestamp = data[k].timestamp; //request timestamp
@@ -89,6 +89,8 @@ firebase.auth().onAuthStateChanged(async function (user) {
             text.classList.add('noInformation');
             acceptedDiv.appendChild(text);
         } else acceptedDiv.lastElementChild.style.marginBottom = "200px";
+
+        showPage(); //page is set and loaded, show content
 
     } else window.location.assign('../mainpage'); //forward user to the welcome page
 });

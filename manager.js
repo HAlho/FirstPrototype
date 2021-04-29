@@ -6,7 +6,7 @@ const { admin } = require('./routes/firebaseConfig.js');
 // Get a database reference to our posts
 var db = admin.database();
 
-/*
+
 setInterval(() => {
     //check if the algorithm had been started by a user request
     let procInfo = fs.readFileSync('procInfo.txt', "utf8");
@@ -40,7 +40,7 @@ setInterval(() => {
 
         });
     }
-}, 180000); // 180000*/
+}, 180000); // 180000
 
 
 setInterval(async () => { //retrieve tokens except the user's token
@@ -110,3 +110,32 @@ setInterval(async () => {
         }
     }
 }, 60000)//1min
+
+setInterval(async () => {
+    console.log("manager: starting periodic issued check");
+    var isnapshot = await db.ref('activeRequests/issued/').once('value');
+    var issued = isnapshot.val();
+    if (issued != null) {
+        var mkeys = Object.keys(issued); //ids of the tokens
+        for (a of mkeys) {
+            if (Date.now() - Date.parse(issued[a].timestamp) < 300000) continue; //if 5min had not passed
+            var reqU = issued[a].requester.uid;
+            //move request from issued to provious request
+            let oldRef = db.ref('activeRequests/issued/' + a);
+            let newRef = db.ref('previousRequests/' + reqU + '/' + a);
+            snapshot = await oldRef.once('value');
+            await newRef.set(snapshot.val());
+            await oldRef.remove();
+
+            //change status to expired
+            await db.ref('previousRequests/' + reqU + '/' + a).update({ status: "expired" });
+
+            //change consumer's status to Available and delete issued request
+            await db.ref('users/' + reqU).update({ status: "Available" });
+            await db.ref('users/' + reqU + '/activeRequest').remove();
+
+        }
+    }
+
+
+}, 1260000)//21min 1260000

@@ -1,7 +1,8 @@
 var carBrand, carModel, carColor, licenseNum;
 
+//if the user just signed up, the user can press the skip button to go to the home page
 document.getElementById('skip').addEventListener('click', () => {
-    window.location.replace('../profile');
+    window.location.replace('../home');
 });
 
 //function that check if user is authenticated then calls other functions
@@ -36,7 +37,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
             option.value = brands[i];
             document.getElementById("brands").appendChild(option);
         }
-
+        showPage();
     }
     else window.location.assign('../mainpage'); //user is not authenticated. forward user to the welcome page
 });
@@ -82,7 +83,7 @@ document.getElementById("models").addEventListener('change', (event) => {
 });
 
 //check license
-document.getElementById("license").addEventListener('change', (event) => {
+document.getElementById("license").addEventListener('input', (event) => {
     if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '') //check if user entered all info
         document.getElementById("submit").classList.remove('disabled'); //enable submit
     else document.getElementById("submit").classList.add('disabled'); //disable submit

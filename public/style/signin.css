@@ -8,7 +8,7 @@ h2 {
 }
 
 h6 {
-    margin-bottom: 50px;
+    margin-bottom: 40px;
     color: #c1c1c1
 }
 
@@ -84,7 +84,7 @@ input[type = "email"] {
     outline-color: #A0D8DC;
     border-radius: 10px;
     font-size: 1rem;
-    margin: 20px 40px;
+    margin: 15px 40px;
     position: relative;
 }
 
@@ -107,7 +107,7 @@ button {
 
 a {
     float: right;
-    margin: 90px 4px 0px 0px;
+    margin: 70px 4px 0px 0px;
     text-decoration: none;
     color: #6dbec3;
     font-size: 0.8rem;

@@ -26,19 +26,21 @@ async function getCars(userId) {
     const data = json.cars; //store car info in variable data
 
     //forward user to main page if they don't have any registered cars
-    if (data == null) window.location.assign('../profile');
+    if (data == null) window.location.assign('../home');
 
     //user has registered car(s)
     var keys = Object.keys(data); //get cars ids
     if (keys.length == 1) { //if there's only one car, set is as 'currentCar' then forward user to main page
         var carId = keys[0];
-        saveCurrentCar( carId, 1, 0); //function to save the car as currentCar in the database
+        saveCurrentCar(carId, 1, 0); //function to save the car as currentCar in the database
     } else { //if there are multiple cars, display each car
         for (var i = 0; i < keys.length; i++) {
             var k = keys[i]; //get car Id
             displayCar(userId, data[k], k, i); //function to display car
         }
         document.getElementById("carDiv").lastElementChild.style.marginBottom = "200px"; //add extra space at the end of the page to make it scrollable
+
+        showPage(); //display the page's content
     }
 }
 
@@ -83,7 +85,7 @@ async function submit() {
     const json = await response.json();
 
     const ref = document.referrer; 
-    if (ref.includes('signin') || ref.includes('signup') || ref.includes('mainpage')) window.location.replace('../profile');
+    if (ref.includes('signin') || ref.includes('signup') || ref.includes('mainpage')) window.location.replace('../home');
     else window.history.back(); //go back to previous page
 }
 

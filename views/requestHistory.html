@@ -3,43 +3,45 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/requestHistory.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- HTML elements -->
-    <a href="../account" class="back">
-        <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
-        <small style="vertical-align:top; padding-top:5px;"> Back</small>
-    </a>
-    <div class="pageName">HISTORY</div>
-    <fieldset class="switch" id="switch">
-        <input id="all" name="view" type="radio">
-        <label for="all" id="allLabel" class="labelSelected" style="width: 20%;">All</label>
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
+    </div>
 
-        <input id="requested" name="view" type="radio">
-        <label for="requested" id="requestedLabel">Requested</label>
+    <div id="content" class="hidden">
+        <a href="../account" class="back">
+            <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
+            <small style="vertical-align:top; padding-top:5px;"> Back</small>
+        </a>
+        <div class="pageName">History</div>
+        <fieldset class="switch" id="switch">
+            <input id="all" name="view" type="radio">
+            <label for="all" id="allLabel" class="labelSelected" style="width: 20%;">All</label>
 
-        <input id="accepted" name="view" type="radio">
-        <label for="accepted" id="acceptedLabel">Accepted</label>
+            <input id="requested" name="view" type="radio">
+            <label for="requested" id="requestedLabel">Requested</label>
 
-        <span class="switch-button"></span>
-    </fieldset>
+            <input id="accepted" name="view" type="radio">
+            <label for="accepted" id="acceptedLabel">Accepted</label>
 
-    <section>
-        <div class="requestsContainer">
-            <div id="requestedDiv" style="display:none;"></div>
-            <div id="allDiv"></div>
-            <div id="acceptedDiv" style="display:none;"></div>
-        </div>
-    </section>
+            <span class="switch-button"></span>
+        </fieldset>
+
+        <section style="height:80vh;">
+            <div class="requestsContainer">
+                <div id="requestedDiv" style="display:none;"></div>
+                <div id="allDiv"></div>
+                <div id="acceptedDiv" style="display:none;"></div>
+            </div>
+        </section>
+    </div>
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -54,13 +56,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <!-- Firebase configuration -->
-    <script src="./js/firebase-config.js"></script>
-
-
-
-
-
+    <script src="./js/firebase-config.js"></script> <!-- Firebase configuration -->
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
     <script src="./js/requestHistory.js"></script>
 
 </body>

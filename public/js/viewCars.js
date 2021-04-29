@@ -16,6 +16,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
     if (user) {
         var userId = firebase.auth().currentUser.uid; //current user
         displayCars(userId);
+        showPage(); //page is set, show page content
     } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
 

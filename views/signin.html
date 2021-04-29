@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Sign In</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/signin.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body class="background">
     <!-- HTML elements -->
@@ -14,8 +16,15 @@
         <h2>Welcome Back!</h2>
         <h6> Please enter your credentials to sign in</h6>
         <small id="alert"></small>
-        <input type="email" id="mail" name="mail" placeholder="Email Address" required />
-        <input type="password" id="password" name="password" placeholder="Password" required />
+        <div style="margin-bottom:20px;">
+            <input type="email" id="mail" name="mail" placeholder="Email Address" required />
+            <div style="margin:0;">
+                <input type="password" id="password" name="password" placeholder="Password" style="margin-right: 0;" required />
+                <i class="fas fa-eye" style="color: #5bbfc5; display:none; position: absolute; margin: 22px 0px 0 -37px; padding: 7px;" id="eye"></i>
+                <i class="fas fa-eye-slash" style="color: #5bbfc5; display:none; position: absolute; margin: 22px 0px 0 -37px; padding: 7px;" id="eyeSlash"></i>
+            </div>
+        </div>
+
         <button class="rectangle-1" id="signin">Sign in</button>
 
         <p style="padding-top: 15px; font-size: 13px;"> Don't have an account? <a href="./signup" style="float:none;"> sign up </a></p>
@@ -52,14 +61,36 @@
     <script>
         const emailField = document.getElementById('mail'); //email's input field
         const passwordField = document.getElementById('password'); //password's input field
+        const eye = document.getElementById("eye");
+        const eyeSlash = document.getElementById("eyeSlash");
         const alert = document.getElementById("alert"); //show any errors with signing in
 
+        passwordField.addEventListener('input', () => {
+            if (passwordField.value == '' || passwordField.value == null) {
+                eye.style.display = "none";
+                eyeSlash.style.display = "none";
+            } else if (passwordField.type == 'password')
+                eye.style.display = "inline-block";
+            else eyeSlash.style.display = "inline-block";
+        });
+
+        eye.addEventListener('click', () => {
+            passwordField.type = "text";
+            eye.style.display = "none";
+            eyeSlash.style.display = "inline-block";
+        });
+
+        eyeSlash.addEventListener('click', () => {
+            passwordField.type = "password";
+            eyeSlash.style.display = "none";
+            eye.style.display = "inline-block";
+        });
         //check if the user came back from the car select page
         window.addEventListener("pageshow", function (event) {
             var historyTraversal = event.persisted ||
                 (typeof window.performance != "undefined" &&
                     window.performance.navigation.type === 2); // window.performance.navigation.type = 2 when user
-            if (historyTraversal) window.location.assign('./profile'); //forward user to main page
+            if (historyTraversal) window.location.assign('./home'); //forward user to main page
         });
 
         //check if user is already signed in

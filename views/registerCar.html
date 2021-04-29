@@ -2,61 +2,63 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Car</title>
+    <title>Register Car</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/cars.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body>
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
+    </div>
+
     <!-- HTML elements -->
-    <a href="../viewCars" class="back" id="back">
-        <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
-        <small style="vertical-align:top; padding-top:5px;"> Back</small>
-    </a>
-    <a class="next disabled" id="submit" onclick="submit()">
-        <small style="vertical-align:top; padding:5px 10px 0 0;">Save </small>
-    </a>
-    <div class="pageName" style="margin-bottom:40px;">REGISTER CAR</div>
-    <div class="carsContainer">
-        <button class="skip" id="skip" style="display:none;">Skip for now?</button>
-       
-        <h3>Brand</h3>
-        <select id="brands">
-            <option>Select a Brand</option>
-        </select>
+    <div id="content" class="hidden">
+        <a href="../viewCars" class="back" id="back">
+            <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
+            <small style="vertical-align:top; padding-top:5px;"> Back</small>
+        </a>
+        <a class="next disabled" id="submit" onclick="submit()">
+            <small style="vertical-align:top; padding:5px 10px 0 0;">Save </small>
+        </a>
+        <div class="pageName" style="margin-bottom:40px;">Register a Car</div>
+        <div class="carsContainer">
+            <button class="skip" id="skip" style="display:none;">Skip for now?</button>
 
-        <h3>Model</h3>
-        <select id="models" disabled class="custom-select">
-            <option>Select a Model</option>
-        </select>
+            <h3>Brand</h3>
+            <select id="brands">
+                <option>Select a Brand</option>
+            </select>
 
-        <h3>License Plate Number</h3>
-        <input type="text" id="license" placeholder=" Enter Your License Plate Number" style="width:80%;">
+            <h3>Model</h3>
+            <select id="models" disabled class="custom-select">
+                <option>Select a Model</option>
+            </select>
 
-        <h3>Car Color</h3>
-        <select id="colors" class="custom-select">
-            <option value="Black">Black</option>
-            <option value="White">White</option>
-            <option value="Silver">Silver</option>
-            <option value="Grey">Grey</option>
-            <option value="Gold">Gold</option>
-            <option value="Red">Red</option>
-            <option value="Blue">Blue</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Green">Green</option>
-            <option value="Brown">Brown</option>
-            <option value="Tan">Tan</option>
-            <option value="Purple">Purple</option>
-            <option value="Orange">Orange</option>
-        </select>
+            <h3>License Plate Number</h3>
+            <input type="text" id="license" placeholder=" Enter Your License Plate Number" style="width: 88%; padding-left: 10px;">
+
+            <h3>Car Color</h3>
+            <select id="colors" class="custom-select">
+                <option value="Black">Black</option>
+                <option value="White">White</option>
+                <option value="Silver">Silver</option>
+                <option value="Grey">Grey</option>
+                <option value="Gold">Gold</option>
+                <option value="Red">Red</option>
+                <option value="Blue">Blue</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Green">Green</option>
+                <option value="Brown">Brown</option>
+                <option value="Tan">Tan</option>
+                <option value="Purple">Purple</option>
+                <option value="Orange">Orange</option>
+            </select>
+        </div>
     </div>
 
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -73,11 +75,7 @@
 
     <!-- Firebase configuration -->
     <script src="./js/firebase-config.js"></script>
-
-
-
-
-
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
     <script src="./js/registerCar.js"></script>
 
 </body>

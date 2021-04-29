@@ -2,126 +2,112 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/account.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body class="background">
     <!-- HTML elements -->
-    <div class="pageName">ACCOUNT</div>
-    <div class="userInfo">
-        <img src="./img/account-black.png" width="30%" style="float:left;">
-        <b><h3 id="name"></h3></b>
-        <p id="email" style="font-weight:normal; display:inline;"></p>
-        <br /><p><a href="../editAccount" class="edit">edit account <i class="fa fa-caret-right" style="color:black; display:inline;"></i></a></p>
-
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
     </div>
-    <section class="container">
-        <div>
-            <div class="buttonsSection">
-                <button id="cars"><i class="fas fa-car" style="color:black; font-size:3.2em; padding:5px 5px 0 5px;"></i><br /><p>Your Cars</p></button>
-                <button id="settings"><i class="fas fa-cogs" style="color:black; font-size:2.5em;padding:5px;"></i><br /><p>Settings</p></button>
-                <button id="payment"><i class="fas fa-credit-card" style="color:black; -webkit-text-stroke-width: 2px; -webkit-text-stroke-color: #000;font-size:2.3em; padding:5px;"></i><br /><p>Payment</p></button>
-            </div>
 
-            <div class="accountMenu">
-                <a id="viewCreditScore">
-                    <table>
-                        <tr>
-                            <td>Credit Score</td>
-                            <td id="creditScore" class="accountMenuText" style="width:50px;"></td>
-                        </tr>
-                    </table>
-                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
-                </a><hr />
-                <a id="reqHistory">
-                    <table>
-                        <tr>
-                            <td>History</td>
-                        </tr>
-                    </table>
-                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
-                </a><hr />
-                <a id="editUnitPrice">
-                    <table>
-                        <tr>
-                            <td>Unit Price</td>
-                            <td id="unitPrice" class="accountMenuText"></td>
-                        </tr>
-                    </table>
-                    <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
-                </a><hr />
-            </div>
+    <div id="content" class="hidden">
+        <div class="pageName">Account</div>
+        <div class="userInfo">
+            <img src="./img/account-black.png" width="30%" style="float:left;">
+            <b><h3 id="name"></h3></b>
+            <p id="email" style="font-weight:normal; display:inline;"></p>
+            <br /><p><a href="../editAccount" class="edit">edit account <i class="fa fa-caret-right" style="color:black; display:inline;"></i></a></p>
 
-            <br />
-            <button id="logout" class="logout">Logout</button>
         </div>
+        <section class="container">
+            <div>
+                <div class="buttonsSection">
+                    <button id="cars"><i class="fas fa-car" style="color:black; font-size:3.2em; padding:5px 5px 0 5px;"></i><br /><p>Your Cars</p></button>
+                    <button id="settings"><i class="fas fa-cogs" style="color:black; font-size:2.5em;padding:5px;"></i><br /><p>Settings</p></button>
+                    <button id="payment"><i class="fab fa-cc-paypal" style="color:black; font-size:2.6em; padding:5px;"></i><br /><p>Payment</p></button>
+                </div>
+
+                <div class="accountMenu">
+                    <a id="viewCreditScore">
+                        <table>
+                            <tr>
+                                <td>Credit Score</td>
+                                <td id="creditScore" class="accountMenuText" style="width:50px;"></td>
+                            </tr>
+                        </table>
+                        <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
+                    </a><hr />
+                    <a id="reqHistory">
+                        <table>
+                            <tr>
+                                <td>History</td>
+                            </tr>
+                        </table>
+                        <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
+                    </a><hr />
+                    <a id="editUnitPrice">
+                        <table>
+                            <tr>
+                                <td>Unit Price</td>
+                                <td id="unitPrice" class="accountMenuText"></td>
+                            </tr>
+                        </table>
+                        <i class="fas fa-chevron-right" style="color:darkgray; font-size:0.8em; padding-bottom: 7px;"></i>
+                    </a><hr />
+                </div>
+
+                <br />
+                <button id="logout" class="logout">Logout</button>
+            </div>
 
 
-    </section>
-    <div id="creditScorePopUp" class="windowPrompt">
-        <p>Credit Score</p>
-        <p class="info" style="color:#f23c3c;">This feature is still unavailable.</p>
-        <p id="creditScoreVal"></p>
-        <div>
-            <svg class='creditScore' style="display:block; margin:auto;" x="0px" y="0px"
-                 width="142.924px" height="120px" viewBox="0 0 142.924 142.924" enable-background="new 0 0 142.924 142.924"
-                 xml:space="preserve">    
-            <path fill="none" class="background" stroke="#000000" stroke-width="15" stroke-miterlimit="0" d="M71.462,13.129 c32.217,0,58.334,26.116,58.334,58.333s-26.117,58.334-58.334,58.334s-58.333-26.117-58.333-58.334S39.245,13.129,71.462,13.129" />
+        </section>
+        <div id="creditScorePopUp" class="windowPrompt">
+            <p>Credit Score</p>
+            <p class="info" style="color:#f23c3c;">This feature is still unavailable.</p>
+            <p id="creditScoreVal"></p>
+            <div>
+                <svg class='creditScore' style="display:block; margin:auto;" x="0px" y="0px"
+                     width="142.924px" height="120px" viewBox="0 0 142.924 142.924" enable-background="new 0 0 142.924 142.924"
+                     xml:space="preserve">    
+                <path fill="none" class="background" stroke="#000000" stroke-width="15" stroke-miterlimit="0"
+                      d="M71.462,13.129 c32.217,0,58.334,26.116,58.334,58.333s-26.117,
+                      58.334-58.334,58.334s-58.333-26.117-58.333-58.334S39.245,13.129,
+                      71.462,13.129" />
 
 
 
-            <path id='creditScorePercent' fill="none" class="target" stroke="#000000" stroke-width="15" stroke-miterlimit="0" d="M71.462,13.129 c32.217,0,58.334,26.116,58.334,58.333s-26.117,58.334-58.334,58.334s-58.333-26.117-58.333-58.334S39.245,13.129,71.462,13.129" />
+                <path id='creditScorePercent' fill="none" class="target" stroke="#000000" stroke-width="15" stroke-miterlimit="0" d="M71.462,13.129
+                      c32.217,0,58.334,26.116,58.334,58.333s-26.117,58.334-58.334,
+                      58.334s-58.333-26.117-58.333-58.334S39.245,13.129,71.462,13.129" />
 
 
 
         </svg>
+            </div>
+            <button class="cancel" onclick="cancel()">close</button>
         </div>
-        <button class="cancel" onclick="cancel()">close</button>
-    </div>
 
-    <div id="windowPromptUnitPrice" class="windowPrompt">
-        <p>Unit Price</p>
-        <p class="info">When providing energy, you can set up your own preferable unit price.</p>
+        <div id="windowPromptUnitPrice" class="windowPrompt">
+            <p>Unit Price</p>
+            <p class="info">When providing energy, you can set up your own preferable unit price.</p>
 
-        <div class="unitPriceContainer">
-            <h1 ontouchstart="decrement()" ontouchend="stop()" id="decrement">–</h1>
-            <input type="number" min="0.37" max="0.74" step="0.01" id="unitPriceVal" class="unitPriceInput" />
-            <h1 ontouchstart="increment()" ontouchend="stop()" id="increment">+</h1>
+            <div class="unitPriceContainer">
+                <h1 ontouchstart="decrement()" ontouchend="stop()" id="decrement">–</h1>
+                <input type="number" min="0.37" max="0.74" step="0.01" id="unitPriceVal" class="unitPriceInput" style="background:#fff;" disabled />
+                <h1 ontouchstart="increment()" ontouchend="stop()" id="increment">+</h1>
+            </div>
+            <button class="cancel" onclick="cancel()">cancel</button>
+            <button onclick="updateUnitPrice()">ok</button>
         </div>
-        <button class="cancel" onclick="cancel()">cancel</button>
-        <button onclick="updateUnitPrice()">ok</button>
-    </div>
 
-    <div class="mainMenu">
-        <table>
-            <tr>
-                <td><button class="circle" id="status" onclick="openStatusMenu()"></button></td>
-                <td><button class="circle" id="home"><img src="./img/home.png" height="30"></button></td>
-                <td><button class="circle active" id="account"><img src="./img/account.png" height="30"></button></td>
-            </tr>
-            <tr>
-                <td><small>STATUS</small></td>
-                <td><small>HOME</small></td>
-                <td><small><b>ACCOUNT</b></small></td>
-            </tr>
-        </table>
+        <div id="dimScreen" class="dimContent"></div>
     </div>
-
-    <div id="statusMenu" class="statusMenu tail">
-        <a onclick="setStatus('Available'); showStatus()"><button class="statusCircle"><img src="./img/status-available.png" height="15px"></button>Available</a>
-        <hr />
-        <a onclick="setStatus('Do Not Disturb'); showStatus()"><button class="statusCircle" style="background-color:#DD5F56;"><img src="./img/status-busy.png" height="15px"></button>Busy</a>
-    </div>
-
-    <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
 
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -136,11 +122,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <!-- Firebase configuration -->
-    <script src="./js/firebase-config.js"></script>
-
-    <script src="./js/status.js"></script>
+    <script src="./js/firebase-config.js"></script> <!-- Firebase configuration -->
+    <script src="./js/mainmenu.js"></script> <!-- Appends the mainmenu and deals with status changes -->
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
     <script src="./js/account.js"></script>
-
 </body>
 </html>

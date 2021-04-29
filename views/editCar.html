@@ -3,57 +3,59 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Car</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/cars.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- HTML elements -->
-    <a href="../viewCars" class="back">
-        <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
-        <small style="vertical-align:top; padding-top:5px;"> Back</small>
-    </a>
-    <a class="next" onclick="submit()">
-        <small style="vertical-align:top; padding:5px 10px 0 0;">Save </small>
-    </a>
-    <div class="pageName" style="margin-bottom:40px;">EDIT CAR</div>
-    <div class="carsContainer">
-        <div>
-            <p id="car" style="display:inline; font-size:20px; font-weight:bold; margin-bottom:20px"></p>
-            <button id="makeCurrentCar" class="buttonMakeCurrentCar" onclick="makeCurrentCar()" style="display:none;">Make Current Car</button>
-            <br />
-            <br />
-            <br />
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
+    </div>
 
-            <h3>License Plate Number</h3>
-            <input type="text" id="license" placeholder="Enter Your License Plate Number">
+    <div id="content" class="hidden">
+        <a href="../viewCars" class="back">
+            <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
+            <small style="vertical-align:top; padding-top:5px;"> Back</small>
+        </a>
+        <a class="next" onclick="submit()">
+            <small style="vertical-align:top; padding:5px 10px 0 0;">Save </small>
+        </a>
+        <div class="pageName" style="margin-bottom:40px;">Edit Car</div>
+        <div class="carsContainer">
+            <div>
+                <p id="car" style="display:inline; font-size:20px; font-weight:bold; margin-bottom:20px"></p>
+                <button id="makeCurrentCar" class="buttonMakeCurrentCar" onclick="makeCurrentCar()" style="display:none;">Make Current Car</button>
+                <br />
+                <br />
+                <br />
 
-            <h3>Car Color</h3>
-            <select id="colors">
-                <option value="Black" id="Black">Black</option>
-                <option value="White" id="White">White</option>
-                <option value="Silver" id="Silver">Silver</option>
-                <option value="Grey" id="Grey">Grey</option>
-                <option value="Gold" id="Gold">Gold</option>
-                <option value="Red" id="Red">Red</option>
-                <option value="Blue" id="Blue">Blue</option>
-                <option value="Yellow" id="Yellow">Yellow</option>
-                <option value="Green" id="Green">Green</option>
-                <option value="Brown" id="Brown">Brown</option>
-                <option value="Tan" id="Tan">Tan</option>
-                <option value="Purple" id="Purple">Purple</option>
-                <option value="Orange" id="Orange">Orange</option>
-            </select>
-            <br /><br /><br />
-            <button class="logout" onclick="deleteCar()">Delete Car</button>
+                <h3>License Plate Number</h3>
+                <input type="text" id="license" placeholder="Enter Your License Plate Number">
+
+                <h3>Car Color</h3>
+                <select id="colors">
+                    <option value="Black" id="Black">Black</option>
+                    <option value="White" id="White">White</option>
+                    <option value="Silver" id="Silver">Silver</option>
+                    <option value="Grey" id="Grey">Grey</option>
+                    <option value="Gold" id="Gold">Gold</option>
+                    <option value="Red" id="Red">Red</option>
+                    <option value="Blue" id="Blue">Blue</option>
+                    <option value="Yellow" id="Yellow">Yellow</option>
+                    <option value="Green" id="Green">Green</option>
+                    <option value="Brown" id="Brown">Brown</option>
+                    <option value="Tan" id="Tan">Tan</option>
+                    <option value="Purple" id="Purple">Purple</option>
+                    <option value="Orange" id="Orange">Orange</option>
+                </select>
+                <br /><br /><br />
+                <button class="logout" onclick="deleteCar()">Delete Car</button>
+            </div>
         </div>
     </div>
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -70,11 +72,7 @@
 
     <!-- Firebase configuration -->
     <script src="./js/firebase-config.js"></script>
-
-
-
-
-
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
     <script src="./js/editCar.js"></script>
 
 </body>

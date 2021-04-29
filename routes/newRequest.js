@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const { admin } = require('./firebaseConfig.js');
+const https = require('https');
 
 const fs = require('fs');
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
@@ -10,6 +11,9 @@ const { fork } = require('child_process');
 const maxProc = 2;
 var numProc = 0;//number of running child processes
 //const messaging = require('firebase/messaging');
+
+const key = '&key=AIzaSyAeScJ1dc_tF6kCU0_K7px8N86p9QQ9Djg';
+
 
 //database reference
 var db = admin.database();
@@ -53,12 +57,16 @@ router.post('/getCurrentCar', async (request, response) => {
 });
 
 //update user's location
-router.post('/storeGeolocation', async (request, response) => {
+router.post('/storeGeoFindDistance', async (request, response) => {
+    console.log("got a store geo");
     //get client request info
     const userId = request.body.userId; //user ID
     const lat = request.body.lat; //user latitude
     const lon = request.body.lon; //user longitude
     const tim = request.body.tim; //time
+    const desiredLat = request.body.latitude;
+    const desiredLon = request.body.longitude;
+    var desiredDistance;
 
     //update user's location in the database
     db.ref('users/' + userId + "/location/").set({
@@ -67,10 +75,49 @@ router.post('/storeGeolocation', async (request, response) => {
         timestamp: tim
     });
 
-    //send response to client
-    response.json({
-        status: "success"
-    });
+    if (desiredLat != null && desiredLon != null) {
+        var points = lat + '%2C' + lon + '%7C' + '&destinations=' + desiredLat + '%2C' + desiredLon + '%7C';
+        var url = 'https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=' + points + key;
+
+        console.log(url);
+
+        https.get(url, async (resp) => {
+            var data = '';
+            // A chunk of data has been received.
+            resp.on('data', (chunk) => {
+                data += chunk;
+            });
+
+            // After the whole response has been received excute code
+            resp.on('end', async () => {
+
+                try {//try and catch for json.parse
+                    let json = JSON.parse(data);//turn response (text) into json
+                    console.log(json);
+                    desiredDistance = json.rows[0].elements[0].distance.value;
+                    console.log(desiredDistance);
+                    let duration = json.rows[0].elements[0].duration.value;
+
+                    //send response to client
+                    response.json({
+                        status: "success",
+                        distance: desiredDistance
+                    });
+                } catch (error) {
+                    console.error(error.message);
+                };
+            });
+        });
+    } else {
+        response.json({
+            status: "success",
+        });
+    }
+
+
+
+
+
 });
 
 //submit a new request
@@ -82,6 +129,7 @@ router.post('/submitRequest', async (request, response) => {
     //set requet information in the database
     newReq.set({
         amount: data.neededEnergy,
+        amountSoC: data.neededSoC,
         timestamp: data.reqStart,
         requester: {
             uid: data.userId,
@@ -162,6 +210,6 @@ router.post('/submitRequest', async (request, response) => {
         worker.on('message', message => console.log(message)); //get the result variables through message //add here worker.terminate();
     }
 });
-                                 
+
 
 module.exports = router;

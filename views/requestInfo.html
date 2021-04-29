@@ -3,6 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request History</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
     <style>
@@ -42,39 +43,65 @@
 </head>
 <body>
     <!-- HTML elements -->
-    <a href="../requestHistory" class="back">
-        <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
-        <small style="vertical-align:top; padding-top:5px;"> Back</small>
-    </a>
-    <div class="pageName">REQUEST INFORMATION</div>
-    <div class="info">
-        <div>
-            <h3>Summary</h3>
-            <div class="summaryBox">
-                <table style="width:95%; margin:auto">
-                    <tr><td colspan="2" id="date"></td></tr>
-                    <tr><td>Status</td><td id="status"></td></tr>
-                    <tr><td width="80%">Charge amount</td><td id="amount"></td></tr>
-                    <tr><td>Time taken</td><td id="time"></td></tr>
-                </table>
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
+    </div>
+    <div id="content" class="hidden">
+        <a href="../requestHistory" class="back">
+            <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
+            <small style="vertical-align:top; padding-top:5px;"> Back</small>
+        </a>
+        <div class="pageName">Request Information</div>
+        <div class="info">
+            <div>
+                <h3>Summary</h3>
+                <div class="summaryBox">
+                    <table style="width:95%; margin:auto">
+                        <tr><td colspan="2" id="date"></td></tr>
+                        <tr><td>Status</td><td id="status"></td></tr>
+                        <tr><td width="80%">Charge amount</td><td id="amount"></td></tr>
+                        <tr><td>Time taken</td><td id="time"></td></tr>
+                    </table>
+                </div>
+            </div>
+            <div>
+                <h3>Car Used</h3>
+                <p id="car"></p>
+                <p id="plateNumber"></p>
+            </div>
+            <div id="locationDiv" style="display:none;">
+                <h3>Meet-Up Location</h3>
+                <p id="location"></p>
+            </div>
+            <br /><br />
+
+            <div id="report" style="display:none;text-align: right; font-size: 14px; margin: 10px 25px 0 0;">
+                <i class="fas fa-flag" style="color: #f23c3c; vertical-align: bottom;"></i>
+                <p style="color: #f23c3c; font-weight: bold; margin: 0; display: inline;">Report other user</p>
+            </div>
+
+            <div id="reportExists" style="display:none;text-align: right; font-size: 14px; margin: 10px 25px 0 0;">
+                <i class="fas fa-flag" style="color: #aaa; vertical-align: bottom;"></i>
+                <p style="color: #aaa; font-weight: bold; margin: 0; display: inline;">You have reported this user</p>
             </div>
         </div>
-        <div>
-            <h3>Car Used</h3>
-            <p id="car"></p>
-            <p id="plateNumber"></p>
-        </div>
-        <div id="locationDiv" style="display:none;">
-            <h3>Meet-Up Location</h3>
-            <p id="location"></p>
+
+        <div id="dimScreen" class="dimContent"></div>
+
+        <div id="reportPrompt" class="windowPrompt">
+            <p style="color: #f23c3c; font-weight: bold; font-size: 18px;">Report user</p>
+            <form id="reportForm">
+                <input type="radio" name="report" value="inappropriate" style="display: inline-block; width: auto; margin:8px 10px;">User acted inappropriately<br>
+                <input type="radio" name="report" value="insufficient" style="display: inline-block; width: auto; margin:8px 10px;">User's charge was insufficient<br>
+                <input type="radio" name="report" value="other" id="other" style="display: inline-block; width: auto; margin:8px 10px;">Other<br>
+            </form>
+            <small id="alert"></small>
+            <input autocomplete="off" type="text" id="otherInput" style="opacity:0; line-height: 30px; margin: 10px; width: 90%;">
+            <button class="cancel" onclick="cancel()">cancel</button>
+            <button id="submitReport">ok</button>
         </div>
     </div>
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -89,24 +116,20 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <!-- Firebase configuration -->
-    <script src="./js/firebase-config.js"></script>
-
-
-
-
+    <script src="./js/firebase-config.js"></script> <!-- Firebase configuration -->
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
 
 
     <script>
-        requestId = document.location.search.replace(/^.*?\=/, '');
+        requestId = document.location.search.replace(/^.*?\=/, ''); //get the request's ID from the URL
 
+        //main function
         firebase.auth().onAuthStateChanged(async function (user) {
-            if (user) {
-                var userId = firebase.auth().currentUser.uid; //current user
+            if (user) { //if user is authenticated
+                userId = firebase.auth().currentUser.uid; //current user ID
 
+                //send user and request IDs to the server to get the request information
                 const sdata = { userId, requestId };
-                console.log(sdata);
-
                 const options = {
                     method: 'POST',
                     headers: {
@@ -116,7 +139,7 @@
                 };
                 const response = await fetch('/getRequest', options);
                 const json = await response.json();
-                console.log(json);
+                //get request information from the response
                 let request = json.request;
                 let timestamp = request.timestamp.substr(4, 17);
                 let amount = request.amount;
@@ -132,24 +155,83 @@
 
                 let location = request.location;
 
-
+                //display request information
                 document.getElementById("date").innerHTML = timestamp;
                 document.getElementById("amount").innerHTML = amount + " kWh";
                 document.getElementById("status").innerHTML = status;
                 document.getElementById("time").innerHTML = time + " mins";
 
+                //display used car information
                 document.getElementById("car").innerHTML = carModel;
                 document.getElementById("plateNumber").innerHTML = "Plate Number: " + carNumber;
 
+                //display request status
                 if (status == 'complete') {
                     document.getElementById("location").innerHTML = location;
                     console.log(timestamp + " " + amount);
                     document.getElementById("locationDiv").style.display = "block";
                 }
 
+                //show the report button
+                if (request.report == null) document.getElementById('report').style.display = 'block';
+                else document.getElementById('reportExists').style.display = 'block';
+
+                showPage(); //page content is set, show content
             } else window.location.assign('../mainpage'); //forward user to the welcome page
         });
-    </script>
 
+        //if user pressed the report button, show report window
+        document.getElementById('report').addEventListener('click', () => {
+            //dim screen and show report window
+            document.getElementById("dimScreen").classList.add("dimVisible");
+            setTimeout(function () { document.getElementById("reportPrompt").style.display = "block"; }, 250);
+        });
+
+        //if user made changes to the report form
+        document.getElementById('reportForm').addEventListener('change', () => {
+            if (document.getElementById('other').checked == true) document.getElementById('otherInput').style.opacity = '100';
+            else document.getElementById('otherInput').style.opacity = '0';
+        });
+
+        //user wants to submit the report
+        document.getElementById('submitReport').addEventListener('click', async () => {
+            let reason = reportReason(); //get the report user from the html page
+            if (reason != '' && reason != null) { //submit report
+                userId = firebase.auth().currentUser.uid; //current user ID
+
+                //send user ID to the server to set the user as offline
+                const data = { userId, requestId, reason };
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                };
+                const response = await fetch('/reportUser', options);
+                const json = await response.json();
+
+                window.location.reload(); //reload page to show updates
+            }
+        });
+
+        //get the selected report reason from the html page
+        function reportReason() {
+            var radio = document.getElementsByName('report');
+            for (i = 0; i < radio.length; i++) {
+                if (radio[i].checked)
+                    switch (radio[i].value) {
+                        case 'inappropriate': return 'User acted inappropriately';
+                        case 'insufficient': return 'User\'s charge was insufficient';
+                        case 'other':
+                            if (document.getElementById('otherInput').value.length < 10)
+                                document.getElementById('alert').innerHTML = 'reason is too short';
+                            else return document.getElementById('otherInput').value;
+                    }
+            }
+            return ''; //return an empty string if user did not pick an option
+        }
+
+    </script>
 </body>
 </html>

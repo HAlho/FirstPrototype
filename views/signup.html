@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Signup</title>
-    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/signup.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
     <style>
         small {
             background: white;
@@ -27,17 +28,22 @@
         <h2>Welcome to V2V Charging!</h2>
         <h6 class="welcome"> Please fill all the required details</h6>
         <small id="alert"></small>
-        <input type="text" id="displayName" name="name" placeholder="Name" />
-        <input type="email" id="emailaddress" name="mail" placeholder="Email Address" required />
-        <input type="password" id="password" name="password" placeholder="Password" required /><br>
-
+        <div style="text-align:left;">
+            <input type="text" id="displayName" name="name" placeholder="Name" />
+            <input type="email" id="emailaddress" name="mail" placeholder="Email Address" required />
+            <div style="margin:0;">
+                <input type="password" id="password" name="password" placeholder="Password" style="margin-right: 0;" required />
+                <i class="fas fa-eye" style="color: #5bbfc5; display:none; position: absolute; margin: 22px 0px 0 -37px; padding: 7px;" id="eye"></i>
+                <i class="fas fa-eye-slash" style="color: #5bbfc5; display:none; position: absolute; margin: 22px 0px 0 -37px; padding: 7px;" id="eyeSlash"></i>
+            </div>
+        </div>
         <button class="rectangle-1" id="signup">Signup</button>
         <h6> Already have an account? <a href="./signin"> sign in </a></h6>
     </section>
     <div id="PopUp" class="windowPrompt">
-        <p>Signed Up successfully</p>
+        <p>Signed Up successfully!</p>
         <div>
-            <small>You will be directed to register your car</small>
+            <small style="color:#5bbfc5;">You will be directed to register your car</small>
         </div>
     </div>
     <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>

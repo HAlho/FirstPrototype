@@ -25,7 +25,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
     //listen for a message from the main process, if message received excute code
     process.on('message', async (msg) => {
 
-
+        try {
             var points = '';//variable to store origin and destination coordinates for distnace matrix api in url form
 
             //consumer part-------
@@ -163,6 +163,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                         if (users[k].activeRequest != null) continue//check if the user has a request
                         if ((Date.now() - users[k].location.timestamp) > 900000) continue; //check if the location had passed 15 mins
                         if (users[k].cars != null) {
+                            if (users[k].creditScore == 0) continue; //check if user is banned
                             var keys3 = Object.keys(users[k].cars); //store ids of the provider's cars
 
                             for (j = 0; j < keys3.length; j++) {
@@ -263,20 +264,20 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                 let v = a.split(" ");
                                 console.log("results are " + v[0] + " " + v[1] + " " + v[2] + " " + v[3]);
 
-                                var stop=false;
+                                var stop = false;
                                 var cancelQueue = fs.readFileSync('cancelQueue.txt', "utf8");
                                 var lines = cancelQueue.split('\n');
-                                    for (i = 0; i < lines.length; i++) {
-                                        //if user is not there
-                                        if (lines[i] == v[1]) {
-                                            stop = true;
-                                            break;
-                                        }
+                                for (i = 0; i < lines.length; i++) {
+                                    //if user is not there
+                                    if (lines[i] == v[1]) {
+                                        stop = true;
+                                        break;
                                     }
-                         
+                                }
+
                                 if (stop)
                                     continue;
-                                
+
                                 //add userid to cancelQueue in order to prevent data bugs
                                 fs.writeFileSync('./cancelQueue.txt', v[1]);
 
@@ -306,7 +307,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                     await newRef.set(snapshot.val());
                                     await oldRef.remove();
 
-                                   
+
 
                                     //find the tokens of the matched providers
                                     snapshot = await db.ref('tokens').once('value');
@@ -368,7 +369,9 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 console.log("Error: " + err.message);
             });
 
-
+        } catch (e) {
+            console.log(e);
+        }
     });
 
 });

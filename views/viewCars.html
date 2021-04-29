@@ -10,24 +10,26 @@
 </head>
 <body>
     <!-- HTML elements -->
-    <a href="../account" class="back">
-        <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
-        <small style="vertical-align:top; padding-top:5px;"> Back</small>
-    </a>
-    <a id="registerCar" class="next">
-        <small style="vertical-align:top; padding-top:5px;">Add Car </small>
-        <i class="fas fa-plus" style="color:#6dbec3; font-size:0.6em; padding-bottom: 3px;"></i>
-    </a>
-    <div class="pageName">CARS</div>
-
-    <div id="carDiv" class="carsContainer">
-        <small style="display:none;" id="noCars">You don't have any registered cars</small>
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
     </div>
 
+    <div id="content" class="hidden">
+        <a href="../account" class="back">
+            <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
+            <small style="vertical-align:top; padding-top:5px;"> Back</small>
+        </a>
+        <a id="registerCar" class="next">
+            <small style="vertical-align:top; padding-top:5px;">Add Car </small>
+            <i class="fas fa-plus" style="color:#6dbec3; font-size:0.6em; padding-bottom: 3px;"></i>
+        </a>
+        <div class="pageName">Cars</div>
+
+        <div id="carDiv" class="carsContainer">
+            <small style="display:none;" id="noCars">You don't have any registered cars</small>
+        </div>
+    </div>
     <!-- Page ends here -->
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -42,14 +44,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <!-- Firebase configuration -->
-    <script src="./js/firebase-config.js"></script>
-
-
-
-
-
+    <script src="./js/firebase-config.js"></script> <!-- Firebase configuration -->
+    <script src="./js/mainmenu.js"></script> <!-- Appends the mainmenu and deals with status changes -->
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
     <script src="./js/viewCars.js"></script>
-
 </body>
 </html>

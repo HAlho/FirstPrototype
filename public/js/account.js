@@ -7,14 +7,7 @@ var timer; //when user holds the + or - button set timer. when user lets go, cle
 //global variables
 var unitPrice, creditScore; //store user unit price and credit score
 
-
 //html elements event listeners
-
-//main menu account button event listeners
-document.getElementById("home").addEventListener('click', () => {
-    window.location.assign('../profile');
-});
-
 //forward user to 'payment' page when 'payment' button is clicked
 document.getElementById("payment").addEventListener('click', () => {
     window.location.assign('../payment');
@@ -37,7 +30,7 @@ document.getElementById("reqHistory").addEventListener('click', () => {
 
 //credit score section is clicked, user wants to view their credit score
 document.getElementById("viewCreditScore").addEventListener('click', () => {
-    document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+    document.getElementById("dimScreen").classList.add("dimVisible"); //dim screen
     document.getElementById('creditScorePercent').style.strokeDasharray = "0px 367px"; //set credit score = 0 in credit score SVG figure
 
     //display credit score window with 250ms delay
@@ -55,7 +48,7 @@ document.getElementById("viewCreditScore").addEventListener('click', () => {
 
 //unit price section is clicked, user wants to edit their unit price
 document.getElementById("editUnitPrice").addEventListener('click', () => {
-    document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+    document.getElementById("dimScreen").classList.add("dimVisible"); //dim screen
     setTimeout(function () { document.getElementById("windowPromptUnitPrice").style.display = "block"; }, 250); //show window prompt
 });
 
@@ -103,31 +96,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
         if (document.getElementById("unitPriceVal").value == MAX_UNITPRICE) document.getElementById("increment").style.color = "#aaa"; //user's unit price is max, disable increment button
         else if (document.getElementById("unitPriceVal").value == MIN_UNITPRICE) document.getElementById("decrement").style.color = "#aaa"; //unit unit price is min, disable decrement button
 
-        showStatus(); //show user status in main menu (function is found in status.js)
-
-        //keep updating the user's location
-        locTimer = setInterval(async function () {
-            //get user's location and send it to the server. server will store location in the database
-            if ('geolocation' in navigator && localStorage.getItem('locationPermission') == 'granted') { //if location access is allowed
-                navigator.geolocation.getCurrentPosition(async position => {
-                    //get current latitude, longitude and time
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    const tim = position.timestamp;
-
-                    //send user's location to the server to save location
-                    const d1 = { userId, lat, lon, tim };
-                    options1 = {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(d1)
-                    };
-                    const response1 = await fetch('/storeGeolocation', options1);
-                    const json2 = await response1.json();
-                });
-            }
-        }, 500);
-           
+        showPage();
     } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
 
@@ -136,7 +105,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
 function cancel() {
     var prompts = document.getElementsByClassName("windowPrompt"); //gete all window prompts
     for (var i = 0; i < prompts.length; i++) prompts[i].style.display = 'none'; //hide all window prompts
-    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+    document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
 }
 
 

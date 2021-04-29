@@ -14,6 +14,7 @@ var avaReqAccept = document.getElementById('avaReqAccept'); //button to accept a
 
 //global variables
 let inProgress; //?????????????????????????????? this takes the request time  but it resets when we refresh                                  ///////////////////////////////////////////////////////??????? delete?
+var creditScore = 0; //store the user's credit score
 //store current car's information
 var carBrand = null; //store current car's brand
 var car, carModel, carColor, carNum, consumption, batteryCapacity; //store current car's info
@@ -32,12 +33,6 @@ window.addEventListener("pageshow", async function (event) {
     }
 });
 
-//html elements event listeners
-//main menu account button event listeners
-document.getElementById('account').addEventListener('click', () => {
-    window.location.assign('../account'); //main menu account button to forward the user to the account page
-});
-
 //main menu account button event listener
 document.getElementById("edit").addEventListener("click", function () {
     if (userStatus == 'Available' || userStatus == 'Do Not Disturb')
@@ -51,7 +46,9 @@ document.getElementById("newRequest").addEventListener('click', () => {
     if (carBrand == null) { //if user doesn't have any registered cars
         if (confirm("You must add your car information first. Would you like to do that now?"))
             window.location.assign("../registerCar"); //forward user to registerCar page
-    } else {
+    } else if (creditScore == 0) { //user's credit score is 0
+        alert('Your credit score is 0, you can\'t request charge.');
+    } else { //check if location is allowed then forward user to new request page
         navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
             if (result.state === 'granted' && localStorage.getItem('locationPermission') == 'granted') //location permission is granted
                 window.location.assign("../newRequest"); //forward user to newRequest page
@@ -64,7 +61,7 @@ document.getElementById("newRequest").addEventListener('click', () => {
 //button to show available request window prompt
 document.getElementById('avaReq').addEventListener('click', () => {
     if (!document.getElementById('avaReq').classList.contains('disabled')) { //buttton is disabled if there is no available request
-        document.getElementById("dimContent").classList.add("dimVisible"); //dim the screen behind the window prompt
+        document.getElementById("dimScreen").classList.add("dimVisible"); //dim the screen behind the window prompt
         document.getElementById("windowPromptAvaReq").style.display = "block";
         document.getElementById("windowPromptAvaReq").style.height = PROMPT_HEIGHT; //show available request
     }
@@ -73,7 +70,7 @@ document.getElementById('avaReq').addEventListener('click', () => {
 //button to hide available request window prompt
 document.getElementById('closeAvaReq').addEventListener('click', () => {
     document.getElementById("windowPromptAvaReq").style.height = "0";
-    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+    document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
   //  setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
 });
 
@@ -95,7 +92,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
         const response = await fetch('/debugAccount', options);
         const json = await response.json();
 
-        showStatus(); //show user status in main menu (function is found in status.js)
+        showStatus(); //show user status. function is found in mainmenu.js
 
         notificationPermission(userId); //check if notifications permission is allowed and stored
         locationPermission(); //check if location access is allowed and stored
@@ -103,7 +100,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
         displayCurrentCar(); //get and display the user's current car
         getCards();//get the user's payment information
 
-        profilePage(); //check if the user has active requests
+        updatePage(); //check if the user has active requests
     } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
 
@@ -124,7 +121,7 @@ function notificationPermission(userId) {
                         console.log('Error with notification token');
                     });
                 function handleTokenRefresh() {
-                    return messaging.getToken({ vapidKey: "BG9S8oj5kmcXZt1xaqHgmOCJgIcPHXgBaFing5JMUr4wlVbhlWXPwrbkikqKVAoVDZ2Fe31uCqpqQLJqAz18RyU" })
+                    return messaging.getToken({ vapidKey: "BFmDV7YkbpLVvsVa-XSRGIT4pD6GtjmLWcl-tsZtyy1mSR5Odmy8ZB6LwQzCudj1Auk0Y-NO5sWirZoXiKabou0" })
                         .then(async function (token) {
                             const d = { userId, token };
                             const options = {
@@ -212,11 +209,14 @@ async function displayCurrentCar() {
         carBrand = null;
         document.getElementById('noCar').style.display = 'block';
         document.getElementById('newRequest').classList.add('disabled'); //reset avaReq button display
+    }
 
-
-    } else if (!json.currentCarFlag) //user has registered cars but no selected car
+    //user has registered cars but no selected car
+    if (!json.currentCarFlag && json.carsFlag) 
         window.location.assign('../carSelect');
-    else { //user has a current car
+
+    //user has a current car
+    if (json.currentCarFlag) { 
         //get car information
         carBrand = car.brand;
         carModel = car.model;
@@ -227,13 +227,14 @@ async function displayCurrentCar() {
         //display car on page
         let carInfo = "<b>CURRENT CAR </b> <br></br>" + carBrand + ' ' + carModel + " (Plate No.: " + carNum + ')';
         document.getElementById("currentCarInfo").innerHTML = carInfo;
-        document.getElementById("edit").style.display = "block";
     }
+
+    json.carsNum > 1 ? document.getElementById("edit").style.display = "block" : document.getElementById('edit').style.display = "none";
 }
 
 
 //check if user has any active requests
-async function profilePage() {
+async function updatePage() {
     var status, previousStatus = null; //if there's an active request, store the status of the request, otherwise store the status of the user
     var userIsRequester = false; //set true if user has an active request and is the requester
 
@@ -249,6 +250,7 @@ async function profilePage() {
         const response = await fetch('/getUser', options);
         const j1 = await response.json();
         const user = j1.user; //store user information
+        creditScore = user.creditScore;
 
         status = user.status; //get user status
         if (status == 'Busy') { //if status is 'Busy', status is set to be the request's status instead of the user's
@@ -264,7 +266,8 @@ async function profilePage() {
 
         if (status != previousStatus) { //status was changed, update page
             previousStatus = status;
-            showStatus(status); //update status icon in the main menu
+            showStatus(status); //update status icon in the main menu, showstatus() function is found in mainmenu.js
+
             if (status == 'matched') await sleep(2000);
             let request, requestId; //store request informationa and request ID (if exists)
             //if there's an active/matched request, get request information
@@ -354,7 +357,38 @@ async function profilePage() {
                 text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
                 text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
                 text += "<b>Meet-up location: </b><br />";
-                text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
+                //text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
+
+                
+				//create the map
+                var map = new ol.Map({
+                    target: 'map',
+                    layers: [
+                        new ol.layer.Tile({
+                            source: new ol.source.OSM()
+                        })
+                    ],
+                    view: new ol.View({//Initialize view
+                        //center at coordinates
+                        center: ol.proj.fromLonLat(request.match.location),
+                        zoom: 14
+                    }),
+
+                });
+
+                //Adding a marker on the map
+                var marker = new ol.Feature({
+                    geometry: new ol.geom.Point(
+                        ol.proj.fromLonLat(request.match.location)
+                    ),
+                });
+                var vectorSource = new ol.source.Vector({
+                    features: [marker]
+                });
+                var markerVectorLayer = new ol.layer.Vector({
+                    source: vectorSource,
+                });
+                map.addLayer(markerVectorLayer);
 
                 document.getElementById("avaReqText").innerHTML = text;
 
@@ -375,7 +409,7 @@ async function profilePage() {
 
                     //hide available request window prompt
                     document.getElementById("windowPromptAvaReq").style.height = "0";
-                    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+                    document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
                 //    setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
                 });
 
@@ -424,7 +458,7 @@ async function profilePage() {
 
                     //hide available request window prompt
                     document.getElementById("windowPromptAvaReq").style.height = "0";
-                    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+                    document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
        //             setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
 
                 });
@@ -434,7 +468,7 @@ async function profilePage() {
                 document.getElementById("avaReq").classList.remove("disabled");
 
                 //show available request window prompt
-                document.getElementById("dimContent").classList.add("dimVisible"); //dim the screen behind the window prompt
+                document.getElementById("dimScreen").classList.add("dimVisible"); //dim the screen behind the window prompt
                 document.getElementById("windowPromptAvaReq").style.height = PROMPT_HEIGHT;
 
             } else { //user has an active request
@@ -448,20 +482,38 @@ async function profilePage() {
 
                 //set the cancel button
                 cancelButton.addEventListener("click", async function () {
-                    if (status != "completed") {
+                    if (status != "completed" & creditScore != 0) {
                         if (!confirm("Are you sure you want to cancel the request?")) return; //confirm user's choice. leaves function if user declined
 
+                        if (status == "accepted") { //request was accepted, deduct from the user's credit score
+                            creditScore = user.creditScore;
+                            creditScore -= 20;
+                            reqStart = new Date().toString();
+                            const d2 = { userId, creditScore, reqStart };
+                            const options2 = {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(d2)
+                            };
+                            const response2 = await fetch('/creditScore', options2);
+                            const j2 = await response2.json();
+                            console.log(j2.status);
+                        }
+
                         //send user and request information to the server to cancel the request
-                        const d = { userId, userIsRequester, requestRef: user.activeRequest, req: request };
-                        const options = {
+                        const d3 = { userId, userIsRequester, requestRef: user.activeRequest, req: request };
+                        const options3 = {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(d)
+                            body: JSON.stringify(d3)
                         };
-                        const response = await fetch('/cancelRequest', options);
-                        const j5 = await response.json();
-                        console.log(j5);
+                        const response3 = await fetch('/cancelRequest', options3);
+                        const j3 = await response3.json();
+                        console.log(j3);
                     }
+                    else if (creditScore == 0)
+                        alert('Banned :(');
+
                 });
                 cancelButton.style.display = "block"; //show cancel button
 
@@ -498,30 +550,38 @@ async function profilePage() {
                     readyForDone(userId, user, userIsRequester, request);
                 }
             }
+            if (user.message != null) showMessage(user.message); //the other user cancelled the request, display a message
         }
 
-        //get user's location and send it to the server. server will store location in the database
-        if ('geolocation' in navigator && localStorage.getItem('locationPermission') == 'granted') { //if location access is allowed
-            navigator.geolocation.getCurrentPosition(async position => {
-                //get current latitude, longitude and time
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                const tim = position.timestamp;
+        if (document.getElementById('content').classList.contains('hidden')) showPage(); //the page is fully loaded, display page's content
 
-                //send user's location to the server to save location
-                const d1 = { userId, lat, lon, tim };
-                options1 = {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(d1)
-                };
-                const response1 = await fetch('/storeGeolocation', options1);
-                const json = await response1.json();
-            });
-        }
     }, 2000);
 }
 
+//function to show message
+async function showMessage(message) {
+    document.getElementById('messageText').innerHTML = message; //set message text
+
+    //dim screen and show message
+    document.getElementById("dimScreen").classList.add("dimVisible");
+    setTimeout(function () { document.getElementById("messagePrompt").style.display = "block"; }, 250);
+
+    
+    //delete message from the user's account
+    const d = { userId };
+    const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(d)
+    };
+    const response = await fetch('/deleteMessage', options);
+    const j1 = await response.json();
+}
+
+function closeMessage() {
+    document.getElementById("messagePrompt").style.display = "none";
+    document.getElementById("dimScreen").classList.remove("dimVisible");
+}
 
 //function to validate email
 function validateEmail(email) {
@@ -585,8 +645,8 @@ function hideAllElements() {
 
     //if there's an available request and it got canceled, hide the prompt
     document.getElementById("windowPromptAvaReq").style.height = "0";
-    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
-  //  setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
+
+    if (document.getElementById("messagePrompt").style.display == 'none') document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
 }
 
 //function to set innerHTML of requestText element depending on the status of the request
@@ -596,30 +656,36 @@ function setText(status, userIsRequester, request) {
     switch (status) {
         case 'issued':
             text = "Searching for providers..." + "<br /><br />";
-            text += "<b>Requested charge amount: </b>" + request.amount + " kWh";
+            text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)';
             break;
         case 'matched':
             text = "Contacting nearby providers..." + "<br /><br />";
-            text += "<b>Requested charge amount: </b>" + request.amount + " kWh";
+            text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)';
             break;
         case 'pending':
-            if (userIsRequester) text = "A provider had accepted your charge request." + "<br /><br />";
-            else text = "Waiting for the confirmation..." + "<br /><br />";
-            text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
+            if (userIsRequester) {
+                text = "A provider had accepted your charge request." + "<br /><br />";
+                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)' + "<br />";
+                text += "<b>Meet-up location: </b><br />";
+                text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
+            }
+            else {
+                text = "Waiting for the confirmation..." + "<br /><br />";
+                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + percent(request.amount) + ' %)' + "<br />";
+            }
             text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
-            text += "<b>Meet-up location: </b><br />";
-            text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
             break;
         case 'accepted':
             if (userIsRequester) {
                 text = "Provider is on their way..." + "<br /><br />";
                 text += "<b>Provider's car: </b>" + request.match.car.color + ' ' + request.match.car.brand + ' ' + request.match.car.model + ". Plate number: " + request.match.car.licenseNumber + "<br />";
+                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)' + "<br />";
             }
             else {
                 text = "Go to meet-up location..." + "<br /><br />";
                 text += "<b>Requester's car: </b>" + request.requester.car.color + ' ' + request.requester.car.brand + ' ' + request.requester.car.model + ". Plate number: " + request.requester.car.licenseNumber + "<br />";
+                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + percent(request.amount) + ' %)' + "<br />";
             }
-            text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
             //text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
             text += "<b>Meet-up location: </b><br />";
             text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
@@ -673,4 +739,9 @@ async function readyForDone(userId, user, userIsRequester, request) {
         //const time = Done - inProgress;//have to fix this                                                                  ///////////////////////////////////////////////////////???????    what's the point? delete?
         //console.log("Time to complete =" + time);
     });
+}
+
+//get percent of requested charge
+function percent(charge) {
+    return Math.ceil((charge / batteryCapacity) * 10000) / 100;
 }

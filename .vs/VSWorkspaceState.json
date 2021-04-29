@@ -3,12 +3,11 @@
     "",
     "\\obj",
     "\\public",
-    "\\public\\img",
     "\\public\\js",
     "\\public\\style",
     "\\routes",
     "\\views"
   ],
-  "SelectedNode": "\\public\\style\\mainpage.css",
+  "SelectedNode": "\\public\\js\\home.js",
   "PreviewInSolutionExplorer": false
 }

@@ -14,6 +14,7 @@ router.get('/account', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../', 'views', 'account.html'));
 });
 
+
 //get user information from the db and send it to the client
 router.post('/getUser', async (request, response) => {
     //get client request info
@@ -29,6 +30,7 @@ router.post('/getUser', async (request, response) => {
         user: user
     });
 });
+
 
 //get user status and send it to the client
 router.post('/getStat', async (request, response) => {
@@ -46,11 +48,13 @@ router.post('/getStat', async (request, response) => {
     });
 });
 
+
+
 //update user status
 router.post('/setStat', (request, response) => {
     //get client request info
     const userId = request.body.userId; //user ID
-    const stat = request.body.status; //new status
+    const stat = request.body.status; //user status
 
     //save changes to database
     db.ref('users/' + userId).update({ status: stat });
@@ -60,6 +64,7 @@ router.post('/setStat', (request, response) => {
         status: "success",
     });
 });
+
 
 //update user unit price
 router.post('/updateUnitPrice', async (request, response) => { //add to recieve that post(endpoint)
@@ -71,28 +76,6 @@ router.post('/updateUnitPrice', async (request, response) => { //add to recieve 
     db.ref('users/' + userId).update({ unitPrice: newUnitPrice });
 
     // send response to client
-    response.json({
-        status: "success"
-    });
-});
-
-
-//update user's location
-router.post('/storeGeolocation', async (request, response) => {
-    //get client request info
-    const userId = request.body.userId; //user ID
-    const lat = request.body.lat; //user latitude
-    const lon = request.body.lon; //user longitude
-    const tim = request.body.tim; //time
-
-    //update user's location in the database
-    db.ref('users/' + userId + "/location/").set({
-        latitude: lat,
-        longitude: lon,
-        timestamp: tim
-    });
-
-    //send response to client
     response.json({
         status: "success"
     });

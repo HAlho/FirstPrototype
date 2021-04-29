@@ -25,11 +25,10 @@ let client = new paypal.core.PayPalHttpClient(environment);
 
 router.use(express.json({ limit: '1mb' }));
 
-// Function to direct the client to profile.html
-router.get('/profile', (req, res, next) => {
-    res.sendFile(path.join(__dirname, '../', 'views', 'profile.html'));
+// Function to direct the client to home.html
+router.get('/home', (req, res, next) => {
+    res.sendFile(path.join(__dirname, '../', 'views', 'home.html'));
 });
-
 
 //try to fix any errors in the user's account
 router.post('/debugAccount', async (request, response) => {
@@ -39,8 +38,36 @@ router.post('/debugAccount', async (request, response) => {
     //get user information from the database
     var snapshot = await db.ref('users/' + userId).once('value');
     var user = snapshot.val();
+    var status = user.status;
+
+    //check if the user is banned, if so, check if 2 days have passed
+    if (user.banned != null) {
+        if (Date.now() - Date.parse(user.banned.timestamp) >= 172800000) {
+            //unban user
+            db.ref('users/' + userId).child('banned').remove(); //delete banned from account
+            db.ref('users/' + userId).update({ creditScore: 40 }); //update credit score
+        }
+    }
+
 
     //check for errors
+    //if user credit score is null
+    if (user.creditScore == null) db.ref('users/' + userId).update({ creditScore: CREDITSCORE });
+
+    //if user unit price is null
+    if (user.unitPrice == null) db.ref('users/' + userId).update({ unitPrice: UNITPRICE });
+
+    //if user status is null
+    if (status == null) {
+        status = 'Available';
+        db.ref('users/' + userId).update({ status: status });
+    }
+
+    //if status is offline
+    if (status.includes('Offline')) {
+        status = status.substring(status.indexOf('-') + 1);
+        db.ref('users/' + userId).update({ status: status });
+    }
 
     //errors regarding active requests
     if (user.activeRequest != null) {
@@ -49,12 +76,12 @@ router.post('/debugAccount', async (request, response) => {
         if (snapshot.val() == null) { //if request doesn't exist, remove it from the user's account
             db.ref('users/' + userId + '/activeRequest').remove();
             db.ref('users/' + userId).update({ status: 'Available' });
-        } else if (user.status != 'Busy' || user.status != 'Pay') {//if request exists but user's status is not 'Busy' or 'Pay', change it to 'Busy' or 'Pay'
+        } else if (status != 'Busy' || status != 'Pay') {//if request exists but user's status is not 'Busy' or 'Pay', change it to 'Busy' or 'Pay'
             if (user.activeRequest.completed == null)
                 db.ref('users/' + userId).update({ status: 'Busy' });
             else db.ref('users/' + userId).update({ status: 'Pay' });
         }
-    } else if (user.status == 'Busy' || user.status == 'Pay')  //if request doesn't exist but user's status is 'Busy', change status to 'Available'
+    } else if (status == 'Busy' || status == 'Pay')  //if request doesn't exist but user's status is 'Busy', change status to 'Available'
         db.ref('users/' + userId).update({ status: 'Available' });
 
     //errors regarding matched requests
@@ -64,9 +91,9 @@ router.post('/debugAccount', async (request, response) => {
         if (snapshot.val() == null) { //if request doesn't exist, remove it from the user's account
             db.ref('users/' + userId + '/matchedReq').remove();
             db.ref('users/' + userId).update({ status: 'Available' });
-        } else if (user.status != 'matched') //if request exists but user's status is not 'matched', change it to 'matched'
+        } else if (status != 'matched') //if request exists but user's status is not 'matched', change it to 'matched'
             db.ref('users/' + userId).update({ status: 'matched' });
-    } else if (user.status == 'matched') //if request doesn't exist but user's status is 'matched', change status to 'Available'
+    } else if (status == 'matched') //if request doesn't exist but user's status is 'matched', change status to 'Available'
         db.ref('users/' + userId).update({ status: 'Available' });
 
     //if user's current car doesn't exist
@@ -76,49 +103,8 @@ router.post('/debugAccount', async (request, response) => {
             db.ref('users/' + userId + '/currentCar').remove();
     }
 
-    //if user status is null
-    if (user.status == null) db.ref('users/' + userId).update({ status: 'Available' });
-
-    //if user credit score is null
-    if (user.creditScore == null) db.ref('users/' + userId).update({ creditScore: CREDITSCORE });
-
-    //if user unit price is null
-    if (user.unitPrice == null) db.ref('users/' + userId).update({ unitPrice: UNITPRICE });
-
     //set and send response
     response.json({ status: "success" });
-});
-
-
-//get user status and send it to the client
-router.post('/getStat', async (request, response) => {
-    //get client request info
-    const userId = request.body.userId; //user ID
-
-    //get user information from the database
-    var snapshot = await db.ref('users/' + userId).once('value');
-    var user = snapshot.val();
-
-    //send user status to client
-    response.json({
-        status: "success",
-        stat: user.status
-    });
-});
-
-//update user status
-router.post('/setStat', (request, response) => {
-    //get client request info
-    const userId = request.body.userId; //user ID
-    const stat = request.body.status; //user status
-
-    //save changes to database
-    db.ref('users/' + userId).update({ status: stat });
-
-    // send response to client
-    response.json({
-        status: "success",
-    });
 });
 
 
@@ -139,6 +125,81 @@ router.post('/getUser', async (request, response) => {
 });
 
 
+//get user status and send it to the client
+router.post('/getStat', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+
+    //get user information from the database
+    var snapshot = await db.ref('users/' + userId).child('status').once('value');
+    var status = snapshot.val();
+
+    //send user status to client
+    response.json({
+        status: "success",
+        stat: status
+    });
+});
+
+
+
+//update user status
+router.post('/setStat', (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const stat = request.body.status; //user status
+
+    //save changes to database
+    db.ref('users/' + userId).update({ status: stat });
+
+    // send response to client
+    response.json({
+        status: "success",
+    });
+});
+
+//set user status offline
+router.post('/setOffline', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+
+    //read the current status
+    //get user status from the database
+    var snapshot = await db.ref('users/' + userId).child('status').once('value');
+    var status = snapshot.val();
+
+    //save changes to database
+    db.ref('users/' + userId).update({ status: 'Offline-' + status });
+
+    // send response to client
+    response.json({
+        status: "success",
+    });
+});
+
+//remove offline from the user's stauts
+router.post('/setOnline', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+
+    //read the current status
+    //get user status from the database
+    var snapshot = await db.ref('users/' + userId).child('status').once('value');
+    var status = snapshot.val();
+
+    if (status == null) status = 'Available';
+    else if (status.includes('Offline')) status = status.substring(status.indexOf('-') + 1);
+    
+    //save changes to database
+    db.ref('users/' + userId).update({ status: status });
+
+    // send response to client
+    response.json({
+        status: "success",
+    });
+});
+
+
 //get the user's current car information and send it to client
 router.post('/getCurrentCar', async (request, response) => {
     //get client request info
@@ -150,23 +211,28 @@ router.post('/getCurrentCar', async (request, response) => {
     var currentCar = user.currentCar;
 
     let carsFlag = false; //true if user has registered cars
+    let carsNum = 0; //number of registered cars
     let currentCarFlag = false; //true if user selected a current car
     let car, batteryCapacity, consumption; //store current car info
 
-    if (user.cars != null) carsFlag = true; //user has registered cars
+
+    if (user.cars != null) {
+        carsFlag = true; //user has registered cars
+        carsNum = Object.keys(user.cars).length; //number if cars
+    }
     if (user.currentCar != null) { //user has a current car
         currentCarFlag = true;
         //get current car
-        car = user.cars[currentCar]; 
+        car = user.cars[currentCar];
 
         //get technical car info
-        var snapshot = await db.ref('carList/' + car.brand + '/' + car.model).once('value'); 
+        var snapshot = await db.ref('carList/' + car.brand + '/' + car.model).once('value');
         batteryCapacity = snapshot.val().batteryCapacity;
         consumption = snapshot.val().avgConsumption;
     }
 
     //send car to client
-    response.json({ status: "success", carsFlag, currentCarFlag, car, batteryCapacity, consumption });
+    response.json({ status: "success", carsFlag, carsNum, currentCarFlag, car, batteryCapacity, consumption });
 });
 
 
@@ -205,7 +271,6 @@ router.post('/saveCard', async (request, response) => {
 });
 
 
-
 router.post('/addToken', async (request, response) => {                                                             ///////////////////////////////////////////////////////???????
     //get client request info
     const userId = request.body.userId; //user ID
@@ -222,6 +287,7 @@ router.post('/addToken', async (request, response) => {                         
         status: "success",
     });
 });
+
 
 //update user's location
 router.post('/storeGeolocation', async (request, response) => { 
@@ -244,6 +310,7 @@ router.post('/storeGeolocation', async (request, response) => {
     });
 });
 
+
 //get the user's active request information
 router.post('/getActiveRequest', async (request, response) => {
     //get client request info
@@ -254,17 +321,48 @@ router.post('/getActiveRequest', async (request, response) => {
     var snapshot = await db.ref('activeRequests/' + dbref + '/' + requestId).once('value');
     var req = snapshot.val();
 
-    //send request information to client
-    response.json({
-        status: "success",
-        req: req
-    });
+    if (req != null && req.match != null) {
+        var olCoordinates;//coords in openLayers format Long then Lat
+        //replace coordinates from MPFile
+        fs.readFile('./IOs/MPFile.txt', "utf8", (err, data) => {
+            if (err) throw err;
+            // break the textblock into an array of lines
+            var lines = data.split('\r\n');
+            for (a of lines) {
+                if (req.match.location == a.substring(0, 1)) {
+                    console.log("iamhere");
+                    let sindex = a.lastIndexOf(" ");//find the second's space index
+                    let lat = a.substring(2, sindex);
+                    let long = a.substring(sindex + 1, a.length);
+                    olCoordinates = [long, lat];
+                    req.match.location = olCoordinates;
+
+                    //send request information to client
+                    response.json({
+                        status: "success",
+                        req: req
+                    });
+                }
+            }
+
+        });
+        
+    } else {
+        //send request information to client
+        response.json({
+            status: "success",
+            req: req
+        });
+    }
+
+  
 });
 
 
+
 //cancel an active request 
-    //if the person canceling is the requester, the request will have to be completely removed from activeRequests
-    //if the person canceling is the provider, the request will have to be moved back to 'activeRequests/issued'
+//if the person canceling is the requester, the request will have to be completely removed from activeRequests
+//if the person canceling is the provider, the request will have to be moved back to 'activeRequests/issued'
 router.post('/cancelRequest', async (request, response) => {
     //get client request info
     const userId = request.body.userId; //user ID
@@ -276,12 +374,11 @@ router.post('/cancelRequest', async (request, response) => {
     var snapshot = await db.ref('activeRequests/' + requestStatus + '/' + requestId).once('value');
     var req = snapshot.val();//request information
 
-    
+
     var wait = false;
     var check = false;
     var allowed = false;
     var interval = setInterval(async () => {
-       
         if (!allowed) {
             //check if the user data is changed in helper.js
             fs.readFile('cancelQueue.txt', "utf8", (err, data) => {
@@ -308,7 +405,7 @@ router.post('/cancelRequest', async (request, response) => {
             clearInterval(interval);
 
             //indicate user data will be changed (for helper.js)
-            fs.writeFileSync('./cancelQueue.txt', userId);        
+            fs.writeFileSync('./cancelQueue.txt', userId);
 
             //if have waited once, must update the requet information
             if (wait) {
@@ -326,9 +423,14 @@ router.post('/cancelRequest', async (request, response) => {
             if (requestStatus != 'issued') { //get second user's info
                 userIsRequester ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
                 newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
+
+                //save message for other user to see
+                if (userIsRequester && requestStatus != 'matched') db.ref('users/' + user2Id).update({ message: "Oh no!<br />It seems like the request was cancelled.<br />We're very sorry." });
+                else db.ref('users/' + user2Id).update({ message: "Oh no!<br />It seems like the provider cancelled.<br />Please wait until we find a new match." });
             }
 
             //clear request information from the user's account
+            if(requestStatus == 'accepted') db.ref('users/' + userId + '/previousCompleted').remove();
             db.ref('users/' + userId + '/activeRequest').remove();
             db.ref('users/' + userId).update({ status: "Available" });
 
@@ -400,7 +502,28 @@ router.post('/cancelRequest', async (request, response) => {
             });
         }
 
-    }, 2000);
+    }, 500);
+});
+
+
+//update user sCS
+router.post('/creditScore', (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+    const creditScore = request.body.creditScore; //user status
+    const tim = request.body.reqStart;
+
+    //save changes to database
+    db.ref('users/' + userId).update({ creditScore: creditScore });
+
+    if (creditScore == 0) {
+        db.ref('users/' + userId).child('banned').set({ timestamp: tim }); //save request info under user information
+    }
+
+    // send response to client
+    response.json({
+        status: "success"
+    });
 });
 
 
@@ -444,6 +567,15 @@ router.post('/matchAccept', async (request, response) => {
     const requestId = request.body.requestId; //request ID
     const paypal = request.body.paypal; //user's paypal
     const car = request.body.car;
+
+    //check if request exists
+    //get request information from the database
+    var snapshot = await db.ref("activeRequests/matched/" + requestId).once('value');
+    var req = snapshot.val();
+    if (req == null || req.requester == null) return; //if request doesn't exist leave the function
+
+
+    //accept request
 
     var oldRef = db.ref("activeRequests/matched/" + requestId); //the request's current path
 
@@ -534,7 +666,7 @@ router.post('/consumerMatchAccept', async (request, response) => {
 //function for when users are done with a request
 //when the first user clicks the 'done' button, the request is moved from 'activeRequests/accepted' to 'activeRequests/completed'
 //when the second user clicks the 'done' button, the request is removed from the activeRequests directory and copied to both users previous requests
-router.post('/requestComplete', async (request, response) => { 
+router.post('/requestComplete', async (request, response) => {
     //get client request info
     const userId = request.body.userId; //user ID
     const user2Id = request.body.user2Id; //second user's ID 
@@ -579,6 +711,10 @@ router.post('/requestComplete', async (request, response) => {
         db.ref('users/' + user2Id).child("activeRequest").update({ dbref: "completed" });
     }
 
+    if (!userIsRequester) 
+        requestCompleted(userId);
+    
+
     //send response to client
     response.json({
         status: "success",
@@ -586,13 +722,25 @@ router.post('/requestComplete', async (request, response) => {
 
 });
 
+//user completed a request, increase the credit score
+async function requestCompleted(userId) {
+    var snapshot = await db.ref('users/' + userId).once('value');
+    const user = snapshot.val();
+
+    if (user.creditScore != 100 && user.creditScore != 0) {
+        if (user.previousCompleted == null) db.ref('users/' + userId).update({ previousCompleted: 'true' }); //set status to available
+        else {
+            db.ref('users/' + userId).update({ creditScore: user.creditScore + 20 });
+            db.ref('users/' + userId).child('previousCompleted').remove();
+        }
+    }
+}
 
 //temperory payment function (for testing purposes)
 router.post('/tempPay', async (request, response) => {
     //get client request info
     const userId = request.body.userId;
     const requestId = request.body.requestId;
-
 
     //move request to the consumer's history
     //update request status to 'completed'
@@ -603,6 +751,9 @@ router.post('/tempPay', async (request, response) => {
     //clear request from the consumer's account
     db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
     db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+
+    //requester completed a request
+    requestCompleted(userId);
 
     //user response
     response.json({
@@ -633,7 +784,7 @@ router.post('/pay', async (request, response) => {                              
     paypalrequest.requestBody({
         "intent": "CAPTURE",
         "application_context": {
-            "return_url": "https://192.168.0.191:3000/profile",
+            "return_url": "https://192.168.0.191:3000/home",
             "cancel_url": "https://192.168.0.191:3000/account"
         },
         "purchase_units": [
@@ -663,6 +814,9 @@ router.post('/pay', async (request, response) => {                              
             //clear request from the consumer's account
             db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
             db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+
+            //requester completed a request
+            requestCompleted(userId);
 
             clearInterval(interval);//exit the interval
 

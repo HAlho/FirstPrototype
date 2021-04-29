@@ -58,6 +58,29 @@ i {
     background: transparent;
     font-weight: 600;
 }
+
+.parent {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+    .parent div {
+        margin: auto;
+        grid-row-start: 1;
+        grid-column-start: 1;
+    }
+
+.battery {
+    font-size: 200px;
+    -webkit-text-stroke-width: 13px;
+    -webkit-text-stroke-color: white;
+}
+
+.map {
+    height: 330px;
+    width: 100%;
+}
+
 .requestMethod {
     height: 115px;
     width: 100%;
@@ -79,17 +102,6 @@ i {
         font-size: 13px;
     }
 
-
-    /*
-.battery {
-    font-size: 200px;
-    -webkit-text-stroke-width: 13px;
-    -webkit-text-stroke-color: white;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}*/
 
 input[type="range"] {
     -webkit-appearance: none;

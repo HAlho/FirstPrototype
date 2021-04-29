@@ -1,8 +1,57 @@
 // JavaScript source code
+//append main menu to the html page
+const menuCodeBlock = '<div class="mainMenu">' +
+    '<table style="border-bottom:none;"><tr>' +
+    '<td><button class="circle" id="status" onclick="openStatusMenu()"></button></td>' +
+    '<td><button class="circle" id="home"><img src="./img/home.png" height="30"></button></td>' +
+    '<td><button class="circle" id="account"><img src="./img/account.png" height="30"></button></td>' +
+    '</tr><tr style="text-align:center;">' +
+    '<td><small>STATUS</small></td>' +
+    '<td><small id="homeText">HOME</small></td>' +
+    '<td><small id="accountText">ACCOUNT</small></td>' +
+    '</tr></table>' +
+    '</div>' +
+    '<div id="statusMenu" class="statusMenu tail">' +
+    '<a onclick="setStatus(\'Available\'); showStatus()"><button class="statusCircle"><img src="./img/status-available.png" height="15px"></button>Available</a><hr />' +
+    '<a onclick="setStatus(\'Do Not Disturb\'); showStatus()"><button class="statusCircle" style="background-color:#f08066;"><img src="./img/status-busy.png" height="15px"></button>Busy</a>' +
+    '</div>' +
+    '<div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>';
+var div = document.createElement('div');
+div.innerHTML = menuCodeBlock;
+document.getElementById('content').appendChild(div); //append menu
+
+//make current page's button active
+if (window.location.pathname == '/home') {
+    document.getElementById('home').classList.add('active');
+    document.getElementById('homeText').innerHTML = document.getElementById('homeText').innerHTML.bold();
+} else {
+    document.getElementById('account').classList.add('active');
+    document.getElementById('accountText').innerHTML = document.getElementById('accountText').innerHTML.bold();
+}
+
+//html elements event listeners
+//main menu account button event listeners
+document.getElementById('home').addEventListener('click', () => {
+    if (window.location.pathname != '/home')
+        window.location.assign('../home'); //main menu account button to forward the user to the account page
+});
+document.getElementById('account').addEventListener('click', () => {
+    if(window.location.pathname != '/account')
+        window.location.assign('../account'); //main menu account button to forward the user to the account page
+});
+
+//get status elements
 statusButton = document.getElementById("status"); //status button in main menu
 statusMenu = document.getElementById("statusMenu"); //status menu
 
 var userStatus; //store user's status
+
+//function that check if user is authenticated then calls other functions
+firebase.auth().onAuthStateChanged(async function (user) {
+    if (user) {//if user is authenticated
+        showStatus(); //show user status in main menu (function is found in status.js)
+    }
+});
 
 //get status from the server
 async function getStatus() {
@@ -48,10 +97,13 @@ function closeStatusMenu() {
 //show and set user status
 async function showStatus(status) {
     if (status == null) {
-
         //get status from the server
         await getStatus().then(value => {//once the value is retrieved 
             status = value;
+            if (status.includes('Offline')) {
+                status = status.substring(status.indexOf('-') + 1);
+                setStatus(status);
+            }
         });
     }
 
@@ -71,8 +123,6 @@ async function showStatus(status) {
             statusButton.style.background = "lightgray";
             statusButton.innerHTML = '<img src="./img/status-unavailable.png" height="30">';
     }
-
-
 }
 
 //change user changed status
@@ -91,8 +141,6 @@ async function setStatus(status) {
         };
         const response = await fetch('/setStat', options);
         const json = await response.json();
-
-        showStatus(userId, status); //show the updated status on the main menu
     }
 
     closeStatusMenu(); //close status menu

@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Home</title>
+    <link rel="icon" href="./img/favicon.png">
+    <link rel="stylesheet" href="./style/common.css">
+    <link rel="stylesheet" href="./style/home.css">
+    <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.3.0/css/ol.css"0 type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/build/ol.js"></script>
+</head>
+<body>
+    <!-- HTML elements -->
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
+    </div>
+
+    <div id="content" class="hidden">
+        <section>
+            <div class="pageName">Home</div>
+            <div class="currentCar" id="currentCar">
+                <label><b id="currentCarInfo"></b></label>
+                <p id="edit" class="link" style="display:none; text-align: right; padding-right: 15px; font-size: 14px;">change car</p>
+                <div id="noCar" style="display:none;">
+                    <p> You don't have any registered cars</p>
+                    <div style="text-align: right; padding: 12px;"><a href="./registerCar" class="link">Register a Car </a></div>
+                </div>
+            </div>
+
+            <div id="buttons" style="display:none;">
+                <button class="rectangle" id="newRequest">Request Charge</button>
+                <button class="rectangle disabled" id="avaReq">No Available Requests</button>
+            </div>
+
+            <div id="activeRequest">
+                <div id="request" style="display:none;">
+                    <h2>Active Request</h2><br />
+                    <p id="requestText"></p><br />
+                    <input type="text" id="paypal" value="" style="display:none;">
+                    <button id="cancel" style="display:none;"><b>Cancel</b></button>
+                    <button id="accept" style="display:none;"><b>Accept Request</b></button>
+                </div>
+
+                <div id="payment" style="display:none;">
+                    <p id="paymentText"></p>
+                    <button id="pay"><b>pay</b></button>
+                </div>
+            </div>
+        </section>
+
+        <div id="windowPromptAvaReq" class="request">
+            <br /><br />
+            <p id="avaReqText"></p>
+            <div id="map" class="map" style="display:block;"></div>
+            <br />
+            <label>Paypal Email</label>
+
+            <div>
+                <select id="paymentSelect" style="display:none;">
+                    <option>Select a Payment Method</option>
+                </select>
+            </div>
+            <div id="noPayment" style=" display: none; font-size: 14px; text-align: right;">
+                <small id="emailAlert"></small>
+                <input type="text" id="paymentInput" style="width: 60%; display: inline; margin: 0 0 0 7px;"><br />
+                <input type="checkbox" id="saveCard" style="width: auto; display: inline; margin: 8px 0px 30px auto;">
+                <label for="saveCard"> Save card</label>
+            </div>
+            <button id="closeAvaReq" class="cancel">Ignore</button>
+            <button id="avaReqDecline" class="close">Decline</button>
+            <button id="avaReqAccept">Accept</button>
+        </div>
+
+        <div id="messagePrompt" class="windowPrompt" style="display:none;">
+            <p id="messageText"></p>
+            <button onclick="closeMessage()">ok</button>
+        </div>
+
+        <div id="dimScreen" class="dimContent"></div>
+    </div>
+    <!-- Page ends here -->
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
+
+    <script src="./js/firebase-config.js"></script> <!-- Firebase configuration -->
+    <script src="./js/mainmenu.js"></script> <!-- Appends the mainmenu and deals with status changes -->
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
+    <script src="./js/home.js"></script>
+</body>
+</html>
+
+
+    

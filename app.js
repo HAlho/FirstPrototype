@@ -14,7 +14,7 @@ const mainpageRoute = require('./routes/mainpage');
 const signUpRoute = require('./routes/signup');
 const signInRoute = require('./routes/signin');
 const carSelectRoute = require('./routes/carSelect');
-const profileRoute = require('./routes/profile');
+const homeRoute = require('./routes/home');
 const newRequestRoute = require('./routes/newRequest');
 const accountRoute = require('./routes/account');
 const settingsRoute = require('./routes/settings');
@@ -36,7 +36,7 @@ app.use(mainpageRoute);
 app.use(signUpRoute);
 app.use(signInRoute);
 app.use(carSelectRoute);
-app.use(profileRoute);
+app.use(homeRoute);
 app.use(newRequestRoute);
 app.use(accountRoute);
 app.use(settingsRoute);
@@ -63,4 +63,4 @@ fs.writeFile('cancelQueue.txt', '', function (err) {//clear queue
     if (err) return console.log(err);
 });
 
-https.createServer(app).listen(process.env.PORT || 3000);
+https.createServer({ key: privateKey, cert: certificate }, app).listen(process.env.PORT || 3000);

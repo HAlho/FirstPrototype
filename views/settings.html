@@ -2,65 +2,44 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
+    <link rel="icon" href="./img/favicon.png" />
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/settings.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- HTML elements -->
-    <a href="../account" class="back">
-        <i class="fa fa-angle-left" style="color:black;"></i>
-        <small style="vertical-align:top; padding-top:5px;"> Back</small>
-    </a>
-    <div class="pageName">SETTINGS</div>
-
-    <div class="settingsMenu">
-        <table>
-            <tr>
-                <td style="width:100%;">Notifications</td>
-                <td><label class="switch"><input type="checkbox" id="notifications"><span class="slider"></span></label></td>
-            </tr>
-        </table>
-        <hr />
-        <table>
-            <tr>
-                <td style="width:100%;">Location Access</td>
-                <td><label class="switch"><input type="checkbox" id="location"><span class="slider"></span></label></td>
-            </tr>
-        </table>
-        <hr />
-        <br /><br /><br />
-        <button id="deleteAccount" class="logout">Delete Account</button>
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
     </div>
 
-    <div class="mainMenu">
-        <table>
-            <tr>
-                <td><button class="circle" id="status" onclick="openStatusMenu()"></button></td>
-                <td><button class="circle" id="home"><img src="./img/home.png" height="30"></button></td>
-                <td><button class="circle active" id="account"><img src="./img/account.png" height="30"></button></td>
-            </tr>
-            <tr>
-                <td><small>STATUS</small></td>
-                <td><small>HOME</small></td>
-                <td><small><b>ACCOUNT</b></small></td>
-            </tr>
-        </table>
-    </div>
+    <div id="content" class="hidden">
+        <a href="../account" class="back">
+            <i class="fa fa-angle-left" style="color:black;"></i>
+            <small style="vertical-align:top; padding-top:5px;"> Back</small>
+        </a>
+        <div class="pageName">Settings</div>
 
-    <div id="statusMenu" class="statusMenu tail">
-        <a onclick="setStatus('Available'); showStatus()"><button class="statusCircle"><img src="./img/status-available.png" height="15px"></button>Available</a>
-        <hr />
-        <a onclick="setStatus('Do Not Disturb'); showStatus()"><button class="statusCircle" style="background-color:#DD5F56;"><img src="./img/status-busy.png" height="15px"></button>Busy</a>
+        <div class="settingsMenu">
+            <table>
+                <tr>
+                    <td style="width:100%;">Notifications</td>
+                    <td><label class="switch"><input type="checkbox" id="notifications"><span class="slider"></span></label></td>
+                </tr>
+            </table>
+            <hr />
+            <table>
+                <tr>
+                    <td style="width:100%;">Location Access</td>
+                    <td><label class="switch"><input type="checkbox" id="location"><span class="slider"></span></label></td>
+                </tr>
+            </table>
+            <hr />
+            <br /><br /><br />
+            <button id="deleteAccount" class="logout">Delete Account</button>
+        </div>
     </div>
-
-    <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -75,30 +54,17 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-messaging.js"></script>
 
-    <!-- Firebase configuration -->
-    <script src="./js/firebase-config.js"></script>
-
-
-
-
-
-
-    <script src="./js/status.js"></script>
+    <script src="./js/firebase-config.js"></script> <!-- Firebase configuration -->
+    <script src="./js/mainmenu.js"></script> <!-- Append the mainmenu and deals with status changes -->
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
 
     <script>
         // JavaScript source code
-        document.getElementById("home").addEventListener('click', () => { //forward user to main page
-            window.location.assign('../profile');
-        });
-
-        document.getElementById("account").addEventListener('click', () => { //forward user to account page
-            window.location.assign('../account');
-        });
-
         firebase.auth().onAuthStateChanged(async function (user) {
             if (user) { //if user is authenticated
                 updateSettings(); //check if user changed the browser's settings
                 displaySettings(); //display settings
+                showPage(); //content is fully loaded, show page content
             } else window.location.assign('../mainpage'); //forward user to the welcome page
         });
 

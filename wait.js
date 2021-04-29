@@ -7,7 +7,7 @@ const maxProc = 2;
 var numProc=0;
 var threadId;
 
-const n = workerData.n; //take the variables from workerData in profile.js
+const n = workerData.n; //take the variables from workerData in home.js / newRequest.js
 
 
 

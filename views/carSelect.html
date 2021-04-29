@@ -2,24 +2,26 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Car</title>
+    <link rel="icon" href="./img/favicon.png">
     <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/cars.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- HTML elements -->
-    <a class="next disabled" id="next">
-        <small style="vertical-align:top;">Continue </small>
-        <i class="fa fa-angle-right" id="arrow"></i>
-    </a>
-    <div class="pageName">CURRENT CAR</div>
-    <div id="carDiv" class="carsContainer"></div>
+    <div id="loading" class="loading">
+        <img src="./img/loading.gif" style="height:65px;" />
+    </div>
+
+    <div id="content" class="hidden">
+        <a class="next disabled" id="next">
+            <small style="vertical-align:top;">Continue </small>
+            <i class="fa fa-angle-right" id="arrow"></i>
+        </a>
+        <div class="pageName">Current Car</div>
+        <div id="carDiv" class="carsContainer"></div>
+    </div>
     <!-- Page ends here -->
-
-
-
-
-
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -36,7 +38,7 @@
 
     <!-- Firebase configuration -->
     <script src="./js/firebase-config.js"></script>
-
+    <script src="./js/common.js"></script> <!-- Has functions used by multiple pages -->
 
 
 
