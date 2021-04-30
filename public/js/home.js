@@ -253,7 +253,7 @@ async function updatePage() {
         creditScore = user.creditScore;
 
         status = user.status; //get user status
-        if (status == 'Busy') { //if status is 'Busy', status is set to be the request's status instead of the user's
+        if (status == 'Busy' && user.activeRequest!=null) { //if status is 'Busy', status is set to be the request's status instead of the user's
             status = user.activeRequest.dbref; // status is set to be the request's status instead of the user's
             if (user.activeRequest.role == "requester") userIsRequester = true; //current user is the requester
         }
