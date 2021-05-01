@@ -21,35 +21,71 @@
     <div id="content" class="hidden">
         <section>
             <div class="pageName">Home</div>
-            <div class="currentCar" id="currentCar">
-                <label><b id="currentCarInfo"></b></label>
-                <p id="edit" class="link" style="display:none; text-align: right; padding-right: 15px; font-size: 14px;">change car</p>
-                <div id="noCar" style="display:none;">
-                    <p> You don't have any registered cars</p>
-                    <div style="text-align: right; padding: 12px;"><a href="./registerCar" class="link">Register a Car </a></div>
-                </div>
-            </div>
-
             <div id="buttons" style="display:none;">
+
+                <div id="currentCar" style="text-align: left;">
+                    <h8>Current Car</h8>
+                    <div style="border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; background: #f7f7f7f7; padding: 18px 25px; margin-top: 10px;">
+                        <p id="currentCarInfo" style=" font-size: 15px; line-height: 26px;"></p>
+                        <p id="edit" class="link" style="display:none; text-align: right; padding-right: 15px; font-size: 14px;">change car</p>
+                        <div id="noCar" style="display:none;">
+                            <p> You don't have any registered cars</p>
+                            <div style="text-align: right; padding: 12px;"><a href="./registerCar" class="link">Register a Car </a></div>
+                        </div>
+                    </div>
+                </div>
+
                 <button class="rectangle" id="newRequest">Request Charge</button>
                 <button class="rectangle disabled" id="avaReq">No Available Requests</button>
             </div>
 
-            <div id="activeRequest">
-                <div id="request" style="display:none;">
-                    <h2>Active Request</h2><br />
-                    <p id="requestText"></p><br />
-                    <input type="text" id="paypal" value="" style="display:none;">
-                    <button id="cancel" style="display:none;"><b>Cancel</b></button>
-                    <button id="accept" style="display:none;"><b>Accept Request</b></button>
-                </div>
 
-                <div id="payment" style="display:none;">
-                    <p id="paymentText"></p>
-                    <button id="pay"><b>pay</b></button>
+            <div id="activeRequest" style="display:none; text-align: left;">
+                <h8>Active Request</h8>
+                <div id="request" style=" border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; background: #f7f7f7f7; text-align:left; margin-top: 10px;">
+                    <table>
+                        <tr id="textTr">
+                            <td id="textTd" colspan="3" style="text-align: center; font-weight: bold;"></td>
+                        </tr>
+                        <tr id="locationTr" style="display:none;">
+                            <td id="locationTd" style="color:#5bbfc5;line-height: 55px;" colspan="3"><b>View meet-up location</b> <i class="fas fa-map-marker-alt" style="color:#5bbfc5;"></i></td>
+                        </tr>
+                        <tr id="amountTr">
+                            <td colspan="2" style="width: 65%">Requested charge amount</td>
+                            <td id="amountTd" style="text-align:right;"></td>
+                        </tr>
+                        <tr id="priceTr" style="display:none;">
+                            <td colspan="2">Estimated price</td>
+                            <td id="priceTd" style="text-align:right"></td>
+                        </tr>
+                        <tr id="carTr" style="display:none;">
+                            <td style="vertical-align:top; width:30%;">Driver's car</td>
+                            <td id="carTd" colspan="2" style="text-align:right;"></td>
+                        </tr>
+                    </table>
+
+                    <div style=" width: 75%; margin: 30px auto 20px auto;" id="reqButtons">
+                        <button id="cancel" style="display:none; float: left; color: #777; background: lightgray;">Cancel</button>
+                        <button id="accept" style="display:none;float: right; background: #5bbfc5; color: white;">Accept</button>
+                        <button id="done" style="display:none;float: right; background: #5bbfc5; color: white;">Done</button>
+                    </div>
+
+                    <div id="payment" style="display:none; text-align:center; width: 80%; margin: 10px auto 20px auto;">
+                        <button id="pay" style="width: 85px; color: #777; background: lightgray;">Pay</button>
+                        <p style="line-height: 35px;">Or</p>
+                        <button id="payTest" style="background: #5bbfc5; color: white; width: 80%; height: max-content;">Continue without paying<br />(for testing purposes)</button>
+                    </div>
                 </div>
             </div>
+
         </section>
+
+        <div id="location" style="display:none;">
+            <div id="dimScreenMap" class="dimContent dimVisible"></div>
+            <div class="mapView" style="display:block; z-index:50;">
+                <div id="locationMap" class="map" style="display:block; height: 385px; border-top: 1.5px solid black; border-bottom: 1.5px solid black; "></div>
+            </div>
+        </div>
 
         <div id="windowPromptAvaReq" class="request">
             <br /><br />
@@ -78,6 +114,7 @@
             <p id="messageText"></p>
             <button onclick="closeMessage()">ok</button>
         </div>
+
 
         <div id="dimScreen" class="dimContent"></div>
     </div>

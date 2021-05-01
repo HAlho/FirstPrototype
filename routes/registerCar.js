@@ -18,10 +18,6 @@ router.get('/registerCar', (req, res, next) => {
 
 // Function to get car brands from the db and send it to the client
 router.post('/getBrands', async (request, response) => {
-
-    // Get client request info
-    const data = request.body;
-
     // Get brands from the database
     var snapshot = await db.ref('carList').once('value');
     var brands = snapshot.val();
@@ -31,13 +27,10 @@ router.post('/getBrands', async (request, response) => {
         status: "success",
         brands: brands
     });
-
-
 });
 
 // Function to get specific car brand models from the db and send it to the client
 router.post('/getModels', async (request, response) => {
-
     // Get client request info (car brand)
     const data = request.body;
 
@@ -50,18 +43,12 @@ router.post('/getModels', async (request, response) => {
         status: "success",
         models: models
     });
-
-
 });
 
 // Function to register a client's new car into the database
 router.post('/saveCar', async (request, response) => { 
-    console.log('POST A CAR!');
-
     // Get the car information from the client
     const data = request.body;
-
-    console.log(data);
 
     // Register the car info into the database
     await db.ref('users/' + data.userId + '/cars').push().set({
@@ -71,12 +58,10 @@ router.post('/saveCar', async (request, response) => {
         color: data.carColor
     });
 
-
     // Send response to client
     response.json({
         status: "success registring car"
     });
-
 });
 
 

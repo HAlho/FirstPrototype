@@ -31,7 +31,6 @@ i {
 .buttonContainer {
     width: max-content;
     margin: auto;
-    position: absolute;
 }
 
 .nextButton {
@@ -56,7 +55,6 @@ i {
     border: none;
     font-size: 15px;
     background: transparent;
-    font-weight: 600;
 }
 
 .parent {

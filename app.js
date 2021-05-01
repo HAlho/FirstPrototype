@@ -50,7 +50,8 @@ app.use(requestInfoRoute);
 app.use(resetRoute);
 
 app.use((req, res, next) => {
-    res.status(404).send('<h1>Page not found</h1>');
+    res.status(404);
+    res.redirect('/home');
 });
 
 fs.writeFile('queue.txt', '', function (err) {//clear queue

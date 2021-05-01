@@ -145,9 +145,7 @@ document.getElementById("requestByAmount").addEventListener("click", function ()
 
 //button to submit request
 document.getElementById("done").addEventListener("click", function () {
-    if (neededSoC != currentSoC || (long != 0 && lat != 0)) {
         submitRequest(); //function to submit request
-    }
 });
 
 
@@ -185,27 +183,13 @@ async function getCar(userId) {
     setSliderCurrent(); //set slider to get the user's current state of charge
 }
 
-//calculate needed charge given distance         
-//function calculate() {                                                         //Not sure how to comment because we should add a map first  ......................          ///////////////////////////////////////////////////////???????
-//    document.getElementById("amount").value = '';
-//    let input = prompt("Travel Distance (km):");
-//    let distance = parseInt(input);
-//    let currentEnergy = sliderOutput; //from Request
-//    let totalNeededEnergy = distance * consumption;
-//    let energyNeeded = Math.round((totalNeededEnergy - currentEnergy) * 10) / 10;
-
-//    if (energyNeeded <= 0) {
-//        alert("You need " + totalNeededEnergy + " kWh to Reach that destination. You already have enough charge!");
-//        return;
-//    }
-//    document.getElementById("amount").value = energyNeeded;
-//}
-
-
 
 //send request to the server
 async function submitRequest() {
     let userId = firebase.auth().currentUser.uid; //current user ID
+
+    if (!document.getElementById("done").classList.contains('disabled')) document.getElementById("done").classList.add('disabled');
+    else return;
 
     //get user's location and send it to the server
     if ('geolocation' in navigator && localStorage.getItem('locationPermission') == 'granted') { //if location access is allowed

@@ -2,32 +2,51 @@
     text-align: center;
 }
 
+table {
+    width: 88%;
+    text-align: left;
+    margin: auto;
+    padding: 10px 0;
+    font-size: 15px;
+}
+
+tr {
+    line-height: 35px;
+}
+
+small {
+    font-size: 14px;
+}
+
+h8 {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 30px;
+    padding-left: 14px;
+}
+
 h2 {
     font-size:18px;
     font-weight:600;
 }
 
-.currentCar {
-    background: #eee;
-    margin: 10px 0 15px 0;
-    padding-bottom: 20px;
-    width: 90%;
-    text-align: left;
+button {
+    padding: 10px;
+    border-radius: 50px;
+    border: none;
+    width: 95px;
+    height: 50px;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 .rectangle {
-    box-sizing: border-box;
     height: 75px;
-    width: 290px;
-    position: relative;
+    width: 280px;
     margin: 35px auto 0 auto;
-    border-radius: 40px;
     background-color: #5bbfc5;
-    border: none;
-    font-size: 24px;
+    font-size: 21px;
     font-weight: bold;
-    line-height: 30px;
-    text-align: center;
     color: #FFF;
 }
 
@@ -107,6 +126,17 @@ h2 {
         display: block;
         font-size: 12px;
     }
+
+.mapView {
+    z-index: 100;
+    position: fixed;
+    margin: auto;
+    width: 100%;
+    background-color: #fff;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
 
 .map {
     height: 175px;

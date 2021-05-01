@@ -58,15 +58,15 @@ router.post('/debugAccount', async (request, response) => {
     if (user.unitPrice == null) db.ref('users/' + userId).update({ unitPrice: UNITPRICE });
 
     //if user status is null
-    if (status == null) {
+    if (status == null || status.includes('null')) {
         status = 'Available';
-        db.ref('users/' + userId).update({ status: status });
+        db.ref('users/' + userId).update({ status: status }); //update status
     }
 
     //if status is offline
     if (status.includes('Offline')) {
-        status = status.substring(status.indexOf('-') + 1);
-        db.ref('users/' + userId).update({ status: status });
+        status = status.substring(status.indexOf('-') + 1); console.log(status);
+        db.ref('users/' + userId).update({ status: status }); //update status
     }
 
     //errors regarding active requests
@@ -77,7 +77,7 @@ router.post('/debugAccount', async (request, response) => {
             db.ref('users/' + userId + '/activeRequest').remove();
             db.ref('users/' + userId).update({ status: 'Available' });
         } else if (status != 'Busy' || status != 'Pay') {//if request exists but user's status is not 'Busy' or 'Pay', change it to 'Busy' or 'Pay'
-            if (user.activeRequest.completed == null)
+            if (user.activeRequest.completed == null || user.activeRequest.role == 'provider' )
                 db.ref('users/' + userId).update({ status: 'Busy' });
             else db.ref('users/' + userId).update({ status: 'Pay' });
         }
@@ -187,7 +187,7 @@ router.post('/setOnline', async (request, response) => {
     var snapshot = await db.ref('users/' + userId).child('status').once('value');
     var status = snapshot.val();
 
-    if (status == null) status = 'Available';
+    if (status == null || status.includes('null')) status = 'Available';
     else if (status.includes('Offline')) status = status.substring(status.indexOf('-') + 1);
     
     //save changes to database
@@ -505,6 +505,19 @@ router.post('/cancelRequest', async (request, response) => {
     }, 500);
 });
 
+//get user status and send it to the client
+router.post('/deleteMessage', async (request, response) => {
+    //get client request info
+    const userId = request.body.userId; //user ID
+
+    //delete the message from the user's account
+    db.ref('users/' + userId + '/message').remove();
+
+    //send user status to client
+    response.json({
+        status: "success",
+    });
+});
 
 //update user sCS
 router.post('/creditScore', (request, response) => {
@@ -824,9 +837,20 @@ router.post('/pay', async (request, response) => {                              
                 status: "success",
             });
         }
+
         console.log(`Response: ${JSON.stringify(response)}`);
         // If call returns body in response, you can get the deserialized version from the result attribute of the response.
         console.log(`Capture: ${JSON.stringify(response.result)}`);
+
+        //if user status is not 'Pay' that means that the user clicked the fake pay button. Clear interval and leave this function
+        var snapshot = await db.ref('users/' + userId).child('status').once('value');
+        var status = snapshot.val();
+        if (status != 'Pay') {
+            clearInterval(interval);//exit the interval
+            response.json({
+                status: "success",
+            });
+        }
     }
 
     let createOrder = async function () {

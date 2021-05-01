@@ -28,11 +28,12 @@ eyeSlash.addEventListener('click', () => {
 });
 
 //sign up button event listener
-document.getElementById('signup').addEventListener('click', () => { //user wants to sign up
+document.getElementById('signup').addEventListener('click', async () => { //user wants to sign up
     //get user inputs
     const email = emailField.value; //get email
     const password = passwordField.value; //get password
     const name = displayNameField.value; //get name
+
 
     //clear any previous errors
     displayNameField.style.border = "none";
@@ -46,28 +47,59 @@ document.getElementById('signup').addEventListener('click', () => { //user wants
     if (!validateEmail(email)) return; //check if email is valid
     if (!checkPassword(password)) return; //check if password is strong
 
+    //all inputs are valid
+
+    //check if the email is banend
+    const sdata = { email };
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sdata)
+    };
+    const response = await fetch('/checkBanned', options);
+    const json = await response.json();
+    const banned = json.banned;
+
+    //if user banned, display message and return
+    if (banned) {
         document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
-        //display confirmation message
+        //display banned message
         setTimeout(function () {
-            document.getElementById("PopUp").style.display = "block"; //show window
+            document.getElementById("messagePrompt").style.display = "block"; //show window
         }, 300);
 
-    //all inputs are valid, sign up user..
-    //built in firebase function responsible for signing up a user
-    firebase.auth().createUserWithEmailAndPassword(email, password) //attempt to create an account
-        .then(() => { //account was created successfully
-            var user = firebase.auth().currentUser; //get current user
-            user.updateProfile({ //save the user's name
-                displayName: name
-            }).then(function () { 
-                sendVerificationEmail(); //send verification email to the user
-            }).catch(function (error) { //error saving the user's name
-                console.error(error);
-            });
-        }).catch(error => { //error creating account
-            alert.innerHTML = error.message; //display error message
-        })
+        return;
+    } else { //user is not banned
+        //built in firebase function responsible for signing up a user
+        firebase.auth().createUserWithEmailAndPassword(email, password) //attempt to create an account
+            .then(() => { //account was created successfully
+                var user = firebase.auth().currentUser; //get current user
+                user.updateProfile({ //save the user's name
+                    displayName: name
+                }).then(function () {
+                    document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+                    //display confirmation message
+                    setTimeout(function () {
+                        document.getElementById("PopUp").style.display = "block"; //show window
+                    }, 300);
+
+                    sendVerificationEmail(); //send verification email to the user
+                }).catch(function (error) { //error saving the user's name
+                    console.error(error);
+                });
+            }).catch(error => { //error creating account
+                alert.innerHTML = error.message; //display error message
+            })
+    }
 });
+
+//close message if the user clicked 'ok' shown on prompt
+function closeMessage() {
+    document.getElementById("messagePrompt").style.display = "none";
+    document.getElementById("dimContent").classList.remove("dimVisible");
+}
 
 //function called right after the signUpWithEmailAndPassword to send verification emails
 const sendVerificationEmail = () => {

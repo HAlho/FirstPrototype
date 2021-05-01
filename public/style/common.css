@@ -174,7 +174,7 @@ h3 {
 .statusMenu {
     display: none;
     z-index: 100;
-    width: 180px;
+    width: 240px;
     height: 100px;
     line-height: 40px;
     margin: auto;
@@ -209,7 +209,7 @@ h3 {
 .statusCircle {
     height: 30px;
     width: 30px;
-    margin: 10px;
+    margin: 11px;
     background-color: #99d9d8;
     border: none;
     border-radius: 40px;

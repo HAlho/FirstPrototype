@@ -15,6 +15,25 @@ router.get('/signup', (req, res, next) => {
 
 
 // Function to save the user's card information
+router.post('/checkBanned', async (request, response) => {
+    //get user email
+    const email = request.body.email;
+    let banned = false;
+
+    //get banned emails
+    db.ref('bannedAccounts').orderByChild('email').equalTo(email).on("value", function (snapshot) {
+        snapshot.forEach(function (data) {
+            banned = true;
+        });
+    });
+
+    response.json({
+        banned: banned
+    });
+});
+
+
+// Function to save the user's card information
 router.post('/saveUser', async (request, response) => {
     //get user ID
     const userId = request.body.userId;
@@ -22,7 +41,7 @@ router.post('/saveUser', async (request, response) => {
     //add user to the database
     await db.ref('users').child(userId).set({
         creditScore: '100',
-        status: 'Busy',
+        status: 'Available',
         unitPrice: '0.37'
     });
 

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "NodejsWebApp4",
   "main": "app.js",
-  "scripts": {
+   "scripts": {
     "start": "node app.js"
   },
   "author": {

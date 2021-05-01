@@ -26,9 +26,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
         };
         const response = await fetch('/getBrands', options);
         const json = await response.json(); //server response
-        console.log(json);
         brands = Object.keys(json.brands);
-        console.log(brands);
 
         //Brands dropmenu
         for (var i = 0; i < brands.length; i++) {
@@ -59,9 +57,7 @@ document.getElementById("brands").addEventListener('change', async (event) => {
         };
         const response = await fetch('/getModels', options);
         const json = await response.json(); //server response
-        console.log(json);
         models = Object.keys(json.models);
-        console.log(models);
 
         //models dropmenu
         for (var i = 0; i < models.length; i++) {
@@ -113,8 +109,6 @@ async function submit() {
 
     //send new car info to server to save it into the db
     const sdata = { carBrand, carModel, licenseNum, carColor, userId };
-    console.log(sdata);
-
     const options = {
         method: 'POST',
         headers: {
@@ -124,7 +118,6 @@ async function submit() {
     };
     const response = await fetch('/saveCar', options);
     const json = await response.json();
-    console.log(json);
     //successfully registered
     alert('Your Car was Registered Successfully!');
     window.location.replace('../carSelect');

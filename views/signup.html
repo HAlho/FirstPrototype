@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Signup</title>
     <link rel="icon" href="./img/favicon.png">
-    <link rel="stylesheet" href="./style/common.css">
     <link rel="stylesheet" href="./style/signup.css">
+    <link rel="stylesheet" href="./style/common.css">
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
     <style>
         small {
@@ -40,11 +40,20 @@
         <button class="rectangle-1" id="signup">Signup</button>
         <h6> Already have an account? <a href="./signin"> sign in </a></h6>
     </section>
+
+    <div id="messagePrompt" class="windowPrompt" style="display:none;">
+        <div style="text-align:center; margin-bottom:20px;">
+            <i class="fas fa-exclamation-triangle" style=" display: inline; color: #f23c3c;"></i>
+            <h4 style=" display: inline; color: #f23c3c;">Cannot Sign-Up</h4>
+            <i class="fas fa-exclamation-triangle" style=" display: inline; color: #f23c3c;"></i>   
+        </div>
+        <p style="margin-bottom:15px;">The email entered is banned.</p>
+        <button onclick="closeMessage()" class="">ok</button>
+    </div>
+
     <div id="PopUp" class="windowPrompt">
         <p>Signed Up successfully!</p>
-        <div>
-            <small style="color:#5bbfc5;">You will be directed to register your car</small>
-        </div>
+        <div><small style="color:#5bbfc5;">You will be directed to register your car</small></div>
     </div>
     <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
     <!-- Page ends here -->

@@ -88,11 +88,12 @@
 
         <div id="dimScreen" class="dimContent"></div>
 
-        <div id="reportPrompt" class="windowPrompt">
+        <div id="reportPrompt" class="windowPrompt" style="width:75%;">
             <p style="color: #f23c3c; font-weight: bold; font-size: 18px;">Report user</p>
             <form id="reportForm">
                 <input type="radio" name="report" value="inappropriate" style="display: inline-block; width: auto; margin:8px 10px;">User acted inappropriately<br>
                 <input type="radio" name="report" value="insufficient" style="display: inline-block; width: auto; margin:8px 10px;">User's charge was insufficient<br>
+                <input type="radio" name="report" value="payment" style="display: inline-block; width: auto; margin:8px 10px;">User did not pay<br>
                 <input type="radio" name="report" value="other" id="other" style="display: inline-block; width: auto; margin:8px 10px;">Other<br>
             </form>
             <small id="alert"></small>
@@ -223,6 +224,7 @@
                     switch (radio[i].value) {
                         case 'inappropriate': return 'User acted inappropriately';
                         case 'insufficient': return 'User\'s charge was insufficient';
+                        case 'payment': return 'User did not pay';
                         case 'other':
                             if (document.getElementById('otherInput').value.length < 10)
                                 document.getElementById('alert').innerHTML = 'reason is too short';

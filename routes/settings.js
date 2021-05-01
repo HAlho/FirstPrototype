@@ -37,62 +37,67 @@ async function deleteUserInfo(userId) {
     var snapshot = await db.ref('users/' + userId).once('value');
     var userInfo = snapshot.val();
 
-
-    //if user has an active request
-    // get request information
+    //if user has an active request, get request information
     let role, dbref, requestId, oldRef, req, user2Id;
-    if (userInfo.status != 'Available' && userInfo.status != 'Do Not Disturb') {
-        role = userInfo.activeRequest.role; //the user's role in the request
+    if (userInfo.status != 'Available' && userInfo.status != 'Do Not Disturb') { //user has an active request
 
-        //get request dir info
-        dbref = userInfo.activeRequest.dbref;
-        requestId = userInfo.activeRequest.id;
-        oldRef = db.ref('activeRequests/' + dbref + '/' + requestId); //the request's current path
+        //get the reqeust's meta data to get the request's path
+        if (userInfo.status == 'matched') {
+            role = 'provider'; //the user's role in the request            
+            dbref = 'matched'; //the directory the request is in
+            requestId = userInfo.matchedReq; // the request's ID
+        } else {
+            role = userInfo.activeRequest.role; //the user's role in the request
+            dbref = userInfo.activeRequest.dbref; //the directory the request is in
+            requestId = userInfo.activeRequest.id;// the request's ID
+        }
 
-        if (dbref != 'issued') { //get request information to get the second user ID
-            let snapshot = await db.ref('activeRequests/' + dbref + '/' + requestId).once('value');
-            req = snapshot.val();
-            role == 'requester' ? user2Id = req.match.provider : user2Id = req.requester.uid;
+        //the request's current path
+        oldRef = db.ref('activeRequests/' + dbref + '/' + requestId); 
+        
+
+        //get the second user's ID
+        if (dbref != 'issued') { 
+            let snapshot = await oldRef.once('value'); //read the request from the database
+            req = snapshot.val(); //request info
+            role == 'requester' ? user2Id = req.match.provider : user2Id = req.requester.uid; //get the second user's ID
         }
     }
-   
-    // delete active request
+
+
+    //user has an active request, cancel the request
     if (userInfo.status == "Busy") {
-        if (dbref != 'issued') {
-            //if the user is a requester,  delete the request completely. otherwise the user is a provider, just move the request back to issued
-            if (role == 'requester') { //the user is a requester, completely delete the request
-                //clear request information from the provider's account
-                if (dbref != 'matched') {
-                    db.ref('users/' + providerId + '/activeRequest').remove();
-                    db.ref('users/' + providerId).update({ status: "Available" });
-                } else {
-                    db.ref('users/' + providerId).child('matchedReq').remove();
-                    db.ref('users/' + providerId).update({ status: "Available" });
-                }
-
-                //copy the request to the provider's history
-                if (dbref != 'issued' && dbref != 'matched') {
-                    let newRef = db.ref('previousRequests/' + providerId + '/' + requestId); //destination path
-                    copyFirebaseObject(oldRef, newRef);
-                }
-
-            } else { //the user is a provider, move the request back to 'activeRequests/issued'
-                oldRef.child('match').remove; //remove match from the request
-
-                //move the request back to issued
-                let newRef = db.ref('activeRequests/issued/' + requestId); //destination path
-                copyFirebaseObject(oldRef, newRef);
-
-                db.ref('users/' + providerId + '/activeRequest').update({ dbref: 'issued' }); //change the dbref in the user's account
+        //if the user is a requester,  delete the request completely. otherwise, just move the request back to issued
+        if (role == 'requester') { //the user is a requester, move the request to the provider's history
+            if (dbref == 'issued') {
+                oldRef.remove(); //remove request from its old path
+            } else if (dbref == 'matched') {
+                db.ref('users/' + user2Id).child('matchedReq').remove();
+                db.ref('users/' + user2Id).update({ status: "Available" });
+                oldRef.remove(); //remove request from its old path
             }
+            else {
+                db.ref('users/' + user2Id + '/activeRequest').remove();
+                db.ref('users/' + user2Id).update({ status: "Available", message: "Oh no!<br />It seems like the request was removed.<br />We're very sorry." });
+
+                //move the request to the provider's history
+                let newRef = db.ref('previousRequests/' + user2Id + '/' + requestId); //destination path
+                oldRef.update({ status: 'canceled' });
+                moveFirebaseObject(oldRef, newRef);
+            }
+
+        } else { //the user is a provider, move the request back to 'activeRequests/issued'
+            let newRef = db.ref('activeRequests/issued/' + requestId); //destination path
+            moveFirebaseObject(oldRef, newRef);
+            newRef.child('match').remove(); //remove match from the request
+            db.ref('users/' + user2Id + '/activeRequest').update({ dbref: 'issued' }); //change the dbref in the user's account
+            db.ref('users/' + user2Id).update({ message: "Oh no!<br />We have lost the provider.<br />Please wait while we find a new match." });
         }
-
-        //delete request from its current path in activeRequests directory
-        oldRef.remove();
-
     } else if (userInfo.status == 'matched') { //user got matched to a request, move request back to issued
         let newRef = db.ref('activeRequests/issued/' + requestId); //destination path
         moveFirebaseObject(oldRef, newRef);
+        newRef.child('match').remove(); //remove match from the request
+        db.ref('users/' + user2Id + '/activeRequest').update({ dbref: 'issued' }); //change the dbref in the user's account
     } else if (userInfo.status == 'Pay') { //user still did not pay
         oldRef.remove();
     }
@@ -111,7 +116,6 @@ async function deleteUserInfo(userId) {
                 await db.ref('tokens/' + k).remove();
         }
     }
-
 
 
     //delete all of the user's previous requests
@@ -134,18 +138,6 @@ function moveFirebaseObject(oldRef, newRef) {
         newRef.set(snap.val(), function (error) {
             if (!error) { oldRef.remove(); } //remove item from its current path
             else if (typeof (console) !== 'undefined' && console.error) { console.error(error); } //error copying item
-        });
-    });
-}
-
-//copy an object in the database
-function copyFirebaseObject(oldRef, newRef) {
-    //oldRef is the current path to the object
-    //newRef is the desired path
-    //copy an object to the desired path
-    oldRef.once('value', function (snap) {
-        newRef.set(snap.val(), function (error) {
-            if (error && (typeof (console) !== 'undefined' && console.error)) { console.error(error); } //error copying item
         });
     });
 }

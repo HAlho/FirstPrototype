@@ -15,57 +15,6 @@ router.get('/account', (req, res, next) => {
 });
 
 
-//get user information from the db and send it to the client
-router.post('/getUser', async (request, response) => {
-    //get client request info
-    const userId = request.body.userId; //user ID
-
-    //get user info from the database
-    var snapshot = await db.ref('users/' + userId).once('value');
-    var user = snapshot.val();
-
-    //send user information to client
-    response.json({
-        status: "success",
-        user: user
-    });
-});
-
-
-//get user status and send it to the client
-router.post('/getStat', async (request, response) => {
-    //get client request info
-    const userId = request.body.userId; //user ID
-
-    //get user information from the database
-    var snapshot = await db.ref('users/' + userId).once('value');
-    var user = snapshot.val();
-
-    //send user status to client
-    response.json({
-        status: "success",
-        stat: user.status
-    });
-});
-
-
-
-//update user status
-router.post('/setStat', (request, response) => {
-    //get client request info
-    const userId = request.body.userId; //user ID
-    const stat = request.body.status; //user status
-
-    //save changes to database
-    db.ref('users/' + userId).update({ status: stat });
-
-    // send response to client
-    response.json({
-        status: "success",
-    });
-});
-
-
 //update user unit price
 router.post('/updateUnitPrice', async (request, response) => { //add to recieve that post(endpoint)
     //get client request info

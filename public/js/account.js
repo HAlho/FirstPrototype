@@ -33,6 +33,21 @@ document.getElementById("viewCreditScore").addEventListener('click', () => {
     document.getElementById("dimScreen").classList.add("dimVisible"); //dim screen
     document.getElementById('creditScorePercent').style.strokeDasharray = "0px 367px"; //set credit score = 0 in credit score SVG figure
 
+    //change credit score color depending on the user's credit score
+    if (creditScore < 100 && creditScore >= 80) {
+        document.getElementById('creditScorePercent').style.stroke = "#93d880"; //green-ish
+        document.getElementById('creditScoreVal').style.color = "#69c662";
+    } else if (creditScore < 80 && creditScore >= 60) {
+        document.getElementById('creditScorePercent').style.stroke = "#eecd67"; //yellow-ish
+        document.getElementById('creditScoreVal').style.color = "#e89947";
+    } else if (creditScore < 60 && creditScore >= 40) {
+        document.getElementById('creditScorePercent').style.stroke = "#f7a257"; //orange-ish
+        document.getElementById('creditScoreVal').style.color = "#f17341";
+    } else if (creditScore < 40) {
+        document.getElementById('creditScorePercent').style.stroke = "#ee7356"; //red-ish
+        document.getElementById('creditScoreVal').style.color = "#f55443";
+    }
+
     //display credit score window with 250ms delay
     setTimeout(function () {
         document.getElementById("creditScorePopUp").style.display = "block"; //show window

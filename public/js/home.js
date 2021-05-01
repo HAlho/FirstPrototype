@@ -3,11 +3,14 @@ const PROMPT_HEIGHT = "77%";
 //html elements global variables
 var buttonsDiv = document.getElementById("buttons"); //buttonsDiv that contains 'request charge' and 'available request' buttons
 //active request elements
-var requestDiv = document.getElementById("request"); //if the user has an active request, it will be shown here
+var requestDiv = document.getElementById("activeRequest"); //if the user has an active request, it will be shown here
 var cancelButton = document.getElementById('cancel'); //cancel button to cancel active request
 var acceptButton = document.getElementById('accept'); //accept button for requester to accept active request once his/her match accepts
+var doneButton = document.getElementById('done'); //done button
 var paymentDiv = document.getElementById("payment"); //payment section to input payment info after request is done
-var pay = document.getElementById('pay'); //pay button
+var payTest = document.getElementById('payTest'); //fake pay button
+var payButton = document.getElementById('pay'); //fake pay button
+
 //available request elements
 var avaReqDecline = document.getElementById("avaReqDecline"); //button to decline available request
 var avaReqAccept = document.getElementById('avaReqAccept'); //button to accept available request
@@ -74,6 +77,16 @@ document.getElementById('closeAvaReq').addEventListener('click', () => {
   //  setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
 });
 
+var locationMap;
+document.getElementById('locationTd').addEventListener('click', () => {
+    document.getElementById('location').style.display = "block";
+
+    locationMap.updateSize();
+});
+
+document.getElementById('dimScreenMap').addEventListener('click', () => {
+    document.getElementById('location').style.display = "none";
+});
 
 //function that check if user is authenticated then calls other functions
 firebase.auth().onAuthStateChanged(async function (user) {
@@ -225,7 +238,7 @@ async function displayCurrentCar() {
         consumption = json.consumption;
         batteryCapacity = json.batteryCapacity;
         //display car on page
-        let carInfo = "<b>CURRENT CAR </b> <br></br>" + carBrand + ' ' + carModel + " (Plate No.: " + carNum + ')';
+        let carInfo = "<b>" + carBrand + ' ' + carModel + "</b><br />Plate Number: " + carNum;
         document.getElementById("currentCarInfo").innerHTML = carInfo;
     }
 
@@ -253,13 +266,29 @@ async function updatePage() {
         creditScore = user.creditScore;
 
         status = user.status; //get user status
-        if (status == 'Busy' && user.activeRequest!=null) { //if status is 'Busy', status is set to be the request's status instead of the user's
-            status = user.activeRequest.dbref; // status is set to be the request's status instead of the user's
-            if (user.activeRequest.role == "requester") userIsRequester = true; //current user is the requester
+        if (status == 'Busy') { //if status is 'Busy', status is set to be the request's status instead of the user's
+            if (user.activeRequest == null) { //error with the user's account, refresh page
+                //send user ID to the server to clear any bugs from the user's account
+                const sdata = { userId };
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(sdata)
+                };
+                const response = await fetch('/debugAccount', options);
+                const json = await response.json();
+                status = 'Available';
+            } else {
+                status = user.activeRequest.dbref; // status is set to be the request's status instead of the user's
+                if (user.activeRequest.role == "requester") userIsRequester = true; //current user is the requester
+            }
         }
         //user status is 'Available' or 'Do Not Disturb' if they don't have any active requests
         //user status is 'matched' if user got matched to an active request
         //user status is 'Busy' if user has an active request
+        //user status is 'Pay' if user completed a request and has to pay
         //request status progress: issued -> matched -> pending -> accepted -> completed
 
 
@@ -289,7 +318,6 @@ async function updatePage() {
                 const j2 = await response.json();
                 request = j2.req; //active request information
 
-                console.log(request);
                 if (request == null) {
                     await sleep(2000);
                     location.reload(); //reload page to avoid errors
@@ -308,17 +336,19 @@ async function updatePage() {
             } else if (status == 'Pay') { //consumer should pay
                 //hide all elements and show the payment to the consumer
                 hideAllElements();
+                requestDiv.style.display = "block";
+                document.getElementById('reqButtons').style.display = "none";
                 paymentDiv.style.display = "block";
 
-                let text = "<h2>Your request has been completed!</h2>" + "<br />";
-                text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
-                text += "<b>Cost: </b>" + request.match.estAmount + " AED" + "<br /><br /><br />";
+                document.getElementById("textTd").innerHTML = "Your request has been completed!";
+                document.getElementById("amountTr").style.display = "table-row";
+                document.getElementById("priceTr").style.display = "table-row";
+                document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + request.amountSoC + '%)';
+                document.getElementById("priceTd").innerHTML = (Math.round((request.match.estAmount) * 100) / 100) + " AED";
 
-                document.getElementById("paymentText").innerHTML = text;
 
                 //add event listener to 'pay' button
-                pay.addEventListener("click", async function () {
-                    alert('Payment completed successfully!');
+                payTest.addEventListener("click", async function () {
 
                     const p1 = { userId, requestId: user.activeRequest.id, match: request.match };
                     const poptions1 = {
@@ -331,19 +361,25 @@ async function updatePage() {
                     const presponse1 = await fetch('/tempPay', poptions1);
                     const pj1 = await presponse1.json();
 
-                    //const p1 = { userId, requestId: user.activeRequest.id, match: request.match };
-                    //const poptions1 = {
-                    //    method: 'POST',
-                    //    headers: {
-                    //        'Content-Type': 'application/json'
-                    //    },
-                    //    body: JSON.stringify(p1)
-                    //};
-                    //const presponse1 = await fetch('/pay', poptions1);
-                    //const pj1 = await presponse1.json();
-                    //console.log(pj1.req);
-                    //window.location = pj1.forwardLink;
+                    alert('Payment completed successfully!');
                 });
+
+                payButton.addEventListener("click", async function () {
+                    const p1 = { userId, requestId: user.activeRequest.id, match: request.match };
+                    const poptions1 = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(p1)
+                    };
+                    const presponse1 = await fetch('/pay', poptions1);
+                    const pj1 = await presponse1.json();
+                    console.log(pj1.req);
+                    window.location = pj1.forwardLink;
+                });
+
+
 
             } else if (status == 'matched' && !userIsRequester) { //user is a possible provider and got matched to an active request
                 //hide all elements and show buttonsDiv only
@@ -357,8 +393,6 @@ async function updatePage() {
                 text += "<b>Requested charge amount: </b>" + request.amount + " kWh" + "<br />";
                 text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
                 text += "<b>Meet-up location: </b><br />";
-                //text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
-
                 
 				//create the map
                 var map = new ol.Map({
@@ -389,6 +423,7 @@ async function updatePage() {
                     source: vectorSource,
                 });
                 map.addLayer(markerVectorLayer);
+
 
                 document.getElementById("avaReqText").innerHTML = text;
 
@@ -476,9 +511,13 @@ async function updatePage() {
                 //hide all elements and show request div
                 hideAllElements();
                 requestDiv.style.display = "block";
+                document.getElementById('reqButtons').style.display = "block";
 
                 //set text message depending on the status of the request
                 setText(status, userIsRequester, request);
+
+                                //create the map
+                setMap(request.match.location);
 
                 //set the cancel button
                 cancelButton.addEventListener("click", async function () {
@@ -515,7 +554,7 @@ async function updatePage() {
                         alert('Banned :(');
 
                 });
-                cancelButton.style.display = "block"; //show cancel button
+                cancelButton.style.display = "inline-block"; //show cancel button
 
                 //set the accept button if needed
                 if (status == 'pending' && userIsRequester) {
@@ -534,9 +573,9 @@ async function updatePage() {
                         console.log(j9.req);
                     });
 
-                    acceptButton.style.display = "block"; //show accept button
+                    acceptButton.style.display = "inline-block"; //show accept button
 
-                } else if (status == 'accepted') {
+                } else if (status == 'accepted' || status == 'completed') {
                     //get time                                                                                         ///////////////////////////////////////////////////////??????? delete? when user refreshes page this resets
                     if (userIsRequester) {
                         inProgress = Date.now();
@@ -608,13 +647,14 @@ function validateEmail(email) {
 //function to hide all request-related elements on the page 
 //remove all events from buttons by cloning and replacing them
 function hideAllElements() {
-    //hide all request-relate elements
+    //hide all elements
     buttonsDiv.style.display = "none";
     requestDiv.style.display = "none";
     cancelButton.style.display = "none";
     acceptButton.style.display = "none";
-    document.getElementById("paypal").style.display = "none";
+    doneButton.style.display = "none";
     paymentDiv.style.display = "none";
+
 
     //remove all events from buttons by cloning and replacing them
 
@@ -638,84 +678,121 @@ function hideAllElements() {
     avaReqAccept = oldAvaReqAccept.cloneNode(true);
     oldAvaReqAccept.parentNode.replaceChild(avaReqAccept, oldAvaReqAccept);
 
+    //remove all events from the done button
+    var oldDone = doneButton;
+    doneButton = oldDone.cloneNode(true);
+    oldDone.parentNode.replaceChild(doneButton, oldDone);
+
     //remove all events from the pay button
-    var oldPay = pay;
-    pay = oldPay.cloneNode(true);
-    oldPay.parentNode.replaceChild(pay, oldPay);
+    var oldPayTest = payTest;
+    payTest = oldPayTest.cloneNode(true);
+    oldPayTest.parentNode.replaceChild(payTest, oldPayTest);
+
+    //remove all events from the pay button
+    var oldPayButton = payButton;
+    payButton = oldPayButton.cloneNode(true);
+    oldPayButton.parentNode.replaceChild(payButton, oldPayButton);
 
     //if there's an available request and it got canceled, hide the prompt
     document.getElementById("windowPromptAvaReq").style.height = "0";
 
     if (document.getElementById("messagePrompt").style.display == 'none') document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
+
+    //hide request table rows
+    document.getElementById("amountTr").style.display = "none";
+    document.getElementById("priceTr").style.display = "none";
+    document.getElementById("carTr").style.display = "none";
+    document.getElementById("locationTr").style.display = "none";
 }
 
 //function to set innerHTML of requestText element depending on the status of the request
 function setText(status, userIsRequester, request) {
-    let text = '';
     //set text depending on the request's status
     switch (status) {
         case 'issued':
-            text = "Searching for providers..." + "<br /><br />";
-            text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)';
+            document.getElementById("textTd").innerHTML = "Searching for providers...";
+            document.getElementById("amountTr").style.display = "table-row";
+            document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + request.amountSoC + '%)';
             break;
         case 'matched':
-            text = "Contacting nearby providers..." + "<br /><br />";
-            text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)';
+            document.getElementById("textTd").innerHTML = "Contacting nearby providers...";
+            document.getElementById("amountTr").style.display = "table-row";
+            document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + request.amountSoC + '%)';
             break;
         case 'pending':
+            document.getElementById("amountTr").style.display = "table-row";
+            document.getElementById("priceTr").style.display = "table-row";
             if (userIsRequester) {
-                text = "A provider had accepted your charge request." + "<br /><br />";
-                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)' + "<br />";
-                text += "<b>Meet-up location: </b><br />";
-                text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
+                document.getElementById("textTd").innerHTML = "A user has accepted your request!";
+                document.getElementById("locationTr").style.display = "table-row";
+                document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + request.amountSoC + '%)';
             }
             else {
-                text = "Waiting for the confirmation..." + "<br /><br />";
-                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + percent(request.amount) + ' %)' + "<br />";
+                document.getElementById("textTd").innerHTML = "Waiting for the confirmation...";
+                document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + percent(request.amount) + '%)';
             }
-            text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
+            document.getElementById("priceTd").innerHTML = (Math.round((request.match.estAmount) * 100) / 100) + " AED";
             break;
         case 'accepted':
+            document.getElementById("textTd").innerHTML = "Go to meet-up location...";
+            document.getElementById("amountTr").style.display = "table-row";
+            document.getElementById("carTr").style.display = "table-row";
+            document.getElementById("priceTr").style.display = "table-row";
+            document.getElementById("locationTr").style.display = "table-row";
+
             if (userIsRequester) {
-                text = "Provider is on their way..." + "<br /><br />";
-                text += "<b>Provider's car: </b>" + request.match.car.color + ' ' + request.match.car.brand + ' ' + request.match.car.model + ". Plate number: " + request.match.car.licenseNumber + "<br />";
-                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + request.amountSoC + ' %)' + "<br />";
+                document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + request.amountSoC + '%)';
+                document.getElementById("carTd").innerHTML = request.match.car.color + ' ' + request.match.car.brand + ' ' + request.match.car.model + "<br /><small><b>Plate number:</b> " + request.match.car.licenseNumber + "</small>"; 
+            } else {
+                document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + percent(request.amount) + '%)';
+                document.getElementById("carTd").innerHTML = request.requester.car.color + ' ' + request.requester.car.brand + ' ' + request.requester.car.model + "<br /><small><b>Plate number:</b> " + request.requester.car.licenseNumber + "</small>";
             }
-            else {
-                text = "Go to meet-up location..." + "<br /><br />";
-                text += "<b>Requester's car: </b>" + request.requester.car.color + ' ' + request.requester.car.brand + ' ' + request.requester.car.model + ". Plate number: " + request.requester.car.licenseNumber + "<br />";
-                text += "<b>Requested charge amount: </b>" + request.amount + " kWh  (" + percent(request.amount) + ' %)' + "<br />";
-            }
-            //text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
-            text += "<b>Meet-up location: </b><br />";
-            text += '<img src="./img/location-' + request.match.location + '.png" width="85%"><br />';
+            document.getElementById("priceTd").innerHTML = (Math.round((request.match.estAmount) * 100) / 100) + " AED";
             break;
         case 'completed':
-            text = "Finalizing Request..";
+            document.getElementById("textTd").innerHTML = "Finalizing Request...";
             break;
     }
 
-    document.getElementById("requestText").innerHTML = text; //display text
+}
+
+function setMap(loc) {
+    //create the map
+    locationMap = new ol.Map({
+        target: 'locationMap',
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM()
+            })
+        ],
+        view: new ol.View({//Initialize view
+            //center at coordinates
+            center: ol.proj.fromLonLat(loc),
+            zoom: 14
+        }),
+    });
+
+    //Adding a marker on the map
+    var marker = new ol.Feature({
+        geometry: new ol.geom.Point(
+            ol.proj.fromLonLat(loc)
+        ),
+    });
+    var vectorSource = new ol.source.Vector({
+        features: [marker]
+    });
+    var markerVectorLayer = new ol.layer.Vector({
+        source: vectorSource,
+    });
+    locationMap.addLayer(markerVectorLayer);
 }
 
 //function to show the payment div and 'done' button. called when a request is almost completed
 async function readyForDone(userId, user, userIsRequester, request) {
-    //add event listener to pay button
-    //pay.addEventListener("click", async function () {
-    //    //if consumer had clicked done                                                                             ///////////////////////////////////////////////////////???????    delete?
-    //    localStorage.setItem("reqid", user.requestRef.id);
-    //    window.location.assign('../payment');
-    //});
-
-    if (user.activeRequest.completed != null) return; //user already clicked the done button
-
-    //create and set a 'done' button
-    var done = document.createElement("button");
-    done.innerHTML = "<b>Done</b>";
-    requestDiv.appendChild(done);//show done button
+    if ((user.activeRequest.dbref != 'accepted' && user.activeRequest.dbref != 'completed') || user.activeRequest.completed != null) return; //user already clicked the done button
 
     //add event listener to the 'done' button.. user has completed the request, send update to the server
-    done.addEventListener("click", async function () {
+    doneButton.addEventListener("click", async function () {
         if (!confirm("Are you sure your request is done?")) return;
         //get the other user's id
         let user2Id;
@@ -734,14 +811,16 @@ async function readyForDone(userId, user, userIsRequester, request) {
         const j4 = await response.json();
         console.log(j4);
 
-        done.style.display = "none";
+        doneButton.style.display = "none";
         //const Done = Date.now();//this now calculate only the time until the user clicks done not when the request is complete
         //const time = Done - inProgress;//have to fix this                                                                  ///////////////////////////////////////////////////////???????    what's the point? delete?
         //console.log("Time to complete =" + time);
     });
+
+    doneButton.style.display = "inline-block";
 }
 
 //get percent of requested charge
 function percent(charge) {
-    return Math.ceil((charge / batteryCapacity) * 10000) / 100;
+    return Math.ceil((charge / batteryCapacity) * 1000) / 10;
 }

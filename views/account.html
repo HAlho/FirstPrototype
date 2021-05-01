@@ -96,9 +96,10 @@
             <p class="info">When providing energy, you can set up your own preferable unit price.</p>
 
             <div class="unitPriceContainer">
-                <h1 ontouchstart="decrement()" ontouchend="stop()" id="decrement">–</h1>
+                <h1 ontouchstart="decrement()" ontouchend="stop()" id="decrement" style="margin-right: 10px;">–</h1>
                 <input type="number" min="0.37" max="0.74" step="0.01" id="unitPriceVal" class="unitPriceInput" style="background:#fff;" disabled />
-                <h1 ontouchstart="increment()" ontouchend="stop()" id="increment">+</h1>
+                <p style="display: inline;font-size: 11px;font-weight: normal;">AED</p>
+                <h1 ontouchstart="increment()" ontouchend="stop()" id="increment" style="margin-left: 10px;">+</h1>
             </div>
             <button class="cancel" onclick="cancel()">cancel</button>
             <button onclick="updateUnitPrice()">ok</button>

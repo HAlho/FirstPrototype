@@ -3,7 +3,8 @@
 const menuCodeBlock = '<div class="mainMenu">' +
     '<table style="border-bottom:none;"><tr>' +
     '<td><button class="circle" id="status" onclick="openStatusMenu()"></button></td>' +
-    '<td><button class="circle" id="home"><img src="./img/home.png" height="30"></button></td>' +
+    '<td><button class="circle" id="home"><img src="./img/home.png" height="30"></button>' +
+    '<i class="fas fa-circle" id="notification" style="display:none; color: #f23c3c; -webkit-text-stroke-width: 2px; -webkit-text-stroke-color: #fff; position: absolute; margin: 3px 0 0 -42px; font-size: 13px;"></i></button></td >' +
     '<td><button class="circle" id="account"><img src="./img/account.png" height="30"></button></td>' +
     '</tr><tr style="text-align:center;">' +
     '<td><small>STATUS</small></td>' +
@@ -13,7 +14,7 @@ const menuCodeBlock = '<div class="mainMenu">' +
     '</div>' +
     '<div id="statusMenu" class="statusMenu tail">' +
     '<a onclick="setStatus(\'Available\'); showStatus()"><button class="statusCircle"><img src="./img/status-available.png" height="15px"></button>Available</a><hr />' +
-    '<a onclick="setStatus(\'Do Not Disturb\'); showStatus()"><button class="statusCircle" style="background-color:#f08066;"><img src="./img/status-busy.png" height="15px"></button>Busy</a>' +
+    '<a onclick="setStatus(\'Do Not Disturb\'); showStatus()"><button class="statusCircle" style="background-color:#f08066;"><img src="./img/status-busy.png" height="15px"></button>Block incoming requests</small></a>' +
     '</div>' +
     '<div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>';
 var div = document.createElement('div');
@@ -49,7 +50,37 @@ var userStatus; //store user's status
 //function that check if user is authenticated then calls other functions
 firebase.auth().onAuthStateChanged(async function (user) {
     if (user) {//if user is authenticated
-        showStatus(); //show user status in main menu (function is found in status.js)
+        var status, previousStatus = null; //if there's an active request, store the status of the request, otherwise store the status of the user
+
+        showStatus(); //show the usr's status
+
+        if (window.location.pathname != '/home') {
+            //keep updating the user's status
+            statTimer = setInterval(async function () {
+                //get user information from the server
+                const d = { userId };
+                const options = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(d)
+                };
+                const response = await fetch('/getUser', options);
+                const j1 = await response.json();
+                user = j1.user; //store user information
+
+                status = user.status;
+
+                if (status == 'Busy' && user.activeRequest != null) //if status is 'Busy', status is set to be the request's status instead of the user's
+                    status = user.activeRequest.dbref; // status is set to be the request's status instead of the user's
+
+                if (status != previousStatus) {
+                    if ((status == 'matched' && user.matchedReq != null) || (status == 'pending' && user.activeRequest.role == 'requester') || status == 'Pay' || user.message != null)
+                        document.getElementById('notification').style.display = "inline";
+                    previousStatus = status;
+                    showStatus(status);
+                }
+            }, 2000); //repeat every 2 seconds
+        }
     }
 });
 
@@ -117,7 +148,7 @@ async function showStatus(status) {
             break;
         case 'Do Not Disturb': //user is not available
             statusButton.style.background = "#f08066";
-            statusButton.innerHTML = '<img src="./img/status-busy.png" height="20">';
+            statusButton.innerHTML = '<i class="fas fa-times" style="color: white; font-size: 25px;"></i>';//<img src="./img/status-busy.png" height="20">';
             break;
         default: //user has a request in progress
             statusButton.style.background = "lightgray";
