@@ -25,7 +25,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
     //listen for a message from the main process, if message received excute code
     process.on('message', async (msg) => {
 
-        try {
+        
             var points = '';//variable to store origin and destination coordinates for distnace matrix api in url form
 
             //consumer part-------
@@ -55,11 +55,15 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 //get location coordinates from the database
                 snapshot = await db.ref('users/' + req[k].requester.uid + '/location').once('value');
                 let location = snapshot.val();
-
+				
+				try{
                 //consumers file: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
                 contents = contents.concat(req[k].requester.uid + " " + location.latitude + " " + location.longitude + " " + req[k].amount + " " + req[k].requester.maxDistance + " " + consumptionRate + "\n");
 
                 points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
+				}catch(e){
+					console.log(e);
+				}
 
 
             }
@@ -129,6 +133,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                         fs.writeFileSync('./IOs/' + filename, newData);
 
                     } catch (error) {
+						console.log("caught error");
                         console.error(error.message);
                     };
 
@@ -159,6 +164,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
                         //select provider then add to contents
                         k = keys2[i];
+						try{
                         if (users[k].status != "Available") continue;
                         if (users[k].activeRequest != null) continue//check if the user has a request
                         if ((Date.now() - users[k].location.timestamp) > 900000) continue; //check if the location had passed 15 mins
@@ -179,6 +185,10 @@ let myPromise = new Promise(function (myResolve, myReject) {
                             }
 
                         }
+						}catch(e){
+							console.log("caught error");
+							console.log(e)
+						}
 
                     }
 
@@ -284,15 +294,15 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                 snapshot = await db.ref('users/' + v[1] + '/activeRequest').once('value');
                                 var cReq = snapshot.val();
 
-
                                 //change requester's reference status to matched
                                 await db.ref('users/' + v[1]).child('activeRequest').update({ dbref: "matched" });
 
                                 //change provider status to matched
                                 await db.ref('users/' + v[2]).update({ status: "matched" });
                                 await db.ref('users/' + v[2]).update({ matchedReq: cReq.id });
-
+							
                                 if (cReq != null) {
+									
                                     db.ref('activeRequests/issued/' + cReq.id + "/match/").set({
                                         provider: v[2],
                                         location: v[0],
@@ -306,7 +316,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                     snapshot = await oldRef.once('value');
                                     await newRef.set(snapshot.val());
                                     await oldRef.remove();
-
+								
 
 
                                     //find the tokens of the matched providers
@@ -369,9 +379,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 console.log("Error: " + err.message);
             });
 
-        } catch (e) {
-            console.log(e);
-        }
+      
     });
 
 });
