@@ -757,6 +757,7 @@ function setText(status, userIsRequester, request) {
 }
 
 function setMap(loc) {
+    console.log(loc);
     //create the map
     locationMap = new ol.Map({
         target: 'locationMap',
