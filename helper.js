@@ -26,21 +26,22 @@ let myPromise = new Promise(function (myResolve, myReject) {
     process.on('message', async (msg) => {
 
         
-            var points = '';//variable to store origin and destination coordinates for distnace matrix api in url form
+        var points = '';//variable to store origin and destination coordinates for distnace matrix api in url form
 
-            //consumer part-------
+        //consumer part-------
 
-            //since the process id is unique, it will be part of the file name
-            var filename = "c" + msg.pid + ".txt";
+        //since the process id is unique, it will be part of the file name
+        var filename = "c" + msg.pid + ".txt";
 
-            //get the requesters information from the database
-            var snapshot = await db.ref('activeRequests/issued/').once('value');
-            var req = snapshot.val();
+        //get the requesters information from the database
+        var snapshot = await db.ref('activeRequests/issued/').once('value');
+        var req = snapshot.val();
 
-            //if there isn't any request, exit the process
-            if (req == null)
-                myResolve();
+        //if there isn't any request, exit the process
+        if (req == null)
+            myResolve();
 
+        else {
             var keys = Object.keys(req);//store IDs of issed requests
             var contents = "";
 
@@ -55,15 +56,15 @@ let myPromise = new Promise(function (myResolve, myReject) {
                 //get location coordinates from the database
                 snapshot = await db.ref('users/' + req[k].requester.uid + '/location').once('value');
                 let location = snapshot.val();
-				
-				try{
-                //consumers file: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
-                contents = contents.concat(req[k].requester.uid + " " + location.latitude + " " + location.longitude + " " + req[k].amount + " " + req[k].requester.maxDistance + " " + consumptionRate + "\n");
 
-                points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
-				}catch(e){
-					console.log(e);
-				}
+                try {
+                    //consumers file: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
+                    contents = contents.concat(req[k].requester.uid + " " + location.latitude + " " + location.longitude + " " + req[k].amount + " " + req[k].requester.maxDistance + " " + consumptionRate + "\n");
+
+                    points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
+                } catch (e) {
+                    console.log(e);
+                }
 
 
             }
@@ -133,7 +134,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                         fs.writeFileSync('./IOs/' + filename, newData);
 
                     } catch (error) {
-						console.log("caught error");
+                        console.log("caught error");
                         console.error(error.message);
                     };
 
@@ -164,31 +165,31 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
                         //select provider then add to contents
                         k = keys2[i];
-						try{
-                        if (users[k].status != "Available") continue;
-                        if (users[k].activeRequest != null) continue//check if the user has a request
-                        if ((Date.now() - users[k].location.timestamp) > 900000) continue; //check if the location had passed 15 mins
-                        if (users[k].cars != null) {
-                            if (users[k].creditScore == 0) continue; //check if user is banned
-                            var keys3 = Object.keys(users[k].cars); //store ids of the provider's cars
+                        try {
+                            if (users[k].status != "Available") continue;
+                            if (users[k].activeRequest != null) continue//check if the user has a request
+                            if ((Date.now() - users[k].location.timestamp) > 900000) continue; //check if the location had passed 15 mins
+                            if (users[k].cars != null) {
+                                if (users[k].creditScore == 0) continue; //check if user is banned
+                                var keys3 = Object.keys(users[k].cars); //store ids of the provider's cars
 
-                            for (j = 0; j < keys3.length; j++) {
-                                if (keys3[j] == users[k].currentCar) {
-                                    snapshot = await db.ref('carList/' + users[k].cars[keys3[j]].brand + "/" + users[k].cars[keys3[j]].model).once('value');
-                                    let car = snapshot.val();
+                                for (j = 0; j < keys3.length; j++) {
+                                    if (keys3[j] == users[k].currentCar) {
+                                        snapshot = await db.ref('carList/' + users[k].cars[keys3[j]].brand + "/" + users[k].cars[keys3[j]].model).once('value');
+                                        let car = snapshot.val();
 
-                                    contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + car.avgConsumption + "\n");
-                                    //append user location to points
-                                    points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);
-                                    first = false;
+                                        contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + car.avgConsumption + "\n");
+                                        //append user location to points
+                                        points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);
+                                        first = false;
+                                    }
                                 }
-                            }
 
+                            }
+                        } catch (e) {
+                            console.log("caught error");
+                            console.log(e)
                         }
-						}catch(e){
-							console.log("caught error");
-							console.log(e)
-						}
 
                     }
 
@@ -300,9 +301,9 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                 //change provider status to matched
                                 await db.ref('users/' + v[2]).update({ status: "matched" });
                                 await db.ref('users/' + v[2]).update({ matchedReq: cReq.id });
-							
+
                                 if (cReq != null) {
-									
+
                                     db.ref('activeRequests/issued/' + cReq.id + "/match/").set({
                                         provider: v[2],
                                         location: v[0],
@@ -316,7 +317,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                     snapshot = await oldRef.once('value');
                                     await newRef.set(snapshot.val());
                                     await oldRef.remove();
-								
+
 
 
                                     //find the tokens of the matched providers
@@ -378,7 +379,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
             }).on("error", (err) => {
                 console.log("Error: " + err.message);
             });
-
+        }
       
     });
 
