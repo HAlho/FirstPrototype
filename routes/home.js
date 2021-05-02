@@ -327,7 +327,7 @@ router.post('/getActiveRequest', async (request, response) => {
         fs.readFile('./IOs/MPFile.txt', "utf8", (err, data) => {
             if (err) throw err;
             // break the textblock into an array of lines
-            var lines = data.split('\r\n');
+            var lines = data.split('\n');
             for (a of lines) {
                 if (req.match.location == a.substring(0, 1)) {
                     console.log("iamhere");
