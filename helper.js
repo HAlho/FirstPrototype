@@ -345,6 +345,7 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                     };
 
                                     //send the message using FCM to the specified token
+									try{
                                     await admin.messaging().sendToDevice(registrationToken, payload)
                                         .then(function (response) {
                                             console.log("Successfully sent message:", response);
@@ -352,7 +353,10 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                         .catch(function (error) {
                                             console.log("Error sending message:", error);
                                         });
-
+									}catch(e){
+										console.log("error caught");
+										console.log(e);
+									}
                                     fs.writeFileSync('./cancelQueue.txt', '');
 
                                 }
