@@ -516,7 +516,7 @@ async function updatePage() {
                 //set text message depending on the status of the request
                 setText(status, userIsRequester, request);
 
-                                //create the map
+                if (request.match != null)                     //create the map
                 setMap(request.match.location);
 
                 //set the cancel button
