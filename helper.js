@@ -354,8 +354,8 @@ let myPromise = new Promise(function (myResolve, myReject) {
                                             console.log("Error sending message:", error);
                                         });
 									}catch(e){
-										console.log("error caught");
-										console.log(e);
+										//console.log("error caught");
+										//console.log(e);
 									}
                                     fs.writeFileSync('./cancelQueue.txt', '');
 

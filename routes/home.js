@@ -869,7 +869,7 @@ router.post('/pay', async (request, response) => {                              
                         captureOrder(paypalresponse.result.id); //'REPLACE-WITH-APPROVED-ORDER-ID'
                         console.log(paypalresponse.result.id);
                     } catch (e) {
-                        console.log(e)
+                        //console.log(e)
                     }
 
                 }, 30000)//1.5min
