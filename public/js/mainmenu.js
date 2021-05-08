@@ -106,7 +106,7 @@ async function getStatus() {
 //display status menu when status button is clicked
 function openStatusMenu() {
     getStatus().then(status => {//once async function is done excute
-        if (status != 'Available' && status == 'Do Not Disturb') {
+        if (status != 'Available' && status != 'Do Not Disturb') {
             //pop up
             alert('Your account is connected to a request. Your status is set to Busy by default. Cancel or reject request to change your status.');
         }
