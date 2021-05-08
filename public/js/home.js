@@ -64,6 +64,13 @@ document.getElementById("edit").addEventListener("click", function () {
 //request form buttons
 //when 'request charge' button is clicked, show the request form 
 document.getElementById("newRequest").addEventListener('click', () => {
+	///////add this if statment only////////////////////////////
+    if (firebase.auth().currentUser.emailVerified == false) // if the user did not verify their email address
+    {  document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+    //display message
+    setTimeout(function () {
+        document.getElementById("PopUp").style.display = "block"; //show window
+    }, 250);
     if (carBrand == null) { //if user doesn't have any registered cars
         if (confirm("You must add your car information first. Would you like to do that now?"))
             window.location.assign("../registerCar"); //forward user to registerCar page
@@ -865,4 +872,16 @@ async function readyForDone(userId, user, userIsRequester, request) {
 //get percent of requested charge
 function percent(charge) {
     return Math.ceil((charge / batteryCapacity) * 1000) / 10;
+}
+
+//when any window prompt's cancel button is clicked
+function cancel() {
+    var prompts = document.getElementsByClassName("windowPrompt"); //gete all window prompts
+    for (var i = 0; i < prompts.length; i++) prompts[i].style.display = 'none'; //hide all window prompts
+    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
+}
+// resends verification Link
+function resend() {
+    firebase.auth().currentUser.sendEmailVerification(); //send verification email with firebase
+    cancel();
 }
