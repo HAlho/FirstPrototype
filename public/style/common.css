@@ -96,7 +96,7 @@ h3 {
     left: 0px;
     width: auto;
     margin: 16px 0 0 12px;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     color: black;
 }
@@ -106,7 +106,7 @@ h3 {
     right: 0px;
     width: auto;
     margin: 16px 12px 0 0;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     color: #5bbfc5;
     text-align: right;
@@ -117,6 +117,30 @@ h3 {
 }
 
 
+.nextButton {
+    height: 55px;
+    width: 105px;
+    border-radius: 50px;
+    background-color: #5bbfc5;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    margin: 0;
+}
+
+.nextButton2 {
+    margin: 18px;
+    border: none;
+    font-size: 15px;
+    background: #99d9d8;
+    background: transparent;
+}
+
+.disabledNext {
+    background: #0000001f;
+    color: #999;
+}
 
 
 
@@ -202,7 +226,7 @@ h3 {
     border-right: 15px solid white;
     border-top: 15px solid white;
     border-bottom: 15px solid transparent;
-    left: 17%;
+    left: 12%;
     bottom: -25px;
 }
 

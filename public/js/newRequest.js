@@ -224,26 +224,30 @@ async function submitRequest() {
 
     await sleep(2000); //2 seconds delay. just in case the server was busy
 
-
     if (step == 2) {
-        if (distance != null) {
-            var currentSoC = document.getElementById("sliderCurrent").value; //from Request
-            let totalNeededEnergy = Math.ceil((distance / 1000) * consumption);
-
-            var currentEnergy = Math.floor(((currentSoC / 100) * batteryCapacity) * 2) / 2; //current energy percent to kWh (set by user in the slider range)
-            var neededEnergy = Math.round((totalNeededEnergy - currentEnergy) * 10) / 10;//needed energy based on distance
-            var maxDistance = Math.floor((currentEnergy / consumption) * 100) / 100; //calculate max distance (km) user can take
-
-            if (neededEnergy <= 0) {
-                alert("You need " + totalNeededEnergy + " kWh to Reach that destination. You already have enough charge!");
-                return;
+        let counter = 0;
+        while (distance == null) {
+            await sleep(2000); //2 seconds delay. just in case the server was busy
+            if (counter > 10) {
+                alert("Error issuing request. We're very sorry.");
+                window.location.reload();
             }
-
-            //confirm request before continuing
-            if (!confirm("You're about to request " + neededEnergy + "kWh of charge. Continue?")) return;
+            counter++;
         }
-    }
-    else if (step == 3) {
+
+        var currentSoC = document.getElementById("sliderCurrent").value; //from Request
+        let totalNeededEnergy = Math.ceil((distance / 1000) * consumption);
+
+        var currentEnergy = Math.floor(((currentSoC / 100) * batteryCapacity) * 2) / 2; //current energy percent to kWh (set by user in the slider range)
+        var neededEnergy = Math.round((totalNeededEnergy - currentEnergy) * 10) / 10;//needed energy based on distance
+        var maxDistance = Math.floor((currentEnergy / consumption) * 100) / 100; //calculate max distance (km) user can take
+
+        var neededSoC = Math.round(neededEnergy / batteryCapacity * 100);
+        if (neededEnergy <= 0) {
+            alert("You need " + totalNeededEnergy + " kWh to Reach that destination. You already have enough charge!");
+            return;
+        }
+    } else if (step == 3) {
 
         //get request information
         currentSoC = document.getElementById("sliderCurrent").value;
@@ -254,10 +258,11 @@ async function submitRequest() {
         var currentEnergy = Math.floor(((currentSoC / 100) * batteryCapacity) * 2) / 2; //current energy percent to kWh (set by user in the slider range)
         var neededEnergy = Math.ceil(((neededSoC / 100) * batteryCapacity) * 2) / 2; // needed energy percent to kWh (set by user in the slider range)
         var maxDistance = Math.floor((currentEnergy / consumption) * 100) / 100; //calculate max distance (km) user can take
-
-        //confirm request before continuing
-        if (!confirm("You're about to request " + neededSoC + "% of charge. Continue?")) return;
     }
+
+
+    //confirm request before continuing
+    if (!confirm("You're about to request " + neededSoC + "% of charge. Continue?")) return;
 
     //send request information to the server to submit the request
     reqStart = new Date().toString();

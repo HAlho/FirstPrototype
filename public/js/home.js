@@ -26,6 +26,24 @@ var cardsFlag = false; //set true if user has saved payment info
 var userIsRequester = false;
 var userId;
 
+
+
+
+
+
+
+
+
+showPage(); ////////////////////////////////// delete after testing with iphone
+
+
+
+
+
+
+
+
+
 //check if the user came back from the car select page (reload page to show new car information)
 window.addEventListener("pageshow", async function (event) {
     var historyTraversal = event.persisted ||
@@ -78,9 +96,9 @@ document.getElementById('closeAvaReq').addEventListener('click', () => {
 });
 
 var locationMap;
-document.getElementById('locationTd').addEventListener('click', () => {
+document.getElementById('locationTd').addEventListener('click', async() => {
     document.getElementById('location').style.display = "block";
-
+    await sleep(100);
     locationMap.updateSize();
 });
 
@@ -134,7 +152,7 @@ function notificationPermission(userId) {
                         console.log('Error with notification token');
                     });
                 function handleTokenRefresh() {
-                    return messaging.getToken({ vapidKey: "BFmDV7YkbpLVvsVa-XSRGIT4pD6GtjmLWcl-tsZtyy1mSR5Odmy8ZB6LwQzCudj1Auk0Y-NO5sWirZoXiKabou0" })
+                    return messaging.getToken({ vapidKey: "BG9S8oj5kmcXZt1xaqHgmOCJgIcPHXgBaFing5JMUr4wlVbhlWXPwrbkikqKVAoVDZ2Fe31uCqpqQLJqAz18RyU" })
                         .then(async function (token) {
                             const d = { userId, token };
                             const options = {
@@ -345,12 +363,12 @@ async function updatePage() {
                 document.getElementById("priceTr").style.display = "table-row";
                 document.getElementById("amountTd").innerHTML = request.amount + " kWh  (" + request.amountSoC + '%)';
                 document.getElementById("priceTd").innerHTML = (Math.round((request.match.estAmount) * 100) / 100) + " AED";
-
+                console.log(request);
 
                 //add event listener to 'pay' button
                 payTest.addEventListener("click", async function () {
 
-                    const p1 = { userId, requestId: user.activeRequest.id, match: request.match };
+                    const p1 = { userId, requestId: user.activeRequest.id, req: request};
                     const poptions1 = {
                         method: 'POST',
                         headers: {
@@ -365,7 +383,8 @@ async function updatePage() {
                 });
 
                 payButton.addEventListener("click", async function () {
-                    const p1 = { userId, requestId: user.activeRequest.id, match: request.match };
+                    
+                    const p1 = { userId, requestId: user.activeRequest.id, req: request };
                     const poptions1 = {
                         method: 'POST',
                         headers: {
@@ -589,7 +608,7 @@ async function updatePage() {
                     readyForDone(userId, user, userIsRequester, request);
                 }
             }
-            if (user.message != null) showMessage(user.message); //the other user cancelled the request, display a message
+            if (user.messages != null) showMessages(user.messages); //the other user cancelled the request, display a message
         }
 
         if (document.getElementById('content').classList.contains('hidden')) showPage(); //the page is fully loaded, display page's content
@@ -598,12 +617,30 @@ async function updatePage() {
 }
 
 //function to show message
-async function showMessage(message) {
-    document.getElementById('messageText').innerHTML = message; //set message text
+async function showMessages(messages) {
+    var keys = Object.keys(messages); //get all messages ids
+
+    document.getElementById('messageText').innerHTML = messages[keys[0]].message; //set message text
 
     //dim screen and show message
     document.getElementById("dimScreen").classList.add("dimVisible");
     setTimeout(function () { document.getElementById("messagePrompt").style.display = "block"; }, 250);
+
+    if (keys.length != 1) { //if there's only one car, set is as 'currentCar' then forward user to main page
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i]; //get message Id
+            var newMessage = document.getElementById('messagePrompt');
+            document.getElementById('messagePrompt') = newMessage.cloneNode(true);
+            let text = document.createElement('p');
+            text.innerHTML = messages[k].message;
+
+            newMessage.appendChild(text);
+
+            newMessage.style.display = "block";
+        }
+    }
+
+
 
     
     //delete message from the user's account
@@ -613,13 +650,17 @@ async function showMessage(message) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(d)
     };
-    const response = await fetch('/deleteMessage', options);
+    const response = await fetch('/deleteMessages', options);
     const j1 = await response.json();
 }
 
 function closeMessage() {
-    document.getElementById("messagePrompt").style.display = "none";
-    document.getElementById("dimScreen").classList.remove("dimVisible");
+    if (document.querySelectorAll(".windowPrompt").length > 1)
+        document.querySelectorAll(".windowPrompt:last-child").remove();
+    else {
+        document.getElementById("messagePrompt").style.display = "none";
+        document.getElementById("dimScreen").classList.remove("dimVisible");
+    }
 }
 
 //function to validate email

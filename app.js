@@ -2,7 +2,7 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const https = require('http'); 
+const https = require('https'); 
 const fs = require('fs');
 
 const app = express();
@@ -64,4 +64,4 @@ fs.writeFile('cancelQueue.txt', '', function (err) {//clear queue
     if (err) return console.log(err);
 });
 
-https.createServer({ key: privateKey, cert: certificate }, app).listen(process.env.PORT || 3000);
+https.createServer({ key: privateKey, cert: certificate }, app).listen(3000);

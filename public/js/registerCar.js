@@ -74,15 +74,15 @@ document.getElementById("brands").addEventListener('change', async (event) => {
 //check models
 document.getElementById("models").addEventListener('change', (event) => {
     if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '') //check if user entered all info
-        document.getElementById("submit").classList.remove('disabled'); //enable submit
-    else document.getElementById("submit").classList.add('disabled'); //disable submit
+        document.getElementById("submit").classList.remove('disabledNext'); //enable submit
+    else document.getElementById("submit").classList.add('disabledNext'); //disable submit
 });
 
 //check license
 document.getElementById("license").addEventListener('input', (event) => {
     if (document.getElementById("models").value != "Select a Model" && document.getElementById("license").value != '') //check if user entered all info
-        document.getElementById("submit").classList.remove('disabled'); //enable submit
-    else document.getElementById("submit").classList.add('disabled'); //disable submit
+        document.getElementById("submit").classList.remove('disabledNext'); //enable submit
+    else document.getElementById("submit").classList.add('disabledNext'); //disable submit
 
 });
 
@@ -94,7 +94,7 @@ function clearDropmenu(selectElement) {
     option.text = "Select a Model";
     selectElement.appendChild(option);
 
-    document.getElementById("submit").classList.add('disabled');
+    document.getElementById("submit").classList.add('disabledNext');
 }
 
 async function submit() {

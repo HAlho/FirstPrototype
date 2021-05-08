@@ -78,7 +78,8 @@ async function deleteUserInfo(userId) {
             }
             else {
                 db.ref('users/' + user2Id + '/activeRequest').remove();
-                db.ref('users/' + user2Id).update({ status: "Available", message: "Oh no!<br />It seems like the request was removed.<br />We're very sorry." });
+                db.ref('users/' + user2Id).update({ status: "Available" });
+                db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the request was removed.<br />We're very sorry." });
 
                 //move the request to the provider's history
                 let newRef = db.ref('previousRequests/' + user2Id + '/' + requestId); //destination path
@@ -91,7 +92,7 @@ async function deleteUserInfo(userId) {
             moveFirebaseObject(oldRef, newRef);
             newRef.child('match').remove(); //remove match from the request
             db.ref('users/' + user2Id + '/activeRequest').update({ dbref: 'issued' }); //change the dbref in the user's account
-            db.ref('users/' + user2Id).update({ message: "Oh no!<br />We have lost the provider.<br />Please wait while we find a new match." });
+            db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! We have lost the provider.<br />Please wait while we find a new match." });
         }
     } else if (userInfo.status == 'matched') { //user got matched to a request, move request back to issued
         let newRef = db.ref('activeRequests/issued/' + requestId); //destination path

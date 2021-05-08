@@ -19,13 +19,8 @@
             <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
             <small style="vertical-align:top; padding-top:5px;"> Back</small>
         </a>
-        <a class="next disabled" id="submit" onclick="submit()">
-            <small style="vertical-align:top; padding:5px 10px 0 0;">Save </small>
-        </a>
         <div class="pageName" style="margin-bottom:40px;">Register a Car</div>
         <div class="carsContainer">
-            <button class="skip" id="skip" style="display:none;">Skip for now?</button>
-
             <h3>Brand</h3>
             <select id="brands">
                 <option>Select a Brand</option>
@@ -55,6 +50,12 @@
                 <option value="Purple">Purple</option>
                 <option value="Orange">Orange</option>
             </select>
+
+            <div style="width:max-content; margin: 60px auto 0 auto; text-align:center">
+                <button class="nextButton disabledNext" id="submit" onclick="submit()">Save</button>
+                <button class="nextButton2" id="skip" style="display:none;">Skip for now?</button>
+            </div>
+
         </div>
     </div>
 

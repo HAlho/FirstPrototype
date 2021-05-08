@@ -7,6 +7,10 @@ body {
     background-image: url("../img/clouds.png");
 }
 
+table {
+    width:100%;
+}
+
 .logo {
     height: 100%;
     width: 100%;
@@ -14,10 +18,9 @@ body {
 }
 
 
-
 .title {
-    width: 334px;
-    margin: 40px 0px 0px 40px;
+    width: 100%;
+    margin: 40px auto 0px auto;
     font-size: 40px;
     font-weight: 900;
     line-height: 45px;
@@ -25,7 +28,7 @@ body {
 }
 
 .titleCon {
-    width: 334px;
+    width: 100%;
     margin: 0px 40px 40px 40px;
     font-size: 40px;
     font-weight: 900;
@@ -35,8 +38,8 @@ body {
 
 .vehicle-to-vehicle-charging {
     color: #DBC267;
-    width: 334px;
-    margin: 30px 10px 40px 40px;
+    width: 100%;
+    margin: 30px auto 40px auto;
     font-size: 50px;
     font-weight: bold;
     line-height: 45px;
@@ -49,22 +52,17 @@ body {
     justify-content: center;
     align-items: center;
     border-radius: 10px;
-}
-
-.container {
     position: absolute;
     left: 10%;
+    top: 5%;
     width: 80%;
     height: 60%;
-   
 }
-
 
 .button {
     box-sizing: border-box;
     height: 70px;
     width: 300px;
-    margin: 0px 0px 0px 30px;
     border-radius: 18px;
     background-color: #6dbec3;
     border: 1px solid #6dbec3;
@@ -81,8 +79,6 @@ body {
     font-weight: 700;
     line-height: 23px;
     text-align: center;
-    margin: 490px 0px 0px 55px;
-    position: fixed;
 }
 
 
@@ -91,7 +87,5 @@ a {
     text-decoration: none;
     color: #6dbec3;
     font-size: 1.2rem;
-    position: fixed;
-    margin: 488px 0px 0px 255px;
 }
 

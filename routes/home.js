@@ -425,8 +425,8 @@ router.post('/cancelRequest', async (request, response) => {
                 newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
 
                 //save message for other user to see
-                if (userIsRequester && requestStatus != 'matched') db.ref('users/' + user2Id).update({ message: "Oh no!<br />It seems like the request was cancelled.<br />We're very sorry." });
-                else db.ref('users/' + user2Id).update({ message: "Oh no!<br />It seems like the provider cancelled.<br />Please wait until we find a new match." });
+                if (userIsRequester && requestStatus != 'matched') db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the request was cancelled.<br />We're very sorry." });
+                else db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the provider cancelled.<br />Please wait until we find a new match." });
             }
 
             //clear request information from the user's account
@@ -506,12 +506,12 @@ router.post('/cancelRequest', async (request, response) => {
 });
 
 //get user status and send it to the client
-router.post('/deleteMessage', async (request, response) => {
+router.post('/deleteMessages', async (request, response) => {
     //get client request info
     const userId = request.body.userId; //user ID
 
     //delete the message from the user's account
-    db.ref('users/' + userId + '/message').remove();
+    db.ref('users/' + userId).child('messages').remove();
 
     //send user status to client
     response.json({
@@ -754,6 +754,8 @@ router.post('/tempPay', async (request, response) => {
     //get client request info
     const userId = request.body.userId;
     const requestId = request.body.requestId;
+    const req = request.body.req; 
+    const match = req.match; //match info
 
     //move request to the consumer's history
     //update request status to 'completed'
@@ -764,6 +766,10 @@ router.post('/tempPay', async (request, response) => {
     //clear request from the consumer's account
     db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
     db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+
+    //show message to provider
+    let date = req.timestamp.substr(4, 17); //get date from the timestamp
+    db.ref('users/' + match.provider).child('messages').push().set({ message: "<b>Received payment</b><br><br>A request you've completed was just payed for.<br />date: " + date });
 
     //requester completed a request
     requestCompleted(userId);
@@ -779,7 +785,8 @@ router.post('/pay', async (request, response) => {                              
     //get client request info
     const userId = request.body.userId;
     const requestId = request.body.requestId;
-    const match = request.body.match; //match info
+    const req = request.body.req;
+    const match = req.match; //match info
 
     var interval;
 
@@ -827,6 +834,10 @@ router.post('/pay', async (request, response) => {                              
             //clear request from the consumer's account
             db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
             db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+
+            //show message to provider
+            let date = req.timestamp.substr(4, 17); //get date from the timestamp
+            db.ref('users/' + match.provider).child('messages').push().set({ message: "<b>Received payment</b><br><br>A request you've completed was just payed for.<br />date: " + date });
 
             //requester completed a request
             requestCompleted(userId);

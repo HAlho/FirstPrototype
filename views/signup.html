@@ -11,23 +11,22 @@
     <script src="https://kit.fontawesome.com/c0551ed7d9.js" crossorigin="anonymous"></script>
     <style>
         small {
-            background: white;
-            color: red;
             text-align: center;
-        }
-
-        h6, a {
-            background: white;
         }
     </style>
 </head>
 <body class="background">
     <!-- HTML elements -->
-
+    <a href="../mainpage" class="back">
+        <i class="fas fa-chevron-left" style="color:black; font-size:0.6em; padding-bottom: 3px;"></i>
+        <small style="vertical-align:top; padding-top:5px;"> Back</small>
+    </a>
     <section class="container">
+
+
         <h2>Welcome to V2V Charging!</h2>
         <h6 class="welcome"> Please fill all the required details</h6>
-        <small id="alert"></small>
+        <small id="alert" style="color:#f23c3c"></small>
         <div style="text-align:left;">
             <input type="text" id="displayName" name="name" placeholder="Name" />
             <input type="email" id="emailaddress" name="mail" placeholder="Email Address" required />
@@ -45,7 +44,7 @@
         <div style="text-align:center; margin-bottom:20px;">
             <i class="fas fa-exclamation-triangle" style=" display: inline; color: #f23c3c;"></i>
             <h4 style=" display: inline; color: #f23c3c;">Cannot Sign-Up</h4>
-            <i class="fas fa-exclamation-triangle" style=" display: inline; color: #f23c3c;"></i>   
+            <i class="fas fa-exclamation-triangle" style=" display: inline; color: #f23c3c;"></i>
         </div>
         <p style="margin-bottom:15px;">The email entered is banned.</p>
         <button onclick="closeMessage()" class="">ok</button>

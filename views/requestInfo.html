@@ -234,6 +234,12 @@
             return ''; //return an empty string if user did not pick an option
         }
 
+        //hide the report window prompt
+        function cancel() {
+            document.getElementById("dimScreen").classList.remove("dimVisible");
+            document.getElementById("reportPrompt").style.display = "none";
+        }
+
     </script>
 </body>
 </html>

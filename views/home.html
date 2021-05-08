@@ -27,7 +27,7 @@
                     <h8>Current Car</h8>
                     <div style="border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; background: #f7f7f7f7; padding: 18px 25px; margin-top: 10px;">
                         <p id="currentCarInfo" style=" font-size: 15px; line-height: 26px;"></p>
-                        <p id="edit" class="link" style="display:none; text-align: right; padding-right: 15px; font-size: 14px;">change car</p>
+                        <p id="edit" class="link" style="display:none; text-align: right; padding-right: 15px; font-size: 15px;">change car</p>
                         <div id="noCar" style="display:none;">
                             <p> You don't have any registered cars</p>
                             <div style="text-align: right; padding: 12px;"><a href="./registerCar" class="link">Register a Car </a></div>
@@ -91,8 +91,8 @@
             <br /><br />
             <p id="avaReqText"></p>
             <div id="map" class="map" style="display:block;"></div>
-            <br />
-            <label>Paypal Email</label>
+            <br /><br />
+            <label style="float: left; margin-left: 15px;">Paypal Email</label>
 
             <div>
                 <select id="paymentSelect" style="display:none;">
@@ -101,16 +101,18 @@
             </div>
             <div id="noPayment" style=" display: none; font-size: 14px; text-align: right;">
                 <small id="emailAlert"></small>
-                <input type="text" id="paymentInput" style="width: 60%; display: inline; margin: 0 0 0 7px;"><br />
-                <input type="checkbox" id="saveCard" style="width: auto; display: inline; margin: 8px 0px 30px auto;">
-                <label for="saveCard"> Save card</label>
+                <input type="text" id="paymentInput" style="float: left; width: 70%; display: inline; margin: 0 0 0 17px;"><br /><br />
+                <input type="checkbox" id="saveCard" style="width: auto; display: inline; margin: 8px 0px 30px auto;" checked>
+                <label for="saveCard" style="margin-right:10px;" checked> Save card</label>
             </div>
-            <button id="closeAvaReq" class="cancel">Ignore</button>
-            <button id="avaReqDecline" class="close">Decline</button>
-            <button id="avaReqAccept">Accept</button>
+            <div style="margin-top: 10px;">
+                <button id="closeAvaReq" class="cancel">Ignore</button>
+                <button id="avaReqDecline" class="close">Decline</button>
+                <button id="avaReqAccept">Accept</button>
+            </div>
         </div>
 
-        <div id="messagePrompt" class="windowPrompt" style="display:none;">
+        <div id="messagePrompt" class="windowPrompt" style="display:none; width:70%;">
             <p id="messageText"></p>
             <button onclick="closeMessage()">ok</button>
         </div>

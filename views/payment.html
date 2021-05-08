@@ -115,8 +115,8 @@
             //td elements
             //create a td element to display card icon
             let cardIconTd = document.createElement('td');
-            cardIconTd.style.width = '55px';
-            cardIconTd.innerHTML = '<i class="far fa-credit-card" style="font-size:24px; padding:5px;vertical-align: bottom;">';
+            cardIconTd.style.width = '25px';
+            //cardIconTd.innerHTML = '<i class="far fa-credit-card" style="font-size:24px; padding:5px;vertical-align: bottom;">';
 
             //create a td element to display the email address
             let emailTd = document.createElement('td');
@@ -125,7 +125,7 @@
 
             //create a td element to display trash icon
             let trashTd = document.createElement('td');
-            trashTd.innerHTML = '<i class="fas fa-trash" style="color: #f08066;"></i>';
+            trashTd.innerHTML = '<i class="fas fa-trash"></i>';
 
             trashTd.addEventListener('click', () => {
                 deleteCard(cardId);
