@@ -34,7 +34,7 @@ var userId;
 
 
 
-showPage(); ////////////////////////////////// delete after testing with iphone
+//showPage(); ////////////////////////////////// delete after testing with iphone
 
 
 
