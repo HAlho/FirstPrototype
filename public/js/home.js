@@ -34,7 +34,7 @@ var userId;
 
 
 
-//showPage(); ////////////////////////////////// delete after testing with iphone
+showPage(); ////////////////////////////////// delete after testing with iphone
 
 
 
@@ -83,6 +83,7 @@ document.getElementById("newRequest").addEventListener('click', () => {
             else alert('Location access must be turned on');
         });
     }
+}
 });
 
 //available request buttons
