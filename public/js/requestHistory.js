@@ -49,16 +49,18 @@ firebase.auth().onAuthStateChanged(async function (user) {
         const response = await fetch('/getHistory', options);
         const json = await response.json();
         data = json.previousRequests; //previous requests
-
+		console.log(data);
         if (data != null) { //if there are previous requests
             var keys = Object.keys(data); //get request ids
-            for (var i = keys.length-1; i > 0; i--) {
+							console.log(keys);
+            for (var i = keys.length-1; i >= 0; i--) {
                 //get request information
                 let k = keys[i]; //request ID
+				console.log(k);
                 let timestamp = data[k].timestamp; //request timestamp
                 let date = timestamp.substr(4, 11); //get date from the timestamp
                 let amount = data[k].amount + " kWh"; //requested charge amount
-                let cost = data[k].cost + " AED"; //amount of money charged/payed
+                let cost = data[k].match.estAmount + " AED"; //amount of money charged/payed
                 let status = data[k].status; //request status (completed/canceled)
                 let role; //user's role in the request (requester/provider)
                 data[k].requester.uid == userId ? role = "requester" : role = "provider"; //set role
