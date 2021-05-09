@@ -71,7 +71,8 @@ document.getElementById("newRequest").addEventListener('click', () => {
     setTimeout(function () {
         document.getElementById("PopUp").style.display = "block"; //show window
     }, 250);
-    if (carBrand == null) { //if user doesn't have any registered cars
+	}
+    else if (carBrand == null) { //if user doesn't have any registered cars
         if (confirm("You must add your car information first. Would you like to do that now?"))
             window.location.assign("../registerCar"); //forward user to registerCar page
     } else if (creditScore == 0) { //user's credit score is 0
@@ -83,7 +84,7 @@ document.getElementById("newRequest").addEventListener('click', () => {
             else alert('Location access must be turned on');
         });
     }
-}
+
 });
 
 //available request buttons
