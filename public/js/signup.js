@@ -72,7 +72,7 @@ document.getElementById('signup').addEventListener('click', async () => { //user
 
         return;
     } else { //user is not banned
-        built in firebase function responsible for signing up a user
+       // built in firebase function responsible for signing up a user
         firebase.auth().createUserWithEmailAndPassword(email, password) //attempt to create an account
             .then(() => { //account was created successfully
                 var user = firebase.auth().currentUser; //get current user
