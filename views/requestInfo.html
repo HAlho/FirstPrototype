@@ -35,7 +35,9 @@
         }
 
         .summaryBox {
-            background: #eaeaea;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            background: #f7f7f7f7;
             padding: 5px 30px 15px 30px;
             font-size: 13.5px;
         }
@@ -60,7 +62,7 @@
                         <tr><td colspan="2" id="date"></td></tr>
                         <tr><td>Status</td><td id="status"></td></tr>
                         <tr><td width="80%">Charge amount</td><td id="amount"></td></tr>
-                        <tr><td>Time taken</td><td id="time"></td></tr>
+                        <!--<tr><td>Time taken</td><td id="time"></td></tr>-->
                     </table>
                 </div>
             </div>
@@ -145,7 +147,7 @@
                 let timestamp = request.timestamp.substr(4, 17);
                 let amount = request.amount;
                 let status = request.status;
-                let time = "50";
+               // let time = "50";
 
                 let car;
                 if (request.requester.uid == userId) car = request.requester.car;
@@ -160,7 +162,7 @@
                 document.getElementById("date").innerHTML = timestamp;
                 document.getElementById("amount").innerHTML = amount + " kWh";
                 document.getElementById("status").innerHTML = status;
-                document.getElementById("time").innerHTML = time + " mins";
+                //document.getElementById("time").innerHTML = time + " mins";
 
                 //display used car information
                 document.getElementById("car").innerHTML = carModel;

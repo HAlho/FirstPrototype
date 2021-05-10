@@ -112,23 +112,13 @@
             </div>
         </div>
 
-        <div id="messagePrompt" class="windowPrompt" style="display:none; width:70%;">
-            <p id="messageText"></p>
-            <button onclick="closeMessage()">ok</button>
+        <div id="PopUp" class="windowPrompt" style="width:73%;">
+            <p><b>Email was not verified</b><br /><br />Email address must be verified before making a request</p>
+            <button class="cancel" onclick="cancel()">Ok</button>
+            <button class="resend link" onclick="resend()" style="width:62%;">Resend Verification Link</button>
         </div>
-
 
         <div id="dimScreen" class="dimContent"></div>
-		
-		<div id="PopUp" class="windowPrompt">
-        <p>Email address must be verified before making a request</p>
-        <div>
-            <small>Check your email for the verification link</small>
-        </div>
-        <button class="cancel" onclick="cancel()">Ok</button>
-        <button class="resend link" onclick="resend()">Resend Link</button>
-    </div>
-    <div id="dimContent" class="dimContent" onclick="closeStatusMenu()"></div>
     </div>
     <!-- Page ends here -->
     <!-- The core Firebase JS SDK is always required and must be listed first -->

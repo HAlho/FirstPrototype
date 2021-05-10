@@ -26,24 +26,6 @@ var cardsFlag = false; //set true if user has saved payment info
 var userIsRequester = false;
 var userId;
 
-
-
-
-
-
-
-
-
-showPage(); ////////////////////////////////// delete after testing with iphone
-
-
-
-
-
-
-
-
-
 //check if the user came back from the car select page (reload page to show new car information)
 window.addEventListener("pageshow", async function (event) {
     var historyTraversal = event.persisted ||
@@ -58,34 +40,32 @@ window.addEventListener("pageshow", async function (event) {
 document.getElementById("edit").addEventListener("click", function () {
     if (userStatus == 'Available' || userStatus == 'Do Not Disturb')
         window.location.assign('../carSelect'); //button to change current car
-    else alert('Current car cannot be changed when there is a request in progress');
+    else popUp('Current car cannot be changed when there is a request in progress');
 }); 
 
 //request form buttons
 //when 'request charge' button is clicked, show the request form 
 document.getElementById("newRequest").addEventListener('click', () => {
-	///////add this if statment only////////////////////////////
-    if (firebase.auth().currentUser.emailVerified == false) // if the user did not verify their email address
-    {  document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
-    //display message
-    setTimeout(function () {
-        document.getElementById("PopUp").style.display = "block"; //show window
-    }, 250);
-	}
-    else if (carBrand == null) { //if user doesn't have any registered cars
+   /* if (firebase.auth().currentUser.emailVerified == false) { // if the user did not verify their email address
+        document.getElementById("dimScreen").classList.add("dimVisible"); //dim screen
+        //display message
+        setTimeout(function () {
+            document.getElementById("PopUp").style.display = "block"; //show window
+        }, 250);
+    } else*/ if (creditScore == 0) { //user's credit score is 0
+        popUp('<b>Cannot request charge</b><br><br>Your credit score is 0. You have been temporarily banned from making or accepting charge requests.');
+    } else if (carBrand == null) { //if user doesn't have any registered cars
         if (confirm("You must add your car information first. Would you like to do that now?"))
             window.location.assign("../registerCar"); //forward user to registerCar page
-    } else if (creditScore == 0) { //user's credit score is 0
-        alert('Your credit score is 0, you can\'t request charge.');
     } else { //check if location is allowed then forward user to new request page
         navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
             if (result.state === 'granted' && localStorage.getItem('locationPermission') == 'granted') //location permission is granted
                 window.location.assign("../newRequest"); //forward user to newRequest page
-            else alert('Location access must be turned on');
+            else popUp('<b>Location access was denied</b><br><br>Location access must be turned on before making or accepting charge requests.');
         });
     }
-
 });
+
 
 //available request buttons
 //button to show available request window prompt
@@ -107,7 +87,7 @@ document.getElementById('closeAvaReq').addEventListener('click', () => {
 var locationMap;
 document.getElementById('locationTd').addEventListener('click', async() => {
     document.getElementById('location').style.display = "block";
-    await sleep(100);
+    await sleep(200);
     locationMap.updateSize();
 });
 
@@ -199,6 +179,19 @@ function locationPermission() {
     console.log('location permission ' + localStorage.getItem('locationPermission'));
 }
 
+//when any window prompt's cancel button is clicked (id='PopUp')
+function cancel() {
+    document.getElementById("PopUp").style.display = 'none'; //hide prompt
+    if (document.querySelectorAll(".popUp").length == 0 || document.getElementById('windowPromptAvaReq').style.display == 'none')
+        document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
+
+}
+
+// resends verification Link
+function resend() {
+    firebase.auth().currentUser.sendEmailVerification(); //send verification email with firebase
+    cancel();
+}
 
 async function getCards() {
     //get payment information from the server
@@ -344,6 +337,7 @@ async function updatePage() {
                 const response = await fetch('/getActiveRequest', options);
                 const j2 = await response.json();
                 request = j2.req; //active request information
+				console.log(request);
 
                 if (request == null) {
                     await sleep(2000);
@@ -387,12 +381,9 @@ async function updatePage() {
                     };
                     const presponse1 = await fetch('/tempPay', poptions1);
                     const pj1 = await presponse1.json();
-
-                    alert('Payment completed successfully!');
                 });
 
                 payButton.addEventListener("click", async function () {
-                    
                     const p1 = { userId, requestId: user.activeRequest.id, req: request };
                     const poptions1 = {
                         method: 'POST',
@@ -422,6 +413,9 @@ async function updatePage() {
                 text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
                 text += "<b>Meet-up location: </b><br />";
                 
+				 locationMap.updateSize();
+
+				
 				//create the map
                 var map = new ol.Map({
                     target: 'map',
@@ -523,6 +517,7 @@ async function updatePage() {
                     document.getElementById("windowPromptAvaReq").style.height = "0";
                     document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
        //             setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
+					location.reload();
 
                 });
 
@@ -534,7 +529,8 @@ async function updatePage() {
                 document.getElementById("dimScreen").classList.add("dimVisible"); //dim the screen behind the window prompt
                 document.getElementById("windowPromptAvaReq").style.height = PROMPT_HEIGHT;
 
-            } else { //user has an active request
+            } else {
+				//user has an active request
                 //set and display current request information
                 //hide all elements and show request div
                 hideAllElements();
@@ -579,7 +575,7 @@ async function updatePage() {
                         console.log(j3);
                     }
                     else if (creditScore == 0)
-                        alert('Banned :(');
+                        popUp('<b>Cannot cancel request</b><br><br>Your credit score is 0. You cannot cancel any more requests.');
 
                 });
                 cancelButton.style.display = "inline-block"; //show cancel button
@@ -587,6 +583,7 @@ async function updatePage() {
                 //set the accept button if needed
                 if (status == 'pending' && userIsRequester) {
                     acceptButton.addEventListener("click", async function () {
+
                         //send users and request information to the server to accept the request
                         const d9 = { userId, user2Id: request.match.provider, requestId };
                         const mcOptions = {
@@ -599,6 +596,7 @@ async function updatePage() {
                         const mcResponse = await fetch('/consumerMatchAccept', mcOptions);
                         const j9 = await mcResponse.json();
                         console.log(j9.req);
+						location.reload();
                     });
 
                     acceptButton.style.display = "inline-block"; //show accept button
@@ -629,28 +627,10 @@ async function updatePage() {
 async function showMessages(messages) {
     var keys = Object.keys(messages); //get all messages ids
 
-    document.getElementById('messageText').innerHTML = messages[keys[0]].message; //set message text
-
-    //dim screen and show message
-    document.getElementById("dimScreen").classList.add("dimVisible");
-    setTimeout(function () { document.getElementById("messagePrompt").style.display = "block"; }, 250);
-
-    if (keys.length != 1) { //if there's only one car, set is as 'currentCar' then forward user to main page
-        for (var i = 0; i < keys.length; i++) {
-            var k = keys[i]; //get message Id
-            var newMessage = document.getElementById('messagePrompt');
-            document.getElementById('messagePrompt') = newMessage.cloneNode(true);
-            let text = document.createElement('p');
-            text.innerHTML = messages[k].message;
-
-            newMessage.appendChild(text);
-
-            newMessage.style.display = "block";
-        }
+    for (var i = 0; i < keys.length; i++) {
+        var k = keys[i]; //get message Id
+        popUp(messages[k].message);
     }
-
-
-
     
     //delete message from the user's account
     const d = { userId };
@@ -663,14 +643,6 @@ async function showMessages(messages) {
     const j1 = await response.json();
 }
 
-function closeMessage() {
-    if (document.querySelectorAll(".windowPrompt").length > 1)
-        document.querySelectorAll(".windowPrompt:last-child").remove();
-    else {
-        document.getElementById("messagePrompt").style.display = "none";
-        document.getElementById("dimScreen").classList.remove("dimVisible");
-    }
-}
 
 //function to validate email
 function validateEmail(email) {
@@ -746,7 +718,8 @@ function hideAllElements() {
     //if there's an available request and it got canceled, hide the prompt
     document.getElementById("windowPromptAvaReq").style.height = "0";
 
-    if (document.getElementById("messagePrompt").style.display == 'none') document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
+    if (document.querySelectorAll(".popUp").length == 0 || document.getElementById('windowPromptAvaReq').style.display == 'none' || document.getElementById('PopUp').style.display == 'none')
+        document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
 
     //hide request table rows
     document.getElementById("amountTr").style.display = "none";
@@ -874,16 +847,4 @@ async function readyForDone(userId, user, userIsRequester, request) {
 //get percent of requested charge
 function percent(charge) {
     return Math.ceil((charge / batteryCapacity) * 1000) / 10;
-}
-
-//when any window prompt's cancel button is clicked
-function cancel() {
-    var prompts = document.getElementsByClassName("windowPrompt"); //gete all window prompts
-    for (var i = 0; i < prompts.length; i++) prompts[i].style.display = 'none'; //hide all window prompts
-    document.getElementById("dimContent").classList.remove("dimVisible"); //brighten screen
-}
-// resends verification Link
-function resend() {
-    firebase.auth().currentUser.sendEmailVerification(); //send verification email with firebase
-    cancel();
 }

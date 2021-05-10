@@ -75,3 +75,27 @@ firebase.auth().onAuthStateChanged(async function (user) {
         }, 5000); //repeat every 5 seconds
     } else window.location.assign('../mainpage'); //forward user to the welcome page
 });
+
+
+function popUp(message) {
+    //create a window prompt
+    let div = document.createElement('div'); div.classList.add('popUp');
+
+    //set the message
+    let text = document.createElement('p'); text.innerHTML = message;
+
+    //set the 'ok' button
+    let button = document.createElement('button'); button.innerHTML = 'ok';
+
+    button.addEventListener('click', () => { //close window prompt when the button is clicked
+        div.remove();
+        if (document.querySelectorAll(".popUp").length == 0)
+            document.getElementById("dimScreen").classList.remove("dimVisible");
+    });
+
+    div.appendChild(text);
+    div.appendChild(button);
+    document.getElementById('content').appendChild(div);
+
+    document.getElementById("dimScreen").classList.add("dimVisible");//dim screen
+}

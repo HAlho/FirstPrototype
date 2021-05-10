@@ -73,8 +73,8 @@ firebase.auth().onAuthStateChanged(async function (user) {
                 if (status == 'Busy' && user.activeRequest != null) //if status is 'Busy', status is set to be the request's status instead of the user's
                     status = user.activeRequest.dbref; // status is set to be the request's status instead of the user's
 
-                if (status != previousStatus) {
-                    if ((status == 'matched' && user.matchedReq != null) || (status == 'pending' && user.activeRequest.role == 'requester') || status == 'Pay' || user.message != null)
+                if (status != previousStatus || user.messages != null) {
+                    if ((status == 'matched' && user.matchedReq != null) || (status == 'pending' && user.activeRequest.role == 'requester') || status == 'Pay' || user.messages != null)
                         document.getElementById('notification').style.display = "inline";
                     previousStatus = status;
                     showStatus(status);
@@ -106,8 +106,7 @@ async function getStatus() {
 //display status menu when status button is clicked
 function openStatusMenu() {
     getStatus().then(status => {//once async function is done excute
-        if (status != 'Available' && status != 'Do Not Disturb') {
-            //pop up
+        if (status != 'Available' && status != 'Do Not Disturb') {//pop up
             alert('Your account is connected to a request. Your status is set to Busy by default. Cancel or reject request to change your status.');
         }
         else {

@@ -38,6 +38,8 @@
             <br /><br /><br />
             <button id="deleteAccount" class="logout">Delete Account</button>
         </div>
+        <div id="dimScreen" class="dimContent"></div>
+
     </div>
     <!-- Page ends here -->
     <!-- The core Firebase JS SDK is always required and must be listed first -->
@@ -98,7 +100,7 @@
                     case "denied": //user blocked notifications permission from web browser, prevent changes and display message
                         document.getElementById("notifications").checked = false; //save changes
                         localStorage.setItem('notificationsPermission', 'denied');
-                        alert("Notifications permission blocked. Please enable them in your browser."); //alert user that permissions are blocked
+                        popUp("<b>Notifications permission blocked.</b><br><br>Please enable notifications permission from your browser's settings."); //alert user that permissions are blocked
                         break;
                     case "default": //if permissions are still default, browser will ask user for permission
                         Notification.requestPermission().then(function (permission) {
@@ -123,7 +125,7 @@
                 }, function () { //user blocked location permission from web browser, prevent changes and display message
                     document.getElementById("location").checked = false;
                     localStorage.setItem('locationPermission', 'denied'); //save changes
-                    alert("Location permission blocked. Please enable them in your browser."); //alert user that permissions are blocked
+                    popUp("<b>Location access blocked.</b><br><br>Please enable location access from your browser's settings."); //alert user that permissions are blocked
                 });
             } else { //location permission was turned off
                 localStorage.setItem('locationPermission', 'denied'); //save changes

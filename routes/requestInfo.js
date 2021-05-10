@@ -47,17 +47,22 @@ router.post('/reportUser', async (request, response) => {
     let user2Id;
     request.requester.uid == userId ? user2Id = request.match.provider : user2Id = request.requester.uid;
 
-    //increment number of reports
-    var reportsSnapshot = await db.ref('users/' + user2Id).child('reports').once('value');
-    var reports = reportsSnapshot.val();
-    if (reports == null) db.ref('users/' + user2Id).child('reports').set({ count: 1 });
-    else {
-        if (reports.count == 4) banUser(user2Id);//user already got reported 4 times, ban user
-        else db.ref('users/' + user2Id).child('reports').update({ count: reports.count+1 });
-    }
-    //save report in the other user's account
-    db.ref('users/' + user2Id).child('reports').push().set({ reason: reason });
 
+    //check if user exists
+    var userSnap = await db.ref('users/' + user2Id).once('value');
+    var user2 = userSnap.val();
+    if (user2 != null) {
+        //increment number of reports
+        var reportsSnapshot = await db.ref('users/' + user2Id).child('reports').once('value');
+        var reports = reportsSnapshot.val();
+        if (reports == null) db.ref('users/' + user2Id).child('reports').set({ count: 1 });
+        else {
+            if (reports.count == 4) banUser(user2Id);//user already got reported 4 times, ban user
+            else db.ref('users/' + user2Id).child('reports').update({ count: reports.count + 1 });
+        }
+        //save report in the other user's account
+        db.ref('users/' + user2Id).child('reports').push().set({ reason: reason });
+    }
 
     // Sending back requested history information to the client
     response.json({
@@ -143,7 +148,7 @@ async function deleteUserInfo(userId) {
             else {
                 db.ref('users/' + user2Id + '/activeRequest').remove();
                 db.ref('users/' + user2Id).update({ status: "Available" });
-                db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the request was removed.<br />We're very sorry." });
+                db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the request was removed. We're very sorry." });
 
                 //move the request to the provider's history
                 let newRef = db.ref('previousRequests/' + user2Id + '/' + requestId); //destination path

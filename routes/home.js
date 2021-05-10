@@ -38,6 +38,11 @@ router.post('/debugAccount', async (request, response) => {
     //get user information from the database
     var snapshot = await db.ref('users/' + userId).once('value');
     var user = snapshot.val();
+    if (user == null) {
+        db.ref('users/' + userId).update({ creditScore: CREDITSCORE, unitPrice: UNITPRICE, status: 'Available' });
+        var snap = await db.ref('users/' + userId).once('value');
+        user = snap.val();
+    }
     var status = user.status;
 
     //check if the user is banned, if so, check if 2 days have passed
@@ -330,7 +335,7 @@ router.post('/getActiveRequest', async (request, response) => {
             var lines = data.split('\n');
             for (a of lines) {
                 if (req.match.location == a.substring(0, 1)) {
-                    console.log("iamhere");
+                    //console.log("iamhere");
                     let sindex = a.lastIndexOf(" ");//find the second's space index
                     let lat = a.substring(2, sindex);
                     let long = a.substring(sindex + 1, a.length);
@@ -425,7 +430,7 @@ router.post('/cancelRequest', async (request, response) => {
                 newRef2 = db.ref('previousRequests/' + user2Id + '/' + requestId); //path to move the request to the second user's history
 
                 //save message for other user to see
-                if (userIsRequester && requestStatus != 'matched') db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the request was cancelled.<br />We're very sorry." });
+                if (userIsRequester && requestStatus != 'matched') db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the request was cancelled. We're very sorry." });
                 else db.ref('users/' + user2Id).child('messages').push().set({ message: "<b>Request was canceled</b><br><br>Oh no! It seems like the provider cancelled.<br />Please wait until we find a new match." });
             }
 
@@ -766,10 +771,11 @@ router.post('/tempPay', async (request, response) => {
     //clear request from the consumer's account
     db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
     db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+    db.ref('users/' + userId).child('messages').push().set({ message: "<b>Payment completed</b><br><br>Your payment has been completed successfully." });
 
     //show message to provider
-    let date = req.timestamp.substr(4, 17); //get date from the timestamp
-    db.ref('users/' + match.provider).child('messages').push().set({ message: "<b>Received payment</b><br><br>A request you've completed was just payed for.<br />date: " + date });
+    let date = req.timestamp.substr(4, 11); //get date from the timestamp
+    db.ref('users/' + match.provider).child('messages').push().set({ message: "<b>Received payment</b><br><br>A request you've completed was just payed for.<br />Request issued on " + date });
 
     //requester completed a request
     requestCompleted(userId);
@@ -834,10 +840,11 @@ router.post('/pay', async (request, response) => {                              
             //clear request from the consumer's account
             db.ref('users/' + userId + '/activeRequest').remove();//delete from the other user
             db.ref('users/' + userId).update({ status: 'Available' }); //set status to available
+            db.ref('users/' + userId).child('messages').push().set({ message: "<b>Payment completed</b><br><br>Your payment has been completed successfully." });
 
             //show message to provider
-            let date = req.timestamp.substr(4, 17); //get date from the timestamp
-            db.ref('users/' + match.provider).child('messages').push().set({ message: "<b>Received payment</b><br><br>A request you've completed was just payed for.<br />date: " + date });
+            let date = req.timestamp.substr(4, 11); //get date from the timestamp
+            db.ref('users/' + match.provider).child('messages').push().set({ message: "<b>Received payment</b><br><br>A request you've completed was just payed for.<br />Request issued on " + date });
 
             //requester completed a request
             requestCompleted(userId);
