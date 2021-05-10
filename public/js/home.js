@@ -46,13 +46,13 @@ document.getElementById("edit").addEventListener("click", function () {
 //request form buttons
 //when 'request charge' button is clicked, show the request form 
 document.getElementById("newRequest").addEventListener('click', () => {
-   /* if (firebase.auth().currentUser.emailVerified == false) { // if the user did not verify their email address
+   if (firebase.auth().currentUser.emailVerified == false) { // if the user did not verify their email address
         document.getElementById("dimScreen").classList.add("dimVisible"); //dim screen
         //display message
         setTimeout(function () {
             document.getElementById("PopUp").style.display = "block"; //show window
         }, 250);
-    } else*/ if (creditScore == 0) { //user's credit score is 0
+    } else if (creditScore == 0) { //user's credit score is 0
         popUp('<b>Cannot request charge</b><br><br>Your credit score is 0. You have been temporarily banned from making or accepting charge requests.');
     } else if (carBrand == null) { //if user doesn't have any registered cars
         if (confirm("You must add your car information first. Would you like to do that now?"))
