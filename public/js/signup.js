@@ -72,26 +72,26 @@ document.getElementById('signup').addEventListener('click', async () => { //user
 
         return;
     } else { //user is not banned
-        //built in firebase function responsible for signing up a user
-        //firebase.auth().createUserWithEmailAndPassword(email, password) //attempt to create an account
-        //    .then(() => { //account was created successfully
-        //        var user = firebase.auth().currentUser; //get current user
-        //        user.updateProfile({ //save the user's name
-        //            displayName: name
-        //        }).then(function () {
-        //            document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
-        //            //display confirmation message
-        //            setTimeout(function () {
-        //                document.getElementById("PopUp").style.display = "block"; //show window
-        //            }, 300);
+        built in firebase function responsible for signing up a user
+        firebase.auth().createUserWithEmailAndPassword(email, password) //attempt to create an account
+            .then(() => { //account was created successfully
+                var user = firebase.auth().currentUser; //get current user
+                user.updateProfile({ //save the user's name
+                    displayName: name
+                }).then(function () {
+                    document.getElementById("dimContent").classList.add("dimVisible"); //dim screen
+                    //display confirmation message
+                    setTimeout(function () {
+                       document.getElementById("PopUp").style.display = "block"; //show window
+                   }, 300);
 
-        //            sendVerificationEmail(); //send verification email to the user
-        //        }).catch(function (error) { //error saving the user's name
-        //            console.error(error);
-        //        });
-        //    }).catch(error => { //error creating account
-        //        alert.innerHTML = error.message; //display error message
-        //    })
+                    sendVerificationEmail(); //send verification email to the user
+                }).catch(function (error) { //error saving the user's name
+                    console.error(error);
+                });
+            }).catch(error => { //error creating account
+                alert.innerHTML = error.message; //display error message
+            })
     }
 });
 
