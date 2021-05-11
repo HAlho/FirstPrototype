@@ -31,7 +31,6 @@ setInterval(() => {
                 lines.splice(0, 1);
                 // join the array back into a single string
                 newData = lines.join('\n');
-                //console.log("new data is :" + newData);
                 fs.writeFile('procInfo.txt', newData, function (err) {
                     if (err) return console.log(err);
                 });

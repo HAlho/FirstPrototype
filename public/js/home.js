@@ -413,7 +413,6 @@ async function updatePage() {
                 text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
                 text += "<b>Meet-up location: </b><br />";
                 
-				 locationMap.updateSize();
 
 				
 				//create the map
