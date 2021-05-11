@@ -1,5 +1,5 @@
 // JavaScript source code
-const PROMPT_HEIGHT = "77%";
+const PROMPT_HEIGHT = "80%";
 //html elements global variables
 var buttonsDiv = document.getElementById("buttons"); //buttonsDiv that contains 'request charge' and 'available request' buttons
 //active request elements
@@ -46,7 +46,7 @@ document.getElementById("edit").addEventListener("click", function () {
 //request form buttons
 //when 'request charge' button is clicked, show the request form 
 document.getElementById("newRequest").addEventListener('click', () => {
-   if (firebase.auth().currentUser.emailVerified == false) { // if the user did not verify their email address
+    if (firebase.auth().currentUser.emailVerified == false) { // if the user did not verify their email address
         document.getElementById("dimScreen").classList.add("dimVisible"); //dim screen
         //display message
         setTimeout(function () {
@@ -85,10 +85,13 @@ document.getElementById('closeAvaReq').addEventListener('click', () => {
 });
 
 var locationMap;
-document.getElementById('locationTd').addEventListener('click', async() => {
+document.getElementById('locationTd').addEventListener('click', async () => {
     document.getElementById('location').style.display = "block";
-    await sleep(200);
+
+    setTimeout(function () { locationMap.updateSize(); }, 500);     
+    locationMap.changed();
     locationMap.updateSize();
+
 });
 
 document.getElementById('dimScreenMap').addEventListener('click', () => {
@@ -337,7 +340,6 @@ async function updatePage() {
                 const response = await fetch('/getActiveRequest', options);
                 const j2 = await response.json();
                 request = j2.req; //active request information
-				console.log(request);
 
                 if (request == null) {
                     await sleep(2000);
@@ -413,8 +415,6 @@ async function updatePage() {
                 text += "<b>Estimated price: </b>" + request.match.estAmount + " AED" + "<br />";
                 text += "<b>Meet-up location: </b><br />";
                 
-
-				
 				//create the map
                 var map = new ol.Map({
                     target: 'map',
@@ -466,7 +466,6 @@ async function updatePage() {
                     //hide available request window prompt
                     document.getElementById("windowPromptAvaReq").style.height = "0";
                     document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
-                //    setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
                 });
 
                 //set accept button
@@ -515,9 +514,6 @@ async function updatePage() {
                     //hide available request window prompt
                     document.getElementById("windowPromptAvaReq").style.height = "0";
                     document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
-       //             setTimeout(function () { document.getElementById("windowPromptAvaReq").style.display = "none"; }, 510); //hide window prompt
-					location.reload();
-
                 });
 
                 //enable available request button
@@ -525,11 +521,12 @@ async function updatePage() {
                 document.getElementById("avaReq").classList.remove("disabled");
 
                 //show available request window prompt
+                document.getElementById("windowPromptAvaReq").style.display = "block";
+
                 document.getElementById("dimScreen").classList.add("dimVisible"); //dim the screen behind the window prompt
                 document.getElementById("windowPromptAvaReq").style.height = PROMPT_HEIGHT;
 
-            } else {
-				//user has an active request
+            } else { //user has an active request
                 //set and display current request information
                 //hide all elements and show request div
                 hideAllElements();
@@ -582,7 +579,6 @@ async function updatePage() {
                 //set the accept button if needed
                 if (status == 'pending' && userIsRequester) {
                     acceptButton.addEventListener("click", async function () {
-
                         //send users and request information to the server to accept the request
                         const d9 = { userId, user2Id: request.match.provider, requestId };
                         const mcOptions = {
@@ -595,7 +591,6 @@ async function updatePage() {
                         const mcResponse = await fetch('/consumerMatchAccept', mcOptions);
                         const j9 = await mcResponse.json();
                         console.log(j9.req);
-						location.reload();
                     });
 
                     acceptButton.style.display = "inline-block"; //show accept button
@@ -676,6 +671,21 @@ function hideAllElements() {
     doneButton.style.display = "none";
     paymentDiv.style.display = "none";
 
+    //if there's an available request and it got canceled, hide the prompt
+    document.getElementById("windowPromptAvaReq").style.height = "0";
+    document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
+    document.getElementById('location').style.display = "none";
+
+    //brighten screen
+    if (document.querySelectorAll(".popUp").length != 0 || document.getElementById('PopUp').style.display == 'block')
+        document.getElementById("dimScreen").classList.add("dimVisible"); //brighten screen
+
+    //hide request table rows
+    document.getElementById("amountTr").style.display = "none";
+    document.getElementById("priceTr").style.display = "none";
+    document.getElementById("carTr").style.display = "none";
+    document.getElementById("locationTr").style.display = "none";
+
 
     //remove all events from buttons by cloning and replacing them
 
@@ -713,18 +723,6 @@ function hideAllElements() {
     var oldPayButton = payButton;
     payButton = oldPayButton.cloneNode(true);
     oldPayButton.parentNode.replaceChild(payButton, oldPayButton);
-
-    //if there's an available request and it got canceled, hide the prompt
-    document.getElementById("windowPromptAvaReq").style.height = "0";
-
-    if (document.querySelectorAll(".popUp").length == 0 || document.getElementById('windowPromptAvaReq').style.display == 'none' || document.getElementById('PopUp').style.display == 'none')
-        document.getElementById("dimScreen").classList.remove("dimVisible"); //brighten screen
-
-    //hide request table rows
-    document.getElementById("amountTr").style.display = "none";
-    document.getElementById("priceTr").style.display = "none";
-    document.getElementById("carTr").style.display = "none";
-    document.getElementById("locationTr").style.display = "none";
 }
 
 //function to set innerHTML of requestText element depending on the status of the request
@@ -779,7 +777,6 @@ function setText(status, userIsRequester, request) {
 }
 
 function setMap(loc) {
-    console.log(loc);
     //create the map
     locationMap = new ol.Map({
         target: 'locationMap',
