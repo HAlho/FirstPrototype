@@ -59,7 +59,8 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
                 try {
                     //consumers file: id, latitude, longiture, needed Energy, maxDistance, consumptionRate
-                    contents = contents.concat(req[k].requester.uid + " " + location.latitude + " " + location.longitude + " " + req[k].amount + " " + req[k].requester.maxDistance + " " + consumptionRate + "\n");
+                    contents = contents.concat(req[k].requester.uid + " " + location.latitude + " " + location.longitude + 
+					" " + req[k].amount + " " + req[k].requester.maxDistance + " " + consumptionRate + "\n");
 
                     points = points.concat(location.latitude + '%2C' + location.longitude + '%7C');
                 } catch (e) {
@@ -175,10 +176,12 @@ let myPromise = new Promise(function (myResolve, myReject) {
 
                                 for (j = 0; j < keys3.length; j++) {
                                     if (keys3[j] == users[k].currentCar) {
-                                        snapshot = await db.ref('carList/' + users[k].cars[keys3[j]].brand + "/" + users[k].cars[keys3[j]].model).once('value');
+                                        snapshot = await db.ref('carList/' + users[k].cars[keys3[j]].brand + "/" + 
+										users[k].cars[keys3[j]].model).once('value');
                                         let car = snapshot.val();
 
-                                        contents = contents.concat(k + " " + users[k].location.latitude + " " + users[k].location.longitude + " " + users[k].unitPrice + " " + car.avgConsumption + "\n");
+                                        contents = contents.concat(k + " " + users[k].location.latitude + " " + 
+										users[k].location.longitude + " " + users[k].unitPrice + " " + car.avgConsumption + "\n");
                                         //append user location to points
                                         points = points.concat(users[k].location.latitude + '%2C' + users[k].location.longitude);
                                         first = false;

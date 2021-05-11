@@ -55,15 +55,17 @@ firebase.auth().onAuthStateChanged(async function (user) {
 							console.log(keys);
             for (var i = keys.length-1; i >= 0; i--) {
                 //get request information
-                let k = keys[i]; //request ID
-				console.log(k);
-                let timestamp = data[k].timestamp; //request timestamp
-                let date = timestamp.substr(4, 11); //get date from the timestamp
-                let amount = data[k].amount + " kWh"; //requested charge amount
-                let cost = data[k].match.estAmount + " AED"; //amount of money charged/payed
-                let status = data[k].status; //request status (completed/canceled)
-                let role; //user's role in the request (requester/provider)
-                data[k].requester.uid == userId ? role = "requester" : role = "provider"; //set role
+				let k = keys[i]; //request ID
+				let timestamp = data[k].timestamp; //request timestamp
+				let date = timestamp.substr(4, 11); //get date from the timestamp
+				let amount = data[k].amount + " kWh"; //requested charge amount
+				let status = data[k].status; //request status (completed/canceled)
+				let cost;//amount of money charged/payed
+				if (status == 'completed') {
+				cost = data[k].match.estAmount + " AED"; //amount of money charged/payed
+				}
+				let role; //user's role in the request (requester/provider)
+				data[k].requester.uid == userId ? role = "requester" : role = "provider"; //set role
 
                 appendRequest(k, role, date, amount, status, cost); //append request to 'requestedDiv' or 'acceptedDiv'
                 appendRequestToAll(k, role, date, amount, status, cost); //append request to 'allDiv'

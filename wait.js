@@ -59,10 +59,11 @@ parentPort.on('message', message => {
                
                     
  
-            }else {//was 30
+            }else {
                 console.log("Thread: creating a child");
                 //top stack
-                fs.appendFile('procInfo.txt', "1\n", function (err) {//write the number of running proccesses to procInfo.txt
+				//write the number of running proccesses to procInfo.txt
+                fs.appendFile('procInfo.txt', "1\n", function (err) {
                     if (err) return console.log(err);
                 });
                 console.log("Thread: A child process will be created");
@@ -82,7 +83,6 @@ parentPort.on('message', message => {
                         lines.splice(0, 1);
                         // join the array back into a single string
                         newData = lines.join('\n');
-                       // console.log("new data is :" + newData);
                         fs.writeFile('procInfo.txt', newData, function (err) {
                             if (err) return console.log(err);
                             console.log('proc now:' + numProc);
@@ -98,8 +98,6 @@ parentPort.on('message', message => {
                     // remove one line, starting at the first position
                     lines.splice(0, 1);
                     // join the array back into a single string
-                   // newData = lines.join('\n');
-                    console.log("new data is :" + newData);
                     fs.writeFile('queue.txt', newData, function (err) {
                         if (err) return console.log(err);
                     });

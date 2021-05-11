@@ -810,8 +810,8 @@ router.post('/pay', async (request, response) => {                              
     paypalrequest.requestBody({
         "intent": "CAPTURE",
         "application_context": {
-            "return_url": "https://https://v2v-charge.herokuapp.com/home",
-            "cancel_url": "https://https://v2v-charge.herokuapp.com/account"
+            "return_url": "https://v2v-charge.herokuapp.com/home",
+            "cancel_url": "https://v2v-charge.herokuapp.com/account"
         },
         "purchase_units": [
             {
