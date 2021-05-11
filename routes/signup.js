@@ -40,9 +40,9 @@ router.post('/saveUser', async (request, response) => {
 
     //add user to the database
     await db.ref('users').child(userId).set({
-        creditScore: '100',
+        creditScore: 100,
         status: 'Available',
-        unitPrice: '0.37'
+        unitPrice: 0.37
     });
 
     //send response to client
